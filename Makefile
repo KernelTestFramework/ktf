@@ -44,12 +44,15 @@ QEMU_PARAMS += -no-reboot -no-shutdown
 QEMU_PARAMS += -enable-kvm
 QEMU_PARAMS += -append "param1 param2 param3"
 
+.PHONY: run
 run: all
 	sudo "$$QEMU_PATH"/qemu-system-x86_64 -kernel kernel64.bin $(QEMU_PARAMS)
 
+.PHONY: debug
 debug: all
 	sudo "$$QEMU_PATH"/qemu-system-x86_64 -kernel kernel64.bin $(QEMU_PARAMS) -S -s &
 
+.PHONY: gdb
 gdb: debug
 	gdb kernel64.bin -ex 'target remote :1234' -ex 'b _start' -ex 'c'
 	sudo killall -9 qemu-system-x86_64
