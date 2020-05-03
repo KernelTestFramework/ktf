@@ -1,6 +1,4 @@
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <ktf.h>
 
 static void putc(int c) {
     asm volatile("outb %%al, %%dx"
