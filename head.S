@@ -61,7 +61,7 @@ GLOBAL(_start)
     mov $_boot_stack_top, %rsp
 
     cld
-    //mov  %ebx, %edi
+    mov %rbx, %rdi
     call kernel_start
 
 GLOBAL(arch_crash)
