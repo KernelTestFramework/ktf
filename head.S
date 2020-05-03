@@ -1,4 +1,4 @@
-#include "asm-macros.h"
+#include <asm-macros.h>
 
 #define __BOOT_KERN_CS 0x08
 #define __BOOT_KERN_DS 0x10
@@ -6,7 +6,7 @@
 #define BOOT_STACK_SIZE 0x1000
 
 .code32
-SECTION(.text, 16)
+SECTION(.text, "ax", 16)
 
 GLOBAL(gdt_desc_ptr)
     .word boot_gdt_end - boot_gdt - 1
@@ -52,7 +52,8 @@ inf_loop:
     hlt
     jmp inf_loop
 
-SECTION(.bss, 16)
+SECTION(.bss, "aw", 16)
 _boot_stack:
-  .skip    BOOT_STACK_SIZE
+  .skip BOOT_STACK_SIZE
 _boot_stack_top:
+
