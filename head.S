@@ -47,10 +47,13 @@ GLOBAL(_start)
     //mov  %ebx, %edi
     call kernel_start
 
+GLOBAL(arch_crash)
     cli
-inf_loop:
+.Linf_loop:
     hlt
-    jmp inf_loop
+    pause
+    jmp .Linf_loop
+END_FUNC(arch_crash)
 
 SECTION(.bss, "aw", 16)
 _boot_stack:
