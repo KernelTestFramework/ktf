@@ -36,3 +36,13 @@ kernel64.bin: $(OBJS)
 
 clean:
 	rm -f *.d *.o *.bin
+
+QEMU_PARAMS := -machine q35,accel=kvm -m 1024
+QEMU_PARAMS += -display none -vga none -vnc none
+QEMU_PARAMS += -debugcon stdio -serial file:/dev/stdout
+QEMU_PARAMS += -no-reboot -no-shutdown
+QEMU_PARAMS += -enable-kvm
+QEMU_PARAMS += -append "param1 param2 param3"
+
+run: all
+	sudo "$$QEMU_PATH"/qemu-system-x86_64 -kernel kernel64.bin $(QEMU_PARAMS)
