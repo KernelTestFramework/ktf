@@ -46,3 +46,10 @@ QEMU_PARAMS += -append "param1 param2 param3"
 
 run: all
 	sudo "$$QEMU_PATH"/qemu-system-x86_64 -kernel kernel64.bin $(QEMU_PARAMS)
+
+debug: all
+	sudo "$$QEMU_PATH"/qemu-system-x86_64 -kernel kernel64.bin $(QEMU_PARAMS) -S -s &
+
+gdb: debug
+	gdb kernel64.bin -ex 'target remote :1234' -ex 'b _start' -ex 'c'
+	sudo killall -9 qemu-system-x86_64
