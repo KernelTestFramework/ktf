@@ -47,3 +47,5 @@ _boot_stack:
   .skip BOOT_STACK_SIZE
 _boot_stack_top:
 
+#define XEN_ELFNOTE_PHYS32_ENTRY  18
+ELF_NOTE(Xen, XEN_ELFNOTE_PHYS32_ENTRY, .long, _start)
