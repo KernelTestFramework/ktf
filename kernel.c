@@ -1,4 +1,5 @@
 #include <ktf.h>
+#include <string.h>
 
 static void putc(int c) {
     asm volatile("outb %%al, %%dx"
@@ -10,16 +11,6 @@ static void com1_write(const char *buf, size_t len) {
     asm volatile("rep; outsb"
                  : "+S" (buf), "+c" (len)
                  : "d" (0x3f8));
-}
-
-
-static size_t strlen(const char *str) {
-    size_t len = 0;
-
-    while (str[len])
-        len++;
-
-    return len;
 }
 
 void kernel_start(void) {
