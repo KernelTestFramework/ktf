@@ -24,6 +24,17 @@ name:
     .type name, STT_FUNC;   \
     SIZE(name)
 
+#define ELF_NOTE(name, type, size, addr) \
+    .section .note.name, "a";            \
+    .align 4;                            \
+    .long 2f - 1f; /* namesz */          \
+    .long 4f - 3f;  /* descsz */         \
+    .long type;    /* type   */          \
+1:.asciz #name;    /* name   */          \
+2:.align 4;                              \
+3:size addr;       /* desc   */          \
+4:.align 4;
+
 #endif
 
 #endif /* KTF_ASM_MACROS_H */
