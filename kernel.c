@@ -1,24 +1,9 @@
 #include <ktf.h>
+#include <console.h>
 #include <string.h>
 
-static void putc(int c) {
-    asm volatile("outb %%al, %%dx"
-                 : "+a" (c)
-                 :"d" (0xe9));
-}
-
-static void com1_write(const char *buf, size_t len) {
-    asm volatile("rep; outsb"
-                 : "+S" (buf), "+c" (len)
-                 : "d" (0x3f8));
-}
-
 void kernel_start(void) {
-    const char *str = "KTF - KVM Test Framework!\n";
+    register_console_callback(serial_console_write);
 
-    for (int i = 0; i < 80; i++)
-        putc('-');
-    putc('\n');
-
-    com1_write(str, strlen(str));
+    printk("KTF - KVM Test Framework!\n");
 }
