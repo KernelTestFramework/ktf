@@ -1,4 +1,5 @@
 #include <asm-macros.h>
+#include <processor.h>
 #include <desc.h>
 
 #define BOOT_STACK_SIZE 0x1000
@@ -27,10 +28,39 @@ GLOBAL(_start)
     mov   $_boot_stack_top, %esp
     mov   %esp, %ebp
 
+    mov   %cr4, %eax
+    or    $X86_CR4_PAE, %eax
+    mov   %eax, %cr4
 
+    mov   $l4_pt_entries, %eax
+    mov   %eax, %cr3
 
+    /* Enable long mode */
+    movl  $MSR_EFER, %ecx
+    rdmsr
+    or    $EFER_LME, %eax
+    wrmsr
 
+    /* Activate long mode: enable paging */
+    mov   %cr0, %eax
+    or    $(X86_CR0_PG | X86_CR0_WP), %eax
+    mov   %eax, %cr0
 
+    /* clear prefetch and jump to 64bit code */
+    ljmp $__KERN_CS64, $.Llong_mode
+
+.code64
+.Llong_mode:
+    xor %rax, %rax
+    mov %rax, %ds
+    mov %rax, %es
+    mov %rax, %fs
+    mov %rax, %gs
+    mov %rax, %ss
+
+    mov $_boot_stack_top, %rsp
+
+    cld
     //mov  %ebx, %edi
     call kernel_start
 
