@@ -20,6 +20,10 @@ name:
 #define SIZE(name) \
     .size name, (. - name);
 
+#define END_OBJECT(name) \
+    .type name, STT_OBJECT;   \
+    SIZE(name)
+
 #define END_FUNC(name) \
     .type name, STT_FUNC;   \
     SIZE(name)
