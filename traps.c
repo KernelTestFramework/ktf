@@ -27,6 +27,25 @@ void init_traps(void) {
     set_gate_offset(&idt[X86_EX_VE],  _ul(entry_VE));
     set_gate_offset(&idt[X86_EX_SE],  _ul(entry_SE));
 
+    tss_df.iopb = sizeof(tss_df);
+#if defined (__i386__)
+    tss_df.esp0 = _ul(GET_KERN_EM_STACK());
+    tss_df.ss   = __KERN_DS;
+    tss_df.ds   = __KERN_DS;
+    tss_df.es   = __KERN_DS;
+    tss_df.fs   = __KERN_DS;
+    tss_df.gs   = __KERN_DS;
+    tss_df.eip  = _ul(entry_DF);
+    tss_df.cs   = __KERN_CS;
+    tss_df.cr3  = _ul(l4_pt_entries);
+
+    set_desc_base(&gdt[GDT_TSS_DF], _ul(&tss_df));
+    /* FIXME */
+#else
+    set_gate_offset(&idt[X86_EX_DF], _ul(entry_DF));
+    idt[X86_EX_DF].ist = 0x1;
+#endif
+
     barrier();
     asm volatile ("lidt %0" :: "m" (idt_ptr));
 
