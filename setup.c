@@ -1,5 +1,6 @@
 #include <ktf.h>
 #include <page.h>
+#include <traps.h>
 #include <console.h>
 
 /*
@@ -15,6 +16,8 @@ void arch_setup(void) {
     register_console_callback(serial_console_write);
 
     /* TODO: Exception tables */
+
+    init_traps();
 
     /* TODO PerCPU support */
 
