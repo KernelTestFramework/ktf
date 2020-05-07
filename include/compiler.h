@@ -28,6 +28,10 @@
 #define __noinline      __attribute__((__noinline__))
 #define __section(s)    __attribute__((__section__(s)))
 
+#define __text __section(".text")
+#define __data __section(".data")
+#define __bss __section(".bss")
+
 #define barrier() __asm__ __volatile__ ("" ::: "memory")
 
 #define ARRAY_SIZE(a)    (sizeof(a) / sizeof(*a))
@@ -53,4 +57,5 @@
 #define TOKEN_OR11(t, x, ...) (t ## x | TOKEN_OR10(t, ##__VA_ARGS__))
 
 #define TOKEN_OR(t, ...)     COUNT_MACRO_ARGS(TOKEN_OR, t, ##__VA_ARGS__)
+
 #endif /* KTF_COMPILER_H */
