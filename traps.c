@@ -2,6 +2,7 @@
 #include <desc.h>
 #include <console.h>
 #include <string.h>
+#include <setup.h>
 #include <processor.h>
 
 void init_traps(void) {
@@ -29,6 +30,21 @@ void init_traps(void) {
     barrier();
     asm volatile ("lidt %0" :: "m" (idt_ptr));
 
+#if defined(__i386__)
+    tss.esp0 = _ul(GET_KERN_EX_STACK());
+    tss.ss0  = __KERN_DS;
+    tss.cr3  = _ul(l4_pt_entries);
+#elif defined(__x86_64__)
+    tss.rsp0 =   _ul(GET_KERN_EX_STACK());
+    tss.ist[0] = _ul(GET_KERN_EM_STACK());
+#endif
+    tss.iopb = sizeof(tss);
+
+    set_desc_base(&gdt[GDT_TSS], _ul(&tss));
+
+    barrier();
+    asm volatile("ltr %w0" :: "rm" (GDT_TSS << 3));
+}
 }
 
 static const char * const exception_names[] = {

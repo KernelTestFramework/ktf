@@ -2,11 +2,14 @@
 #define KTF_DESC_H
 
 #include <compiler.h>
+#include <tss.h>
+
 #define GDT_NULL      0x0
 #define GDT_KERN_CS32 0x1
 #define GDT_KERN_DS32 0x2
 #define GDT_KERN_CS64 0x3
 
+#define GDT_TSS 0x4
 #define __KERN_CS32 (GDT_KERN_CS32 << 3)
 #define __KERN_DS32 (GDT_KERN_DS32 << 3)
 #define __KERN_CS64 (GDT_KERN_CS64 << 3)
@@ -74,6 +77,16 @@ typedef struct x86_segment_desc x86_segment_desc_t;
 #define DESC_FLAGS(...) (TOKEN_OR(DESC_FLAG_, ##__VA_ARGS__))
 
 typedef x86_segment_desc_t gdtdesc_t;
+
+static inline void set_desc_base(x86_segment_desc_t *desc, unsigned long base) {
+    desc[0].base_lo =  (base & _ul(0x0000ffff));
+    desc[0].base_mi = ((base & _ul(0x00ff0000)) >> 16);
+    desc[0].base_hi = ((base & _ul(0xff000000)) >> 24);
+#if defined(__x86_64__)
+    desc[1].lo = (base >> 32);
+    desc[1].hi = 0;
+#endif
+}
 
 struct desc_ptr {
     uint16_t size;
@@ -190,6 +203,7 @@ typedef struct x86_gate64 idt_entry_t;
 
 #endif
 
+extern x86_tss_t tss;
 extern gdtdesc_t gdt[];
 
 extern idt_entry_t idt[256];
