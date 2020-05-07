@@ -60,6 +60,9 @@ GLOBAL(_start)
 
     mov $kernel_stack + 0x1000, %rsp
 
+    push $X86_EFLAGS_MBS
+    popf
+
     cld
     mov %rbx, %rdi
     call kernel_start
