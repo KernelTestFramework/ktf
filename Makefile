@@ -35,7 +35,7 @@ kernel64.bin: $(OBJS)
 	$(CC) -c -o $@ $(CFLAGS) $<
 
 clean:
-	rm -f *.d *.o *.bin
+	rm -f *.d *.o *.bin cscope.*
 
 QEMU_PARAMS := -machine q35,accel=kvm -m 1024
 QEMU_PARAMS += -display none -vga none -vnc none
@@ -56,3 +56,12 @@ debug: all
 gdb: debug
 	gdb kernel64.bin -ex 'target remote :1234' -ex 'b _start' -ex 'c'
 	sudo killall -9 qemu-system-x86_64
+
+define all_sources
+	find $(ROOT) -name "*.[hcsS]"
+endef
+
+.PHONY: cscope
+cscope:
+	$(all_sources) > cscope.files
+	cscope -b -q -k
