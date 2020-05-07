@@ -34,7 +34,7 @@ $(TARGET): $(OBJS)
 	$(CC) -c -o $@ $(CFLAGS) $<
 
 clean:
-	rm -f *.d *.o *.bin cscope.*
+	rm -f *.d *.o *.bin cscope.* *.iso grub/boot/*.bin
 
 QEMU_PARAMS := -machine q35,accel=kvm -m 1024
 QEMU_PARAMS += -display none -vga none -vnc none
@@ -43,6 +43,22 @@ QEMU_PARAMS += -no-reboot -no-shutdown
 QEMU_PARAMS += -enable-kvm
 QEMU_PARAMS_KERNEL := -append "param1 param2 param3"
 QEMU_PARAMS_DEBUG := -S -s &
+
+ISO_FILE := boot.iso
+
+.PHONY: iso
+iso: all
+	grub-file --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
+	cp $(TARGET) grub/boot/
+	grub-mkrescue -o $(ISO_FILE) grub
+
+.PHONY: boot
+boot: all iso
+	sudo qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS)
+
+.PHONY: boot_debug
+boot_debug: all iso
+	sudo qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS) $(QEMU_PARAMS_DEBUG)
 
 .PHONY: run
 run: all
