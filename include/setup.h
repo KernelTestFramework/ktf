@@ -4,6 +4,8 @@
 #include <ktf.h>
 #include <page.h>
 
+extern void arch_setup(void);
+
 extern uint8_t kernel_stack[3 * PAGE_SIZE];
 
 #define GET_KERN_STACK()    (&kernel_stack[1 * PAGE_SIZE])
