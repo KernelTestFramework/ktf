@@ -52,5 +52,6 @@ static inline unsigned char toupper(unsigned char c)
 extern unsigned long strtoul(const char *nptr, char **endptr, int base);
 extern long strtol(const char *nptr, char **endptr, int base);
 extern int vsnprintf(char *str, size_t size, char const *fmt, va_list ap);
+extern void snprintf(char *buf, size_t size, const char *fmt, ...);
 
 #endif /* KTF_STRING_H */
