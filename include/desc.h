@@ -10,6 +10,8 @@
 #define GDT_KERN_CS64 0x3
 
 #define GDT_TSS 0x4
+#define GDT_TSS_DF 0x5
+
 #define __KERN_CS32 (GDT_KERN_CS32 << 3)
 #define __KERN_DS32 (GDT_KERN_DS32 << 3)
 #define __KERN_CS64 (GDT_KERN_CS64 << 3)
@@ -204,6 +206,8 @@ typedef struct x86_gate64 idt_entry_t;
 #endif
 
 extern x86_tss_t tss;
+extern x86_tss_t tss_df;
+
 extern gdtdesc_t gdt[];
 
 extern idt_entry_t idt[256];
