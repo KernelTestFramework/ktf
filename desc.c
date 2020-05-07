@@ -2,12 +2,18 @@
 #include <asm-macros.h>
 #include <processor.h>
 #include <desc.h>
+#include <tss.h>
+
+x86_tss_t tss __aligned(16);
 
 gdtdesc_t gdt[] __aligned(16) = {
     [GDT_NULL]      = GDT_ENTRY(0x0, 0x0, 0x0),
     [GDT_KERN_CS32] = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, CODE, R, A), 0x0, 0xfffff),
     [GDT_KERN_DS32] = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
     [GDT_KERN_CS64] = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, CODE, R, A), 0x0, 0x00000),
+
+    [GDT_TSS]       = GDT_ENTRY(DESC_FLAGS(SZ, P, CODE, A), 0x0, sizeof(tss) - 1),
+    [GDT_TSS + 1]   = GDT_ENTRY(0x0, 0x0, 0x0),
 };
 
 gdt_ptr_t gdt_ptr __section(".data") = {
