@@ -154,9 +154,26 @@
     X86_EX_BIT(X86_EX_AC) | \
     X86_EX_BIT(X86_EX_SE))
 
+#define X86_EX_PFEC_PRESENT 0x01
+#define X86_EX_PFEC_WRITE   0x02
+#define X86_EX_PFEC_USER    0x04
+#define X86_EX_PFEC_RSVD    0x08
+#define X86_EX_PFEC_FETCH   0x10
+
+#define X86_EX_SEL_TLB_GDT  0x00
+#define X86_EX_SEL_TLB_IDT  0x01
+#define X86_EX_SEL_TLB_LDT  0x10
+#define X86_EX_SEL_TLB_IDT2 0x11
+
 #ifndef __ASSEMBLY__
 union x86_ex_error_code {
     uint32_t error_code;
+    struct __packed {
+        unsigned int E:1, TLB:2, index:13, rsvd_sel:16;
+    };
+    struct __packed {
+        unsigned int P:1, W:1, U:1, R:1, I:1, rsvd_pfec:27;
+    };
 };
 typedef union x86_ex_error_code x86_ex_error_code_t;
 
@@ -221,5 +238,10 @@ struct cpu_regs {
 };
 typedef struct cpu_regs cpu_regs_t;
 
+static inline bool has_error_code(uint32_t vector) {
+    return !!((1U << vector) & X86_EX_HAS_ERROR_CODE);
+}
+
 #endif /* __ASSEMBLY__ */
+
 #endif /* KTF_PROCESSOR_H */

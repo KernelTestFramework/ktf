@@ -1,6 +1,7 @@
 #include <ktf.h>
 #include <desc.h>
 #include <console.h>
+#include <string.h>
 #include <processor.h>
 
 void init_traps(void) {
@@ -55,6 +56,48 @@ static const char * const exception_names[] = {
     [X86_EX_SE]  = "SE",
 };
 
+static const char * const tlb_names[] = {
+    [X86_EX_SEL_TLB_GDT] = "GDT",
+    [X86_EX_SEL_TLB_IDT] = "IDT",
+    [X86_EX_SEL_TLB_LDT] = "LDT",
+    [X86_EX_SEL_TLB_IDT2] = "IDT",
+};
+
+static char *x86_ex_decode_error_code(char *buf, size_t size, uint32_t vector, x86_ex_error_code_t ec) {
+    switch (vector) {
+    case X86_EX_PF:
+       snprintf(buf, size, "%c%c%c%c%c",
+                ec.P ? 'P' : '-',
+                ec.W ? 'W' : 'R',
+                ec.U ? 'U' : 'S',
+                ec.R ? 'R' : '-',
+                ec.I ? 'I' : '-');
+       break;
+    case X86_EX_TS:
+    case X86_EX_NP:
+    case X86_EX_SS:
+    case X86_EX_GP:
+    case X86_EX_AC:
+       snprintf(buf, size, "%s%s[0x%02x]",
+                ec.E ? "#EXT " : "",
+                tlb_names[ec.TLB],
+                ec.index << 3);
+       break;
+    default:
+       snprintf(buf, size, "0x%08x", 0x0);
+       break;
+    }
+
+    return buf;
+}
+
 void do_exception(struct cpu_regs *regs) {
+    if (has_error_code(regs->vector)) {
+        static char ec_str[32];
+
+        x86_ex_decode_error_code(ec_str, sizeof(ec_str), regs->vector, regs->error_code);
+        panic("#%s (error code: %s)\n", exception_names[regs->vector], ec_str);
+    }
+    else
         panic("#%s\n", exception_names[regs->vector]);
 }
