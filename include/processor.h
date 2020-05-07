@@ -87,4 +87,139 @@
 
 #define MSR_TSC_AUX        0xc0000103
 
+/*
+ * Exception mnemonics.
+ */
+#define X86_EX_DE       0 /* Divide Error. */
+#define X86_EX_DB       1 /* Debug Exception. */
+#define X86_EX_NMI      2 /* NMI. */
+#define X86_EX_BP       3 /* Breakpoint. */
+#define X86_EX_OF       4 /* Overflow. */
+#define X86_EX_BR       5 /* BOUND Range. */
+#define X86_EX_UD       6 /* Invalid Opcode. */
+#define X86_EX_NM       7 /* Device Not Available. */
+#define X86_EX_DF       8 /* Double Fault. */
+#define X86_EX_CS       9 /* Coprocessor Segment Overrun. */
+#define X86_EX_TS      10 /* Invalid TSS. */
+#define X86_EX_NP      11 /* Segment Not Present. */
+#define X86_EX_SS      12 /* Stack-Segment Fault. */
+#define X86_EX_GP      13 /* General Porection Fault. */
+#define X86_EX_PF      14 /* Page Fault. */
+#define X86_EX_SPV     15 /* PIC Spurious Interrupt Vector. */
+#define X86_EX_MF      16 /* Maths fault (x87 FPU). */
+#define X86_EX_AC      17 /* Alignment Check. */
+#define X86_EX_MC      18 /* Machine Check. */
+#define X86_EX_XM      19 /* SIMD Exception. */
+#define X86_EX_VE      20 /* Virtualisation Exception. */
+#define X86_EX_SE      30 /* Security Exception. */
+
+#define X86_EX_BIT(exception) (1 << (exception))
+
+#define X86_EX_FAULT_BITMASK ( \
+    X86_EX_BIT(X86_EX_DE) | \
+    X86_EX_BIT(X86_EX_BR) | \
+    X86_EX_BIT(X86_EX_UD) | \
+    X86_EX_BIT(X86_EX_NM) | \
+    X86_EX_BIT(X86_EX_CS) | \
+    X86_EX_BIT(X86_EX_TS) | \
+    X86_EX_BIT(X86_EX_NP) | \
+    X86_EX_BIT(X86_EX_SS) | \
+    X86_EX_BIT(X86_EX_GP) | \
+    X86_EX_BIT(X86_EX_PF) | \
+    X86_EX_BIT(X86_EX_MF) | \
+    X86_EX_BIT(X86_EX_AC) | \
+    X86_EX_BIT(X86_EX_XM) | \
+    X86_EX_BIT(X86_EX_VE))
+
+#define X86_EX_TRAP_BITMASK ( \
+    X86_EX_BIT(X86_EX_DB) | \
+    X86_EX_BIT(X86_EX_BP) | \
+    X86_EX_BIT(X86_EX_OF))
+
+#define X86_EX_INTR_BITMASK ( \
+    X86_EX_BIT(X86_EX_NMI) | \
+    X86_EX_BIT(X86_EX_SPV))
+
+#define X86_EX_ABORT_BITMASK ( \
+    X86_EX_BIT(X86_EX_DF) | \
+    X86_EX_BIT(X86_EX_MC))
+
+#define X86_EX_HAS_ERROR_CODE ( \
+    X86_EX_BIT(X86_EX_DF) | \
+    X86_EX_BIT(X86_EX_TS) | \
+    X86_EX_BIT(X86_EX_NP) | \
+    X86_EX_BIT(X86_EX_SS) | \
+    X86_EX_BIT(X86_EX_GP) | \
+    X86_EX_BIT(X86_EX_PF) | \
+    X86_EX_BIT(X86_EX_AC) | \
+    X86_EX_BIT(X86_EX_SE))
+
+#ifndef __ASSEMBLY__
+union x86_ex_error_code {
+    uint32_t error_code;
+};
+typedef union x86_ex_error_code x86_ex_error_code_t;
+
+/*
+ * Exception handlers
+ */
+extern void entry_DE(void);
+extern void entry_DB(void);
+extern void entry_NMI(void);
+extern void entry_BP(void);
+extern void entry_OF(void);
+extern void entry_BR(void);
+extern void entry_UD(void);
+extern void entry_NM(void);
+extern void entry_DF(void);
+extern void entry_CS(void);
+extern void entry_TS(void);
+extern void entry_NP(void);
+extern void entry_SS(void);
+extern void entry_GP(void);
+extern void entry_PF(void);
+extern void entry_MF(void);
+extern void entry_AC(void);
+extern void entry_MC(void);
+extern void entry_XM(void);
+extern void entry_VE(void);
+extern void entry_SE(void);
+
+#if defined(__x86_64__)
+typedef uint64_t x86_reg_t;
+#elif defined(__i386__)
+typedef uint32_t x86_reg_t;
+#endif
+
+struct cpu_regs {
+    x86_reg_t r15;
+    x86_reg_t r14;
+    x86_reg_t r13;
+    x86_reg_t r12;
+    x86_reg_t r11;
+    x86_reg_t r10;
+    x86_reg_t r9;
+    x86_reg_t r8;
+    x86_reg_t _ASM_BP;
+    x86_reg_t _ASM_DI;
+    x86_reg_t _ASM_SI;
+    x86_reg_t _ASM_DX;
+    x86_reg_t _ASM_CX;
+    x86_reg_t _ASM_BX;
+    x86_reg_t _ASM_AX;
+
+    x86_ex_error_code_t error_code;
+    /* Populated by exception entry */
+    uint32_t vector;
+
+    /* Hardware exception */
+    x86_reg_t _ASM_IP;
+    uint16_t cs, _pad_cs[3];
+    x86_reg_t _ASM_FLAGS;
+    x86_reg_t _ASM_SP;
+    uint16_t ss, _pad_ss[3];
+};
+typedef struct cpu_regs cpu_regs_t;
+
+#endif /* __ASSEMBLY__ */
 #endif /* KTF_PROCESSOR_H */

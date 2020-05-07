@@ -1,6 +1,25 @@
 #ifndef KTF_ASM_MACROS_H
 #define KTF_ASM_MACROS_H
 
+#if defined(__i386__)
+#define _ASM_REG(reg) e ## reg
+#elif defined(__x86_64__)
+#define _ASM_REG(reg) r ## reg
+#else
+#define _ASM_REG(reg) reg
+#endif
+
+#define _ASM_AX _ASM_REG(ax)
+#define _ASM_BX _ASM_REG(bx)
+#define _ASM_CX _ASM_REG(cx)
+#define _ASM_DX _ASM_REG(dx)
+#define _ASM_SI _ASM_REG(si)
+#define _ASM_DI _ASM_REG(di)
+#define _ASM_BP _ASM_REG(bp)
+#define _ASM_SP _ASM_REG(sp)
+#define _ASM_IP _ASM_REG(ip)
+#define _ASM_FLAGS _ASM_REG(flags)
+
 #ifdef __ASSEMBLY__
 
 .macro putc val
@@ -9,9 +28,53 @@
   outb %al, %dx;
 .endm
 
+.macro SAVE_REGS
+    push %_ASM_AX
+    push %_ASM_BX
+    push %_ASM_CX
+    push %_ASM_DX
+    push %_ASM_SI
+    push %_ASM_DI
+    push %_ASM_BP
+#if defined(__x86_64__)
+    push %r8
+    push %r9
+    push %r10
+    push %r11
+    push %r12
+    push %r13
+    push %r14
+    push %r15
+#endif
+.endm
+
+.macro RESTORE_REGS
+#if defined(__x86_64__)
+    pop %r15
+    pop %r14
+    pop %r13
+    pop %r12
+    pop %r11
+    pop %r10
+    pop %r9
+    pop %r8
+#endif
+    pop %_ASM_BP
+    pop %_ASM_DI
+    pop %_ASM_SI
+    pop %_ASM_DX
+    pop %_ASM_CX
+    pop %_ASM_BX
+    pop %_ASM_AX
+.endm
+
 #define GLOBAL(name) \
     .global name;    \
 name:
+
+#define ENTRY(name) \
+    .align 16;      \
+    GLOBAL(name)
 
 #define SECTION(name, flags, alignment) \
     .section name, flags;               \
