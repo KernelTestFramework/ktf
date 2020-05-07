@@ -1,4 +1,5 @@
 #include <ktf.h>
+#include <lib.h>
 #include <desc.h>
 #include <console.h>
 #include <string.h>
@@ -64,6 +65,53 @@ void init_traps(void) {
     barrier();
     asm volatile("ltr %w0" :: "rm" (GDT_TSS << 3));
 }
+
+static void dump_general_regs(const struct cpu_regs *regs) {
+    printk("RAX=0x%016lx  R8=0x%016lx\n"
+           "RBX=0x%016lx  R9=0x%016lx\n"
+           "RCX=0x%016lx R10=0x%016lx\n"
+           "RDX=0x%016lx R11=0x%016lx\n"
+           "RSI=0x%016lx R12=0x%016lx\n"
+           "RDI=0x%016lx R13=0x%016lx\n"
+           "RBP=0x%016lx R14=0x%016lx\n"
+           "RSP=0x%016lx R15=0x%016lx\n"
+           "\nRIP=0x%016lx\n\n",
+           regs->_ASM_AX, regs->r8,
+           regs->_ASM_BX, regs->r9,
+           regs->_ASM_CX, regs->r10,
+           regs->_ASM_DX, regs->r11,
+           regs->_ASM_SI, regs->r12,
+           regs->_ASM_DI, regs->r13,
+           regs->_ASM_BP, regs->r14,
+           regs->_ASM_SP, regs->r15,
+           regs->_ASM_IP);
+}
+
+static void dump_control_regs(const struct cpu_regs *regs) {
+    printk("CR0=0x%016lx CR2=0x%016lx\n"
+           "CR3=0x%016lx CR4=0x%016lx\n"
+           "CR8=0x%016lx\n\n",
+           read_cr0(), read_cr2(),
+           read_cr3(), read_cr4(),
+           read_cr8());
+}
+
+static void dump_segment_regs(const struct cpu_regs *regs) {
+    printk("CS=0x%04x DS=0x%04x SS=0x%04x\n"
+           "ES=0x%04x FS=0x%04x GS=0x%04x\n\n",
+           read_cs(), read_ds(), read_ss(),
+           read_es(), read_fs(), read_gs());
+}
+
+static void dump_flags(const struct cpu_regs *regs) {
+    printk("RFLAGS=0x%016x\n\n", regs->_ASM_FLAGS);
+}
+
+static void dump_regs(const struct cpu_regs *regs) {
+    dump_general_regs(regs);
+    dump_segment_regs(regs);
+    dump_control_regs(regs);
+    dump_flags(regs);
 }
 
 static const char * const exception_names[] = {
@@ -127,6 +175,8 @@ static char *x86_ex_decode_error_code(char *buf, size_t size, uint32_t vector, x
 }
 
 void do_exception(struct cpu_regs *regs) {
+    dump_regs(regs);
+
     if (has_error_code(regs->vector)) {
         static char ec_str[32];
 
