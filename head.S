@@ -58,7 +58,7 @@ GLOBAL(_start)
     mov %rax, %gs
     mov %rax, %ss
 
-    mov $_boot_stack_top, %rsp
+    mov $kernel_stack + 0x1000, %rsp
 
     cld
     mov %rbx, %rdi
