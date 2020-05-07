@@ -32,4 +32,25 @@
 
 #define ARRAY_SIZE(a)    (sizeof(a) / sizeof(*a))
 
+#define VA_NARGS_(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
+#define VA_NARGS(...) VA_NARGS_(_, ## __VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+
+#define COUNT_MACRO_ARGS__(macro, tok, count, ...) macro##count(tok, ##__VA_ARGS__)
+#define COUNT_MACRO_ARGS_(macro, tok, count, ...) COUNT_MACRO_ARGS__(macro, tok, count, ##__VA_ARGS__)
+#define COUNT_MACRO_ARGS(macro, tok, ...) COUNT_MACRO_ARGS_(macro, tok, VA_NARGS(__VA_ARGS__), ##__VA_ARGS__)
+
+#define TOKEN_OR0(t)          (0)
+#define TOKEN_OR1(t, x)       (t ## x)
+#define TOKEN_OR2(t, x, ...)  (t ## x | TOKEN_OR1(t, ##__VA_ARGS__))
+#define TOKEN_OR3(t, x, ...)  (t ## x | TOKEN_OR2(t, ##__VA_ARGS__))
+#define TOKEN_OR4(t, x, ...)  (t ## x | TOKEN_OR3(t, ##__VA_ARGS__))
+#define TOKEN_OR5(t, x, ...)  (t ## x | TOKEN_OR4(t, ##__VA_ARGS__))
+#define TOKEN_OR6(t, x, ...)  (t ## x | TOKEN_OR5(t, ##__VA_ARGS__))
+#define TOKEN_OR7(t, x, ...)  (t ## x | TOKEN_OR6(t, ##__VA_ARGS__))
+#define TOKEN_OR8(t, x, ...)  (t ## x | TOKEN_OR7(t, ##__VA_ARGS__))
+#define TOKEN_OR9(t, x, ...)  (t ## x | TOKEN_OR8(t, ##__VA_ARGS__))
+#define TOKEN_OR10(t, x, ...) (t ## x | TOKEN_OR9(t, ##__VA_ARGS__))
+#define TOKEN_OR11(t, x, ...) (t ## x | TOKEN_OR10(t, ##__VA_ARGS__))
+
+#define TOKEN_OR(t, ...)     COUNT_MACRO_ARGS(TOKEN_OR, t, ##__VA_ARGS__)
 #endif /* KTF_COMPILER_H */
