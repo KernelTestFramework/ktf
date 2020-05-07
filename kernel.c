@@ -4,9 +4,11 @@
 #include <setup.h>
 #include <multiboot.h>
 
-void kernel_start(multiboot_info_t *mbi, const char *cmdline) {
+void kernel_start(multiboot_info_t *mbi) {
+
     arch_setup();
 
     printk("KTF - KVM Test Framework!\n");
-    printk("Multiboot cmdline: %s\n", cmdline);
+    printk("Multiboot cmdline: %s\n", mbi->cmdline);
+
 }
