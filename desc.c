@@ -5,6 +5,7 @@
 #include <tss.h>
 
 x86_tss_t tss __aligned(16);
+x86_tss_t tss_df __aligned(16);
 
 gdtdesc_t gdt[] __aligned(16) = {
     [GDT_NULL]      = GDT_ENTRY(0x0, 0x0, 0x0),
@@ -14,6 +15,9 @@ gdtdesc_t gdt[] __aligned(16) = {
 
     [GDT_TSS]       = GDT_ENTRY(DESC_FLAGS(SZ, P, CODE, A), 0x0, sizeof(tss) - 1),
     [GDT_TSS + 1]   = GDT_ENTRY(0x0, 0x0, 0x0),
+#if defined(__i386__)
+    [GDT_TSS_DF]    = GDT_ENTRY(DESC_FLAGS(SZ, P, CODE, A), 0x0, sizeof(tss_df) - 1),
+#endif
 };
 
 gdt_ptr_t gdt_ptr __section(".data") = {
