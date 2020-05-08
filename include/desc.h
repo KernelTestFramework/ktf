@@ -24,14 +24,20 @@
 #define __KERN_DS (0)
 #endif
 
-#define GDT_ENTRY(flags, base, limit)  { .quad =     \
-        ((((base)  & _U64(0xff000000)) << (56-24)) | \
+#define _GDT_ENTRY(flags, base, limit) ( \
+         (((base)  & _U64(0xff000000)) << (56-24)) | \
          (((flags) & _U64(0x0000f0ff)) << 40)      | \
          (((limit) & _U64(0x000f0000)) << (48-16)) | \
          (((base)  & _U64(0x00ffffff)) << 16)      | \
-         (((limit) & _U64(0x0000ffff)))) }
+         (((limit) & _U64(0x0000ffff))))
 
-#ifndef __ASSEMBLY__
+#ifdef __ASSEMBLY__
+
+#define GDT_ENTRY(flags, base, limit) _GDT_ENTRY(flags, base, limit)
+
+#else
+
+#define GDT_ENTRY(flags, base, limit)  { .quad = (_GDT_ENTRY(flags, base, limit)) }
 
 struct __packed x86_segment_desc {
     union {
@@ -212,6 +218,6 @@ extern gdtdesc_t gdt[];
 
 extern idt_entry_t idt[256];
 extern idt_ptr_t idt_ptr;
-#endif
+#endif /* __ASSEMBLY__ */
 
 #endif /* KTF_DESC_H */
