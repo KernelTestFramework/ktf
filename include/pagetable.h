@@ -111,6 +111,17 @@ static inline pt_index_t l3_table_index(const void *va) { return (_ul(va) >> L3_
 static inline pt_index_t l4_table_index(const void *va) { return (_ul(va) >> L4_PT_SHIFT) & (L4_PT_ENTRIES - 1); }
 #endif
 
+static inline unsigned long l1_index_to_virt(pt_index_t idx) { return _ul(idx) << L1_PT_SHIFT; }
+static inline unsigned long l2_index_to_virt(pt_index_t idx) { return _ul(idx) << L2_PT_SHIFT; }
+static inline unsigned long l3_index_to_virt(pt_index_t idx) { return _ul(idx) << L3_PT_SHIFT; }
+#if defined (__x86_64__)
+static inline unsigned long l4_index_to_virt(pt_index_t idx) { return _ul(idx) << L4_PT_SHIFT; }
+#endif
+
+static inline void *virt_from_index(pt_index_t l4, pt_index_t l3, pt_index_t l2, pt_index_t l1) {
+    return _ptr(l4_index_to_virt(l4) | l3_index_to_virt(l3) | l2_index_to_virt(l2) | l1_index_to_virt(l1));
+}
+
 #if defined (__x86_64__)
 static inline pml4_t *l4_table_entry(pml4_t *tab, const void *va) { return &tab[l4_table_index(va)]; }
 #endif
