@@ -188,7 +188,11 @@ static inline void set_pte(const void *va, paddr_t pa, unsigned long flags) {
 
 /* External declarations */
 
+extern pgentry_t l1_pt_entries[L1_PT_ENTRIES];
+extern pgentry_t l2_pt_entries[L2_PT_ENTRIES];
+extern pgentry_t l3_pt_entries[L3_PT_ENTRIES];
 #if defined (__x86_64__)
+extern pml4_t l4_pt_entries[L4_PT_ENTRIES];
 extern pml4_t l4_pagetable[L4_PT_ENTRIES];
 #elif defined (__i386__)
 extern pdpe_t l3_pagetable[L3_PT_ENTRIES];
