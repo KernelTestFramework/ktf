@@ -20,32 +20,87 @@ SECTIONS
         *(.multiboot)
     }
 
-    . = 640K;
+    .text.init BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_text_init = .;
+            *(.text.init)
+        . = ALIGN(4K);
+        __end_text_init = .;
+    }
+
+    .data.init BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_data_init = .;
+            *(.data.init)
+        . = ALIGN(4K);
+        __end_data_init = .;
+    }
+
+    .bss.init BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_bss_init = .;
+            *(.bss.init)
+            *(COMMON.init)
+        . = ALIGN(4K);
+        __end_bss_init = .;
+
+    }
 
     .text BLOCK(4K) : ALIGN(4K)
     {
-        *(.text)
-    }
-
-    .rodata BLOCK(4K) : ALIGN(4K)
-    {
-        *(.rodata)
-        *(.rodata.*)
+        . = ALIGN(4K);
+        __start_text = .;
+            *(.text)
+        . = ALIGN(4K);
+        __end_text = .;
     }
 
     .data BLOCK(4K) : ALIGN(4K)
     {
-        *(.data)
+        . = ALIGN(4K);
+        __start_data = .;
+            *(.data)
+        . = ALIGN(4K);
+        __end_data = .;
+    }
+
+    .bss BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_bss = .;
+            *(COMMON)
+            *(.bss)
+        . = ALIGN(4K);
+        __end_bss = .;
+    }
+
+    .rodata BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_rodata = .;
+        *(.rodata)
+        *(.rodata.*)
+        . = ALIGN(4K);
+        __end_rodata = .;
     }
 
     .note :
     {
+        . = ALIGN(4K);
+        __start_note = .;
         *(.note)
         *(.note.*)
+        . = ALIGN(4K);
+        __end_note = .;
     }
-    .bss BLOCK(4K) : ALIGN(4K)
+
+    /DISCARD/ :
     {
-        *(COMMON)
-        *(.bss)
+        *(.eh_frame)
+        *(.comment)
+        *(.note)
     }
 }
