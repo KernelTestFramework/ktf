@@ -30,10 +30,12 @@ $(TARGET): $(OBJS)
 	@ ld -T $(PREP_LINK_SCRIPT) -o $@ $^
 
 %.o: %.S
-	$(CC) -c -o $@ $(AFLAGS) $<
+	@echo "AS " $@
+	@ $(CC) -c -o $@ $(AFLAGS) $<
 
 %.o: %.c
-	$(CC) -c -o $@ $(CFLAGS) $<
+	@echo "CC " $@
+	@ $(CC) -c -o $@ $(CFLAGS) $<
 
 clean:
 	@echo "CLEAN"
@@ -56,13 +58,15 @@ ISO_FILE := boot.iso
 
 .PHONY: iso
 iso: all
-	grub-file --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
-	cp $(TARGET) grub/boot/
-	grub-mkrescue -o $(ISO_FILE) grub
+	@echo "GEN ISO" $(ISO_FILE)
+	@ grub-file --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
+	@ cp $(TARGET) grub/boot/
+	@ grub-mkrescue -o $(ISO_FILE) grub 2>> /dev/null
 
 .PHONY: boot
 boot: all iso
-	sudo qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS)
+	@echo "QEMU START"
+	@ sudo qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS)
 
 .PHONY: boot_debug
 boot_debug: all iso
@@ -87,5 +91,6 @@ endef
 
 .PHONY: cscope
 cscope:
-	$(all_sources) > cscope.files
-	cscope -b -q -k
+	@echo "CSCOPE"
+	@ $(all_sources) > cscope.files
+	@ cscope -b -q -k
