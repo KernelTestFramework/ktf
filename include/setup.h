@@ -7,6 +7,7 @@
 #include <page.h>
 
 extern uint8_t kernel_stack[KERN_STACK_SIZE + 2 * PAGE_SIZE];
+extern uint8_t user_stack[PAGE_SIZE];
 
 #define GET_KERN_STACK()    (&kernel_stack[KERN_STACK_SIZE])
 #define GET_KERN_EX_STACK() (&kernel_stack[KERN_STACK_SIZE + PAGE_SIZE])
@@ -18,6 +19,10 @@ extern unsigned long __start_text[], __end_text[];
 extern unsigned long __start_data[], __end_data[];
 extern unsigned long __start_bss[],  __end_bss[];
 extern unsigned long __start_rodata[], __end_rodata[];
+
+extern unsigned long __start_text_user[], __end_text_user[];
+extern unsigned long __start_data_user[], __end_data_user[];
+extern unsigned long __start_bss_user[], __end_bss_user[];
 
 extern unsigned long __start_text_init[], __end_text_init[];
 extern unsigned long __start_data_init[], __end_data_init[];
@@ -34,6 +39,8 @@ typedef struct addr_range addr_range_t;
 
 #define KERN_ADDR_RANGES_NUM 4
 extern addr_range_t kern_addr_ranges[];
+#define USER_ADDR_RANGES_NUM 3
+extern addr_range_t user_addr_ranges[];
 #define INIT_ADDR_RANGES_NUM 3
 extern addr_range_t init_addr_ranges[];
 
