@@ -5,8 +5,9 @@
 #include <multiboot.h>
 
 void kernel_main(void) {
-    printk("\nKTF - KVM Test Framework!\n");
+    printk("\nKTF - KVM Test Framework!\n\n");
 
+    display_memory_map();
     display_multiboot_mmap();
 
     dump_pagetables();
