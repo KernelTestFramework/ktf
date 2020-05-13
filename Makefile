@@ -6,10 +6,10 @@ CC := gcc
 COMMON_FLAGS := -I$(ROOT)/include -pipe -MP -MMD -m64 -D__x86_64__
 
 AFLAGS  := $(COMMON_FLAGS) -D__ASSEMBLY__ -nostdlib -nostdinc
-CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O -g -Wall -ffreestanding
+CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O3 -g -Wall -ffreestanding
 CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse
 CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin
-CFLAGS  += -fno-asynchronous-unwind-tables -fno-unwind-tables
+CFLAGS  += -mcmodel=kernel -fno-pic -fno-asynchronous-unwind-tables -fno-unwind-tables
 
 SOURCES     := $(shell find . -name \*.c)
 ASM_SOURCES := $(shell find . -name \*.S)
