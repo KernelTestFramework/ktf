@@ -68,6 +68,21 @@ static inline char *strcpy(char *d, const char *s) {
     return d;
 }
 
+static inline void sti(void) {
+    asm volatile ("sti");
+}
+
+static inline void cli(void) {
+    asm volatile ("cli");
+}
+
+static inline void pause(void) {
+    asm volatile ("pause");
+}
+
+static inline void hlt(void) {
+    asm volatile ("hlt");
+}
 
 static inline unsigned long read_flags(void) {
     unsigned long flags;
@@ -192,5 +207,9 @@ static inline void sidt(idt_ptr_t *idt_ptr) {
 static inline void str(unsigned int *selector) {
     asm volatile ("str %0" : "=m" (*selector));
 }
+
+/* External declarations */
+
+extern void halt(void);
 
 #endif /* KTF_LIB_H */

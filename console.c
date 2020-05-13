@@ -1,4 +1,5 @@
 #include <ktf.h>
+#include <lib.h>
 #include <string.h>
 #include <console.h>
 
@@ -73,5 +74,5 @@ void __noreturn panic(const char *fmt, ...) {
     printk("******************************\n");
 
     while(1)
-        arch_crash();
+        halt();
 }
