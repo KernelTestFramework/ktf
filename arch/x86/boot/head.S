@@ -58,8 +58,6 @@ GLOBAL(_start)
     mov %rax, %gs
     mov %rax, %ss
 
-    mov $kernel_stack + 0x1000, %rsp
-
     push $X86_EFLAGS_MBS
     popf
 

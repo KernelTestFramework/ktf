@@ -23,6 +23,20 @@ extern unsigned long __start_text_init[], __end_text_init[];
 extern unsigned long __start_data_init[], __end_data_init[];
 extern unsigned long __start_bss_init[], __end_bss_init[];
 
+struct addr_range {
+    const char *name;
+    unsigned long base;
+    unsigned long flags;
+    void *from;
+    void *to;
+};
+typedef struct addr_range addr_range_t;
+
+#define KERN_ADDR_RANGES_NUM 4
+extern addr_range_t kern_addr_ranges[];
+#define INIT_ADDR_RANGES_NUM 3
+extern addr_range_t init_addr_ranges[];
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* SETUP_SETUP_H */
