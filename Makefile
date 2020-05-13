@@ -11,11 +11,11 @@ CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse
 CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin
 CFLAGS  += -fno-asynchronous-unwind-tables -fno-unwind-tables
 
+SOURCES     := $(shell find . -name \*.c)
+ASM_SOURCES := $(shell find . -name \*.S)
+LINK_SCRIPT := $(shell find . -name \*.ld)
 LDFLAGS := -nostdlib -lgcc
 
-SOURCES := $(wildcard *.c)
-ASM_SOURCES := $(wildcard *.S)
-LINK_SCRIPT := $(wildcard *.ld)
 
 OBJS := $(SOURCES:%.c=%.o)
 OBJS += $(ASM_SOURCES:%.S=%.o)
@@ -34,7 +34,13 @@ $(TARGET): $(OBJS)
 	$(CC) -c -o $@ $(CFLAGS) $<
 
 clean:
-	rm -f *.d *.o *.bin cscope.* *.iso grub/boot/*.bin
+	@echo "CLEAN"
+	@ find $(ROOT) -name \*.d -delete
+	@ find $(ROOT) -name \*.o -delete
+	@ find $(ROOT) -name \*.lds -delete
+	@ find $(ROOT) -name \*.bin -delete
+	@ find $(ROOT) -name \*.iso -delete
+	@ find $(ROOT) -name cscope.\* -delete
 
 QEMU_PARAMS := -machine q35,accel=kvm -m 1024
 QEMU_PARAMS += -display none -vga none -vnc none

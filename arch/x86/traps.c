@@ -1,6 +1,6 @@
 #include <ktf.h>
 #include <lib.h>
-#include <desc.h>
+#include <segment.h>
 #include <console.h>
 #include <string.h>
 #include <setup.h>
