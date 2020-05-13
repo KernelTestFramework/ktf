@@ -100,14 +100,18 @@ static void dump_control_regs(const struct cpu_regs *regs) {
 }
 
 static void dump_segment_regs(const struct cpu_regs *regs) {
-    printk("CS=0x%04x DS=0x%04x SS=0x%04x\n"
-           "ES=0x%04x FS=0x%04x GS=0x%04x\n\n",
+    printk("CURRENT:\n"
+           "CS=0x%04x DS=0x%04x SS=0x%04x\n"
+           "ES=0x%04x FS=0x%04x GS=0x%04x\n"
+           "EXCEPTION:\n"
+           "CS=0x%04x SS=0x%04x\n\n",
            read_cs(), read_ds(), read_ss(),
-           read_es(), read_fs(), read_gs());
+           read_es(), read_fs(), read_gs(),
+           regs->cs, regs->ss);
 }
 
 static void dump_flags(const struct cpu_regs *regs) {
-    printk("RFLAGS=0x%016x\n\n", regs->_ASM_FLAGS);
+    printk("RFLAGS=0x%016lx\n\n", regs->_ASM_FLAGS);
 }
 
 static void dump_stack(const struct cpu_regs *regs, int words, int lines) {
@@ -178,13 +182,13 @@ static char *x86_ex_decode_error_code(char *buf, size_t size, uint32_t vector, x
     case X86_EX_SS:
     case X86_EX_GP:
     case X86_EX_AC:
-       snprintf(buf, size, "%s%s[0x%02x]",
+       snprintf(buf, size, "%s%s[0x%02x] ",
                 ec.E ? "#EXT " : "",
                 tlb_names[ec.TLB],
-                ec.index << 3);
+                ec.index);
        break;
     default:
-       snprintf(buf, size, "0x%08x", 0x0);
+       snprintf(buf, size, "0x%08x ", 0x0);
        break;
     }
 
@@ -192,14 +196,15 @@ static char *x86_ex_decode_error_code(char *buf, size_t size, uint32_t vector, x
 }
 
 void do_exception(struct cpu_regs *regs) {
+    static char ec_str[32], panic_str[128];
+
     dump_regs(regs);
 
-    if (has_error_code(regs->vector)) {
-        static char ec_str[32];
-
+    if (has_error_code(regs->vector))
         x86_ex_decode_error_code(ec_str, sizeof(ec_str), regs->vector, regs->error_code);
-        panic("#%s (error code: %s)\n", exception_names[regs->vector], ec_str);
-    }
-    else
-        panic("#%s\n", exception_names[regs->vector]);
+
+    snprintf(panic_str, sizeof(panic_str), "#%s %sat IP: 0x%02x:0x%016lx SP: 0x%02x:0x%016lx\n",
+             exception_names[regs->vector], ec_str, regs->cs, regs->_ASM_IP, regs->ss, regs->_ASM_SP);
+
+    panic(panic_str);
 }
