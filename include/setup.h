@@ -44,6 +44,7 @@ extern addr_range_t user_addr_ranges[];
 #define INIT_ADDR_RANGES_NUM 3
 extern addr_range_t init_addr_ranges[];
 
+extern void display_memory_map(void);
 extern void dump_pagetables(void);
 
 #endif /* __ASSEMBLY__ */

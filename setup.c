@@ -39,6 +39,21 @@ addr_range_t init_addr_ranges[] = {
     { .name = ".bss.init",  .base = VIRT_IDENT_BASE, .flags = L1_PROT,    .from = __start_bss_init,  .to = __end_bss_init  },
 };
 
+static inline void display_addr_range(addr_range_t *r) {
+    printk("%10s: VA: [0x%016lx - 0x%016lx] PA: [0x%08lx - 0x%08lx]\n",
+           r->name, r->from, r->to, r->from - r->base, r->to - r->base);
+}
+
+void display_memory_map(void) {
+    printk("Memory Map:\n");
+
+    for (int i = 0; i < ARRAY_SIZE(kern_addr_ranges); i++)
+        display_addr_range(&kern_addr_ranges[i]);
+
+    for (int i = 0; i < ARRAY_SIZE(user_addr_ranges); i++)
+        display_addr_range(&user_addr_ranges[i]);
+}
+
 static void init_console(void) {
     register_console_callback(serial_console_write);
 }
