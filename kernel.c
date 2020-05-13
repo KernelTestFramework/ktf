@@ -12,6 +12,8 @@ void kernel_main(void) {
 
     dump_pagetables();
 
+    test_main();
+
     while(1)
         halt();
 }
