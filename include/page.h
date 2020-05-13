@@ -33,8 +33,11 @@
 
 #define L1_PT_ENTRIES (PAGE_SIZE / PTE_SIZE)
 #define L2_PT_ENTRIES (PAGE_SIZE / PTE_SIZE)
+#if defined (__x86_64__)
 #define L3_PT_ENTRIES (PAGE_SIZE / PTE_SIZE)
-#define L3_32_PT_ENTRIES 4
 #define L4_PT_ENTRIES (PAGE_SIZE / PTE_SIZE)
+#elif defined(__i386__)
+#define L3_PT_ENTRIES 4
+#endif
 
 #endif /* KTF_PAGE_H */
