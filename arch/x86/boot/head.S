@@ -5,12 +5,12 @@
 #define BOOT_STACK_SIZE 0x1000
 
 .code32
-SECTION(.text, "ax", 16)
+SECTION(.text.init, "ax", 16)
 GLOBAL(_start)
     mov   %cs, %ax
     mov   %ax, %ds
 
-    lgdt  gdt_ptr
+    lgdt  boot_gdt_ptr
 
     xor   %ax, %ax
     inc   %ax
@@ -75,9 +75,9 @@ GLOBAL(arch_crash)
     jmp .Linf_loop
 END_FUNC(arch_crash)
 
-SECTION(.bss, "aw", 16)
+SECTION(.data.init, "aw", 16)
 _boot_stack:
-  .skip BOOT_STACK_SIZE
+    .skip BOOT_STACK_SIZE
 _boot_stack_top:
 
 #define XEN_ELFNOTE_PHYS32_ENTRY  18
