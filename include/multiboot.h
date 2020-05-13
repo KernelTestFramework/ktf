@@ -232,6 +232,7 @@ struct multiboot_mmap_entry
   uint32_t size;
   uint64_t addr;
   uint64_t len;
+#define MULTIBOOT_MEMORY_UNDEFINED              0
 #define MULTIBOOT_MEMORY_AVAILABLE              1
 #define MULTIBOOT_MEMORY_RESERVED               2
 #define MULTIBOOT_MEMORY_ACPI_RECLAIMABLE       3
@@ -272,5 +273,8 @@ struct multiboot_apm_info
 #endif /* ! ASM_FILE */
 
 #endif /* ! MULTIBOOT_HEADER */
+
+extern void display_multiboot_mmap(void);
+extern void init_multiboot(multiboot_info_t *mbi);
 
 #endif /* KTF_MULTIBOOT_H */
