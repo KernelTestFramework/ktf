@@ -10,6 +10,6 @@
 
 #include <compiler.h>
 
-extern void arch_crash(void);
+extern void kernel_main(void);
 
 #endif /* KTF_KTF_H */
