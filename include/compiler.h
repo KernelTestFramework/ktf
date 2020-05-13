@@ -35,6 +35,10 @@
 #define __data __section(".data")
 #define __bss __section(".bss")
 
+#define __text_init __section(".text.init")
+#define __data_init __section(".data.init")
+#define __bss_init __section(".bss.init")
+
 #define barrier() __asm__ __volatile__ ("" ::: "memory")
 
 #define ARRAY_SIZE(a)    (sizeof(a) / sizeof(*a))

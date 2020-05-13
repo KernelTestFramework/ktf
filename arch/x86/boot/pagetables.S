@@ -3,8 +3,8 @@
 
 #define _PADDR(table, shift) (((. - (table)) / PTE_SIZE) << (shift))
 
-SECTION(.data, "aw", 0x1000)
-
+/* Initial identity map page tables */
+SECTION(.data.init, "aw", 0x1000)
 GLOBAL(l1_pt_entries)
     /* NULL page */
     .quad 0

@@ -63,6 +63,9 @@ void init_traps(void) {
     set_desc_base(&gdt[GDT_TSS], _ul(&tss));
 
     barrier();
+    lgdt(&gdt_ptr);
+
+    barrier();
     ltr(GDT_TSS << 3);
 }
 
