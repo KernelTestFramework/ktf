@@ -65,15 +65,10 @@ GLOBAL(_start)
 
     cld
     mov %rbx, %rdi
-    call kernel_start
 
-GLOBAL(arch_crash)
-    cli
-.Linf_loop:
-    hlt
-    pause
-    jmp .Linf_loop
-END_FUNC(arch_crash)
+    jmp kernel_start
+
+    ud2
 
 SECTION(.data.init, "aw", 16)
 _boot_stack:
