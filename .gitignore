@@ -1,5 +1,6 @@
 *.d
 *.o
 *.bin
+*.lds
 cscope.*
 *.iso
