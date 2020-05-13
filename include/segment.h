@@ -9,19 +9,34 @@
 #define GDT_KERN_DS32 0x2
 #define GDT_KERN_CS64 0x3
 
-#define GDT_TSS 0x4
-#define GDT_TSS_DF 0x5
+#define GDT_USER_CS32 0x4
+#define GDT_USER_DS32 0x5
+#define GDT_USER_CS64 0x6
+
+#define GDT_TSS 0x7
+#define GDT_TSS_DF 0x8
 
 #define __KERN_CS32 (GDT_KERN_CS32 << 3)
 #define __KERN_DS32 (GDT_KERN_DS32 << 3)
 #define __KERN_CS64 (GDT_KERN_CS64 << 3)
 
+#define __USER_CS32 ((GDT_USER_CS32 << 3) | 3)
+#define __USER_DS32 ((GDT_USER_DS32 << 3) | 3)
+#define __USER_CS64 ((GDT_USER_CS64 << 3) | 3)
+#define __USER_DS64 ((GDT_USER_DS32 << 3) | 3)
+
 #if defined(__i386__)
 #define __KERN_CS __KERN_CS32
 #define __KERN_DS __KERN_DS32
+
+#define __USER_CS __USER_CS32
+#define __USER_DS __USER_DS32
 #else
 #define __KERN_CS __KERN_CS64
 #define __KERN_DS (0)
+
+#define __USER_CS __USER_CS64
+#define __USER_DS __USER_DS64
 #endif
 
 #define _GDT_ENTRY(flags, base, limit) ( \
