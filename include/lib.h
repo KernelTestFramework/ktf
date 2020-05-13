@@ -168,6 +168,10 @@ static inline unsigned long read_cr3(void) {
     return cr3;
 }
 
+static inline void write_cr3(unsigned long cr3) {
+    asm volatile ("mov %0, %%cr3" :: "r" (cr3));
+}
+
 static inline unsigned long read_cr4(void) {
     unsigned long cr4;
 
@@ -182,6 +186,10 @@ static inline unsigned long read_cr8(void) {
     asm volatile ("mov %%cr8, %0" : "=r" (cr8));
 
     return cr8;
+}
+
+static inline void write_sp(unsigned long sp) {
+    asm volatile ("mov %0, %%" STR(_ASM_SP) :: "r" (sp) : "memory");
 }
 
 static inline void lgdt(const gdt_ptr_t *gdt_ptr) {

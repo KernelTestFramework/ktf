@@ -22,6 +22,13 @@
 #define _PAGE_PSE_PAT           0x1000
 #define _PAGE_NX                (_U64(1) << 63)
 
+#define _PAGE_ALL_FLAGS \
+    (_PAGE_PRESENT | _PAGE_RW  | _PAGE_USER | _PAGE_PWT    | \
+     _PAGE_PCD     | _PAGE_AD  | _PAGE_PAT  | _PAGE_GLOBAL | \
+     _PAGE_PSE_PAT | _PAGE_NX)
+
+#define PTE_FLAGS(...) (TOKEN_OR(_PAGE_, ##__VA_ARGS__))
+
 #define L1_PROT         (_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED | _PAGE_DIRTY)
 #define L1_PROT_RO      (_PAGE_PRESENT | _PAGE_ACCESSED)
 #define L1_PROT_NOCACHE (L1_PROT | _PAGE_PCD)
@@ -60,5 +67,53 @@
 #elif defined(__i386__)
 #define L3_PT_ENTRIES 4
 #endif
+
+#define L1_MAP_SPACE (L1_PT_ENTRIES * PAGE_SIZE)
+#define L2_MAP_SPACE (L2_PT_ENTRIES * L1_MAP_SPACE)
+#define L3_MAP_SPACE (L3_PT_ENTRIES * L2_MAP_SPACE)
+#define L4_MAP_SPACE (L4_PT_ENTRIES * L3_MAP_SPACE)
+
+#define PADDR_SHIFT 52
+#define PADDR_SIZE (_U64(1) << PADDR_SHIFT)
+#define PADDR_MASK (~(PADDR_SIZE - 1))
+
+#define VIRT_KERNEL_BASE _U64(0xffffffff80000000)
+#define VIRT_IDENT_BASE  _U64(0x0000000000000000)
+
+#ifndef __ASSEMBLY__
+
+typedef unsigned long paddr_t;
+typedef unsigned long mfn_t;
+
+#define _paddr(addr) ((paddr_t) _ul(addr))
+
+static inline mfn_t paddr_to_mfn(paddr_t pa)  { return (mfn_t) (pa >> PAGE_SHIFT);    }
+static inline paddr_t mfn_to_paddr(mfn_t mfn) { return (paddr_t) (mfn << PAGE_SHIFT); }
+
+static inline void *_paddr_to_virt(paddr_t pa, unsigned long addr_space) {
+    return _ptr(pa + addr_space);
+}
+static inline void *paddr_to_virt_kern(paddr_t pa) { return _paddr_to_virt(pa, VIRT_KERNEL_BASE); }
+static inline void *paddr_to_virt(paddr_t pa)      { return _paddr_to_virt(pa, VIRT_IDENT_BASE);  }
+
+static inline void *mfn_to_virt_kern(mfn_t mfn) { return paddr_to_virt_kern(mfn << PAGE_SHIFT); }
+static inline void *mfn_to_virt(mfn_t mfn)      { return paddr_to_virt(mfn << PAGE_SHIFT);      }
+
+#define IS_ADDR_SPACE_VA(va, as) ((_ul(va) & (as)) == (as))
+
+static inline paddr_t virt_to_paddr(const void *va) {
+    paddr_t pa = (paddr_t) va;
+
+    if (IS_ADDR_SPACE_VA(va, VIRT_KERNEL_BASE))
+        return pa - VIRT_KERNEL_BASE;
+
+    return pa - VIRT_IDENT_BASE;
+}
+
+static inline mfn_t virt_to_mfn(const void *va) {
+    return paddr_to_mfn(virt_to_paddr(va));
+}
+
+#endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PAGE_H */
