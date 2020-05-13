@@ -1,6 +1,9 @@
 #ifndef KTF_COMPILER_H
 #define KTF_COMPILER_H
 
+#define _STR(x) #x
+#define STR(x) _STR(x)
+
 #define _TOKEN(x, y) (x ## y)
 
 #ifdef __ASSEMBLY__
