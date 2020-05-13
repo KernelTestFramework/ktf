@@ -110,11 +110,25 @@ static void dump_flags(const struct cpu_regs *regs) {
     printk("RFLAGS=0x%016x\n\n", regs->_ASM_FLAGS);
 }
 
+static void dump_stack(const struct cpu_regs *regs, int words, int lines) {
+    int i;
+
+    printk("STACK[0x%016lx]:", regs->_ASM_SP);
+    for (i = 0; i < (words * lines); i++) {
+        if ((i % words) == 0)
+            printk("\n0x%04x: ", i * (sizeof(unsigned long)));
+        printk("%016lx ", ((unsigned long *) regs->_ASM_SP)[i]);
+    }
+    printk("\n\n");
+
+}
+
 static void dump_regs(const struct cpu_regs *regs) {
     dump_general_regs(regs);
     dump_segment_regs(regs);
     dump_control_regs(regs);
     dump_flags(regs);
+    dump_stack(regs, 4, 16);
 }
 
 static const char * const exception_names[] = {
@@ -152,7 +166,7 @@ static const char * const tlb_names[] = {
 static char *x86_ex_decode_error_code(char *buf, size_t size, uint32_t vector, x86_ex_error_code_t ec) {
     switch (vector) {
     case X86_EX_PF:
-       snprintf(buf, size, "%c%c%c%c%c",
+       snprintf(buf, size, "%c%c%c%c%c ",
                 ec.P ? 'P' : '-',
                 ec.W ? 'W' : 'R',
                 ec.U ? 'U' : 'S',
