@@ -36,6 +36,10 @@ static void init_console(void) {
     register_console_callback(serial_console_write);
 }
 
+static __always_inline void zero_bss(void) {
+    memset(_ptr(__start_bss), 0x0, _ptr(__end_bss) - _ptr(__start_bss));
+}
+
 static __always_inline void zap_boot_mappings(void) {
 #if defined (__x86_64__)
     memset((void *) l4_pt_entries, 0, L4_PT_ENTRIES * sizeof(pgentry_t));
@@ -46,6 +50,8 @@ static __always_inline void zap_boot_mappings(void) {
 }
 
 void __noreturn __text_init kernel_start(multiboot_info_t *mbi) {
+    /* Zero-out BSS sections */
+    zero_bss();
 
     /* Indentity mapping is still on, so fill in multiboot structures */
     init_multiboot(mbi);
