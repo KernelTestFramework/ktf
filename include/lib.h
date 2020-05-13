@@ -2,6 +2,7 @@
 #define KTF_LIB_H
 
 #include <ktf.h>
+#include <segment.h>
 #include <asm-macros.h>
 
 #if defined(__i386__)
@@ -166,6 +167,30 @@ static inline unsigned long read_cr8(void) {
     asm volatile ("mov %%cr8, %0" : "=r" (cr8));
 
     return cr8;
+}
+
+static inline void lgdt(const gdt_ptr_t *gdt_ptr) {
+    asm volatile ("lgdt %0" :: "m" (*gdt_ptr));
+}
+
+static inline void lidt(const idt_ptr_t *idt_ptr) {
+    asm volatile ("lidt %0" :: "m" (*idt_ptr));
+}
+
+static inline void ltr(unsigned int selector) {
+    asm volatile ("ltr %w0" :: "rm" (selector));
+}
+
+static inline void sgdt(gdt_ptr_t *gdt_ptr) {
+    asm volatile ("sgdt %0" : "=m" (*gdt_ptr));
+}
+
+static inline void sidt(idt_ptr_t *idt_ptr) {
+    asm volatile ("sidt %0" : "=m" (*idt_ptr));
+}
+
+static inline void str(unsigned int *selector) {
+    asm volatile ("str %0" : "=m" (*selector));
 }
 
 #endif /* KTF_LIB_H */
