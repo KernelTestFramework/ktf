@@ -4,7 +4,11 @@
 #include <console.h>
 #include <string.h>
 #include <setup.h>
+#include <traps.h>
 #include <processor.h>
+
+unsigned long ret2kern_sp;
+extern void ret2kern_handler(void);
 
 void init_traps(void) {
     set_gate_offset(&idt[X86_EX_DE],  _ul(entry_DE));
@@ -67,6 +71,9 @@ void init_traps(void) {
 
     barrier();
     ltr(GDT_TSS << 3);
+
+    /* User mode return to kernel handler */
+    set_gate_offset(&idt[X86_RET2KERN_INT],  _ul(ret2kern_handler));
 }
 
 static void dump_general_regs(const struct cpu_regs *regs) {

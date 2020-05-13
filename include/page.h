@@ -78,6 +78,7 @@
 #define PADDR_MASK (~(PADDR_SIZE - 1))
 
 #define VIRT_KERNEL_BASE _U64(0xffffffff80000000)
+#define VIRT_USER_BASE   _U64(0x0000000000040000)
 #define VIRT_IDENT_BASE  _U64(0x0000000000000000)
 
 #ifndef __ASSEMBLY__
@@ -94,9 +95,11 @@ static inline void *_paddr_to_virt(paddr_t pa, unsigned long addr_space) {
     return _ptr(pa + addr_space);
 }
 static inline void *paddr_to_virt_kern(paddr_t pa) { return _paddr_to_virt(pa, VIRT_KERNEL_BASE); }
+static inline void *paddr_to_virt_user(paddr_t pa) { return _paddr_to_virt(pa, VIRT_USER_BASE);   }
 static inline void *paddr_to_virt(paddr_t pa)      { return _paddr_to_virt(pa, VIRT_IDENT_BASE);  }
 
 static inline void *mfn_to_virt_kern(mfn_t mfn) { return paddr_to_virt_kern(mfn << PAGE_SHIFT); }
+static inline void *mfn_to_virt_user(mfn_t mfn) { return paddr_to_virt_user(mfn << PAGE_SHIFT); }
 static inline void *mfn_to_virt(mfn_t mfn)      { return paddr_to_virt(mfn << PAGE_SHIFT);      }
 
 #define IS_ADDR_SPACE_VA(va, as) ((_ul(va) & (as)) == (as))
@@ -106,6 +109,8 @@ static inline paddr_t virt_to_paddr(const void *va) {
 
     if (IS_ADDR_SPACE_VA(va, VIRT_KERNEL_BASE))
         return pa - VIRT_KERNEL_BASE;
+    if (IS_ADDR_SPACE_VA(va, VIRT_USER_BASE))
+        return pa - VIRT_USER_BASE;
 
     return pa - VIRT_IDENT_BASE;
 }

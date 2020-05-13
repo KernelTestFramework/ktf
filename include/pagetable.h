@@ -199,6 +199,7 @@ extern pdpe_t l3_pagetable[L3_PT_ENTRIES];
 #endif
 
 extern void init_pagetables(void);
+extern void init_user_pagetables(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PAGETABLE_H */

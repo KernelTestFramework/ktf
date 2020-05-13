@@ -51,7 +51,38 @@ SECTIONS
 
     }
 
-    . += VIRT_KERNEL_BASE;
+    . += VIRT_USER_BASE;
+
+    .text.user : AT(ADDR(.text.user) - VIRT_USER_BASE)
+    {
+        . = ALIGN(4K);
+        __start_text_user = .;
+            *(.text.user)
+        . = ALIGN(4K);
+        __end_text_user = .;
+    }
+
+    .data.user BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_data_user = .;
+            *(.data.user)
+        . = ALIGN(4K);
+        __end_data_user = .;
+    }
+
+    .bss.user BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_bss_user = .;
+            *(.bss.user)
+            *(COMMON.user)
+        . = ALIGN(4K);
+        __end_bss_user = .;
+
+    }
+
+    . += VIRT_KERNEL_BASE - VIRT_USER_BASE;
 
     .text : AT(ADDR(.text) - VIRT_KERNEL_BASE)
     {

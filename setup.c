@@ -16,6 +16,7 @@
  * kernel_stack[page 1-3] Regular stack
  */
 uint8_t kernel_stack[5 * PAGE_SIZE] __aligned(PAGE_SIZE) __data;
+uint8_t user_stack[PAGE_SIZE] __aligned(PAGE_SIZE) __user_data;
 
 char kernel_cmdline[PAGE_SIZE];
 
@@ -24,6 +25,12 @@ addr_range_t kern_addr_ranges[] = {
     { .name = ".data",   .base = VIRT_KERNEL_BASE, .flags = L1_PROT, .from = __start_data,   .to = __end_data   },
     { .name = ".bss",    .base = VIRT_KERNEL_BASE, .flags = L1_PROT, .from = __start_bss,    .to = __end_bss    },
     { .name = ".rodata", .base = VIRT_KERNEL_BASE, .flags = L1_PROT, .from = __start_rodata, .to = __end_rodata },
+};
+
+addr_range_t user_addr_ranges[] = {
+    { .name = ".text.user", .base = VIRT_USER_BASE, .flags = L1_PROT_USER_RO, .from = __start_text_user, .to = __end_text_user },
+    { .name = ".data.user", .base = VIRT_USER_BASE, .flags = L1_PROT_USER,    .from = __start_data_user, .to = __end_data_user },
+    { .name = ".bss.user",  .base = VIRT_USER_BASE, .flags = L1_PROT_USER,    .from = __start_bss_user,  .to = __end_bss_user  },
 };
 
 addr_range_t init_addr_ranges[] = {
@@ -38,6 +45,7 @@ static void init_console(void) {
 
 static __always_inline void zero_bss(void) {
     memset(_ptr(__start_bss), 0x0, _ptr(__end_bss) - _ptr(__start_bss));
+    memset(_ptr(__start_bss_user), 0x0, _ptr(__end_bss_user) - _ptr(__start_bss_user));
 }
 
 static __always_inline void zap_boot_mappings(void) {
@@ -73,6 +81,8 @@ void __noreturn __text_init kernel_start(multiboot_info_t *mbi) {
     /* TODO: Exception tables */
 
     init_traps();
+
+    init_user_pagetables();
 
     zap_boot_mappings();
 

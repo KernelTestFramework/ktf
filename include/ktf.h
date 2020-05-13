@@ -10,6 +10,10 @@
 
 #include <compiler.h>
 
+typedef void (*user_func_t)(void *arg);
+
+extern void usermode_call(user_func_t fn, void *fn_arg);
+
 extern void kernel_main(void);
 
 #endif /* KTF_KTF_H */

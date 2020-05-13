@@ -1,5 +1,8 @@
 #include <asm-macros.h>
 #include <processor.h>
+#include <segment.h>
+#include <page.h>
+#include <traps.h>
 
 .macro exception_handler sym vec has_error_code
 ENTRY(entry_\sym)
@@ -52,3 +55,49 @@ ENTRY(handle_exception)
     iret
 #endif
 END_FUNC(handle_exception)
+
+ENTRY(ret2kern_handler)
+    mov (ret2kern_sp), %_ASM_SP
+    ret
+END_FUNC(ret2kern_handler)
+
+ENTRY(usermode_call)
+    /* FIXME: Add 32-bit support */
+
+    mov %_ASM_SP, (ret2kern_sp)
+
+    /* SS + SP */
+    push $__USER_DS
+    push $user_stack + PAGE_SIZE
+
+    /* EFLAGS */
+#if defined(__x86_64__)
+    pushfq
+#else
+    pushf
+#endif
+
+    orl $X86_EFLAGS_IOPL, (%_ASM_SP)
+
+    /* CS + IP */
+    pushq $__USER_CS
+    push $usermode_stub
+
+#if defined(__x86_64__)
+    iretq
+#else
+    iret
+#endif
+END_FUNC(usermode_call)
+
+SECTION(.text.user, "ax", 16)
+ENTRY(usermode_stub)
+    /* DI: User function to be called
+     * SI: Parameters
+     * ...
+     */
+    xchg %_ASM_DI, %_ASM_SI
+    call *%_ASM_SI
+
+    int $X86_RET2KERN_INT
+END_FUNC(usermode_stub)
