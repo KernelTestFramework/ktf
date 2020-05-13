@@ -1,3 +1,5 @@
+#include <page.h>
+
 #if defined(__x86_64__)
 
 OUTPUT_FORMAT("elf64-x86-64")
@@ -49,7 +51,9 @@ SECTIONS
 
     }
 
-    .text BLOCK(4K) : ALIGN(4K)
+    . += VIRT_KERNEL_BASE;
+
+    .text : AT(ADDR(.text) - VIRT_KERNEL_BASE)
     {
         . = ALIGN(4K);
         __start_text = .;
