@@ -3,7 +3,7 @@ export ROOT
 
 CC := gcc
 
-COMMON_FLAGS := -I$(ROOT)/include -pipe -MP -MMD
+COMMON_FLAGS := -I$(ROOT)/include -pipe -MP -MMD -m64 -D__x86_64__
 
 AFLAGS  := $(COMMON_FLAGS) -D__ASSEMBLY__ -nostdlib -nostdinc
 CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O -g -Wall -ffreestanding
@@ -14,8 +14,8 @@ CFLAGS  += -fno-asynchronous-unwind-tables -fno-unwind-tables
 SOURCES     := $(shell find . -name \*.c)
 ASM_SOURCES := $(shell find . -name \*.S)
 LINK_SCRIPT := $(shell find . -name \*.ld)
-LDFLAGS := -nostdlib -lgcc
 
+PREP_LINK_SCRIPT := $(LINK_SCRIPT:%.ld=%.lds)
 
 OBJS := $(SOURCES:%.c=%.o)
 OBJS += $(ASM_SOURCES:%.S=%.o)
@@ -25,7 +25,9 @@ TARGET := kernel64.bin
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	ld -T $(LINK_SCRIPT) -o $@ $^
+	@echo "LD " $@
+	@ $(CC) $(AFLAGS) -E -P -C -x c $(LINK_SCRIPT) -o $(PREP_LINK_SCRIPT)
+	@ ld -T $(PREP_LINK_SCRIPT) -o $@ $^
 
 %.o: %.S
 	$(CC) -c -o $@ $(AFLAGS) $<
