@@ -1,5 +1,5 @@
-#ifndef KTF_DESC_H
-#define KTF_DESC_H
+#ifndef KTF_SEGMENT_H
+#define KTF_SEGMENT_H
 
 #include <compiler.h>
 #include <tss.h>
@@ -220,4 +220,4 @@ extern idt_entry_t idt[256];
 extern idt_ptr_t idt_ptr;
 #endif /* __ASSEMBLY__ */
 
-#endif /* KTF_DESC_H */
+#endif /* KTF_SEGMENT_H */

@@ -1,6 +1,6 @@
 #include <asm-macros.h>
 #include <processor.h>
-#include <desc.h>
+#include <segment.h>
 
 #define BOOT_STACK_SIZE 0x1000
 
