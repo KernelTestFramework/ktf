@@ -31,6 +31,8 @@
 #define __noinline      __attribute__((__noinline__))
 #define __section(s)    __attribute__((__section__(s)))
 
+#define UNREACHABLE() do { __builtin_unreachable(); } while(0)
+
 #define __text __section(".text")
 #define __data __section(".data")
 #define __bss __section(".bss")
