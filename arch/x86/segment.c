@@ -1,7 +1,7 @@
 #include <ktf.h>
 #include <asm-macros.h>
 #include <processor.h>
-#include <desc.h>
+#include <segment.h>
 #include <tss.h>
 
 x86_tss_t tss __aligned(16);
