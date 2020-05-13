@@ -6,11 +6,11 @@
 /*
  * KTF Stack layout:
  *
- * kernel_stack[page 3] Emergency stack
- * kernel_stack[page 2] Exception stack
- * kernel_stack[page 1] Regular stack
+ * kernel_stack[page 5] Emergency stack
+ * kernel_stack[page 4] Exception stack
+ * kernel_stack[page 1-3] Regular stack
  */
-uint8_t kernel_stack[3 * PAGE_SIZE] __aligned(PAGE_SIZE) __data;
+uint8_t kernel_stack[5 * PAGE_SIZE] __aligned(PAGE_SIZE) __data;
 
 void arch_setup(void) {
     register_console_callback(serial_console_write);
