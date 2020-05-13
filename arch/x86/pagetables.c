@@ -1,6 +1,8 @@
 #include <ktf.h>
 #include <page.h>
+#include <console.h>
 #include <setup.h>
+#include <string.h>
 #include <pagetable.h>
 
 #define L1_KERN_PT_CNT 3
@@ -21,6 +23,64 @@ pdpe_t l3_pagetable[L3_PT_ENTRIES] __aligned(0x1000);
 #endif
 
 cr3_t cr3;
+
+static inline const char *dump_pte_flags(char *buf, size_t size, pgentry_t pgentry) {
+    pte_t pte = (pte_t) pgentry;
+
+    snprintf(buf, size, "%c%c%c%c%c%c%c%c%c%c",
+        pte.P ? 'P' : '-',
+        pte.RW ? 'W' : 'R',
+        pte.US ? 'U' : 'S',
+        pte.PWT ? 'w' : '-',
+        pte.PCD ? '-' : 'C',
+        pte.A ? 'A' : '-',
+        pte.D ? 'D' : '-',
+        pte.PAT ? 'p' : '-',
+        pte.G ? 'G' : '-',
+        pte.NX ? 'X' : '-');
+
+    return buf;
+}
+
+static inline void dump_page_table(void *table, int level) {
+    char flags[16];
+    int entries;
+    pte_t *pt = table;
+
+    switch (level) {
+    case 4:
+        entries = L4_PT_ENTRIES;
+        break;
+    case 3:
+        entries = L3_PT_ENTRIES;
+        break;
+    case 2:
+        entries = L2_PT_ENTRIES;
+        break;
+    case 1:
+        entries = L1_PT_ENTRIES;
+        break;
+    default:
+        return;
+    };
+
+    for (int i = 0; i < entries; i++) {
+        if (!pt[i].P)
+            continue;
+
+        dump_pte_flags(flags, sizeof(flags), pt[i].entry);
+        paddr_t paddr = mfn_to_paddr(pt[i].mfn);
+        printk("[%p] %*s%d[%03u] paddr: %p flags: %s\n",
+               virt_to_paddr(pt), (4 - level) * 2, "L", level, i, paddr, flags);
+
+        dump_page_table(paddr_to_virt_kern(paddr), level - 1);
+    }
+}
+
+void dump_pagetables(void) {
+    printk("\nPage Tables:\n");
+    dump_page_table(get_l4_table(), 4);
+}
 
 void init_pagetables(void) {
 #if defined (__x86_64__)
