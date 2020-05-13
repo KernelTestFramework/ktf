@@ -36,6 +36,15 @@ static void init_console(void) {
     register_console_callback(serial_console_write);
 }
 
+static __always_inline void zap_boot_mappings(void) {
+#if defined (__x86_64__)
+    memset((void *) l4_pt_entries, 0, L4_PT_ENTRIES * sizeof(pgentry_t));
+#endif
+    memset((void *) l3_pt_entries, 0, L3_PT_ENTRIES * sizeof(pgentry_t));
+    memset((void *) l2_pt_entries, 0, L2_PT_ENTRIES * sizeof(pgentry_t));
+    memset((void *) l1_pt_entries, 0, L1_PT_ENTRIES * sizeof(pgentry_t));
+}
+
 void __noreturn __text_init kernel_start(multiboot_info_t *mbi) {
 
     /* Indentity mapping is still on, so fill in multiboot structures */
@@ -58,6 +67,8 @@ void __noreturn __text_init kernel_start(multiboot_info_t *mbi) {
     /* TODO: Exception tables */
 
     init_traps();
+
+    zap_boot_mappings();
 
     /* TODO PerCPU support */
 
