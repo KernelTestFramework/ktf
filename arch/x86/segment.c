@@ -14,8 +14,9 @@ gdtdesc_t gdt[] __aligned(16) = {
     [GDT_KERN_CS64] = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, CODE, R, A), 0x0, 0x00000),
 
     [GDT_TSS]       = GDT_ENTRY(DESC_FLAGS(SZ, P, CODE, A), 0x0, sizeof(tss) - 1),
+#if defined(__x86_64__)
     [GDT_TSS + 1]   = GDT_ENTRY(0x0, 0x0, 0x0),
-#if defined(__i386__)
+#elif defined(__i386__)
     [GDT_TSS_DF]    = GDT_ENTRY(DESC_FLAGS(SZ, P, CODE, A), 0x0, sizeof(tss_df) - 1),
 #endif
 };
