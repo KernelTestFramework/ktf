@@ -19,6 +19,9 @@ GLOBAL(l2_pt_entries)
     .fill (L2_PT_ENTRIES - 1), PTE_SIZE, 0
 END_OBJECT(l2_pt_entries)
 
+#if defined(__i386__)
+.align 0x1000
+#endif
 GLOBAL(l3_pt_entries)
     .long l2_pt_entries + L3_PROT, 0
 
@@ -29,6 +32,8 @@ GLOBAL(l3_pt_entries)
     .quad 0
 END_OBJECT(l3_pt_entries)
 
+#if defined(__x86_64__)
+.align 0x1000
 GLOBAL(l4_pt_entries)
     .long l3_pt_entries + L4_PROT, 0
 
@@ -37,3 +42,4 @@ GLOBAL(l4_pt_entries)
     /* 0xffff... */
     .long l3_pt_entries + L4_PROT, 0
 END_OBJECT(l4_pt_entries)
+#endif
