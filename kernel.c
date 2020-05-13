@@ -9,6 +9,8 @@ void kernel_main(void) {
 
     display_multiboot_mmap();
 
+    dump_pagetables();
+
     while(1)
         halt();
 }
