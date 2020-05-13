@@ -48,7 +48,7 @@ void init_traps(void) {
 #endif
 
     barrier();
-    asm volatile ("lidt %0" :: "m" (idt_ptr));
+    lidt(&idt_ptr);
 
 #if defined(__i386__)
     tss.esp0 = _ul(GET_KERN_EX_STACK());
@@ -63,7 +63,7 @@ void init_traps(void) {
     set_desc_base(&gdt[GDT_TSS], _ul(&tss));
 
     barrier();
-    asm volatile("ltr %w0" :: "rm" (GDT_TSS << 3));
+    ltr(GDT_TSS << 3);
 }
 
 static void dump_general_regs(const struct cpu_regs *regs) {
