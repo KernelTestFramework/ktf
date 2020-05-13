@@ -215,6 +215,7 @@ extern x86_tss_t tss;
 extern x86_tss_t tss_df;
 
 extern gdtdesc_t gdt[];
+extern gdt_ptr_t gdt_ptr;
 
 extern idt_entry_t idt[256];
 extern idt_ptr_t idt_ptr;
