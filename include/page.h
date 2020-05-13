@@ -22,6 +22,27 @@
 #define _PAGE_PSE_PAT           0x1000
 #define _PAGE_NX                (_U64(1) << 63)
 
+#define L1_PROT         (_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED | _PAGE_DIRTY)
+#define L1_PROT_RO      (_PAGE_PRESENT | _PAGE_ACCESSED)
+#define L1_PROT_NOCACHE (L1_PROT | _PAGE_PCD)
+#define L1_PROT_USER    (L1_PROT | _PAGE_USER)
+#define L1_PROT_USER_RO (L1_PROT_RO | _PAGE_USER)
+
+#define L2_PROT         (L1_PROT | _PAGE_DIRTY)
+#define L2_PROT_RO      (L1_PROT_RO | _PAGE_DIRTY)
+#define L2_PROT_USER    (L2_PROT | _PAGE_USER)
+#define L2_PROT_USER_RO (L2_PROT_RO | _PAGE_USER)
+
+#define L3_PROT         (L2_PROT | _PAGE_DIRTY)
+#define L3_PROT_RO      (L2_PROT_RO | _PAGE_DIRTY)
+#define L3_PROT_USER    (L3_PROT | _PAGE_USER)
+#define L3_PROT_USER_RO (L3_PROT_RO | _PAGE_USER)
+
+#define L4_PROT         (L3_PROT | _PAGE_DIRTY)
+#define L4_PROT_RO      (L3_PROT_RO | _PAGE_DIRTY)
+#define L4_PROT_USER    (L4_PROT | _PAGE_USER)
+#define L4_PROT_USER_RO (L4_PROT_RO | _PAGE_USER)
+
 #define PTE_ORDER 3
 #define PTE_SIZE (_U32(1) << PTE_ORDER)
 
