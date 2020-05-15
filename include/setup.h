@@ -44,7 +44,7 @@ struct addr_range {
 };
 typedef struct addr_range addr_range_t;
 
-#define KERN_ADDR_RANGES_NUM 4
+#define KERN_ADDR_RANGES_NUM 5
 extern addr_range_t kern_addr_ranges[];
 #define USER_ADDR_RANGES_NUM 3
 extern addr_range_t user_addr_ranges[];
