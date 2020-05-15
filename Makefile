@@ -52,7 +52,7 @@ QEMU_PARAMS += -debugcon stdio -serial file:/dev/stdout
 QEMU_PARAMS += -no-reboot -no-shutdown
 QEMU_PARAMS += -enable-kvm
 QEMU_PARAMS_KERNEL := -append "param1 param2 param3"
-QEMU_PARAMS_DEBUG := -S -s &
+QEMU_PARAMS_DEBUG := -s &
 
 ISO_FILE := boot.iso
 VHD_FILE := boot.vhd
