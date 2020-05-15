@@ -4,6 +4,7 @@
 #include <string.h>
 #include <console.h>
 
+#include <drivers/vga.h>
 #include <drivers/serial.h>
 
 #define QEMU_CONSOLE   0x0e9
@@ -46,6 +47,10 @@ void serial_console_write(const char *buf, size_t len) {
 
 void qemu_console_write(const char *buf, size_t len) {
     puts(QEMU_CONSOLE, buf, len);
+}
+
+void vga_console_write(const char *buf, size_t len) {
+    vga_write(buf, len, VGA_WHITE);
 }
 
 void register_console_callback(console_callback_t cb) {
