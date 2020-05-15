@@ -9,6 +9,8 @@
 #include <pagetable.h>
 #include <multiboot.h>
 
+#include <drivers/serial.h>
+
 io_port_t com_ports[2];
 
 /*
@@ -59,6 +61,8 @@ void display_memory_map(void) {
 
 static void init_console(void) {
     get_com_ports();
+
+    uart_init(com_ports[0], DEFAULT_BAUD_SPEED);
 
     register_console_callback(serial_console_write);
 
