@@ -2,6 +2,7 @@
 #include <lib.h>
 #include <page.h>
 #include <traps.h>
+#include <string.h>
 #include <setup.h>
 #include <segment.h>
 #include <console.h>
