@@ -1,5 +1,5 @@
 #include <ktf.h>
-#include <lib.h>
+#include <string.h>
 #include <setup.h>
 #include <console.h>
 #include <multiboot.h>
