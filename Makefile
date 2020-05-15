@@ -55,6 +55,7 @@ QEMU_PARAMS_KERNEL := -append "param1 param2 param3"
 QEMU_PARAMS_DEBUG := -S -s &
 
 ISO_FILE := boot.iso
+VHD_FILE := boot.vhd
 
 .PHONY: iso
 iso: all
@@ -62,6 +63,7 @@ iso: all
 	@ grub-file --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	@ cp $(TARGET) grub/boot/
 	@ grub-mkrescue -o $(ISO_FILE) grub 2>> /dev/null
+	@ qemu-img convert -f raw -O vpc $(ISO_FILE) $(VHD_FILE)
 
 .PHONY: boot
 boot: all iso
