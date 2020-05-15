@@ -12,11 +12,11 @@
 pte_t l1_kern_pagetable[L1_KERN_PT_CNT][L1_PT_ENTRIES];
 pte_t l1_user_pagetable[L1_USER_PT_CNT][L1_PT_ENTRIES];
 
-pde_t l2_kern_pagetable[L2_PT_ENTRIES];
-pde_t l2_user_pagetable[L2_PT_ENTRIES];
+pde_t l2_pagetable[L2_PT_ENTRIES];
 
 #if defined (__x86_64__)
-pdpe_t l3_pagetable[L3_PT_ENTRIES];
+pdpe_t l3_pagetable_kern[L3_PT_ENTRIES];
+pdpe_t l3_pagetable_ident[L3_PT_ENTRIES];
 pml4_t l4_pagetable[L4_PT_ENTRIES] __aligned(0x1000);
 #elif defined (__i386__)
 pdpe_t l3_pagetable[L3_PT_ENTRIES] __aligned(0x1000);
@@ -87,15 +87,15 @@ void init_pagetables(void) {
     cr3.paddr = virt_to_paddr(l4_pagetable);
 
     /* L4 page tables mapping */
-    set_pml4(_ptr(VIRT_KERNEL_BASE), virt_to_paddr(l3_pagetable), L4_PROT);
-    set_pml4(_ptr(VIRT_IDENT_BASE), virt_to_paddr(l3_pagetable), L4_PROT);
+    set_pml4(_ptr(VIRT_KERNEL_BASE), virt_to_paddr(l3_pagetable_kern), L4_PROT);
+    set_pml4(_ptr(VIRT_IDENT_BASE), virt_to_paddr(l3_pagetable_ident), L4_PROT);
 #elif defined (__i386__)
     cr3.paddr = virt_to_paddr(l3_pagetable);
 #endif
 
     /* L3 page tables mapping */
-    set_pdpe(_ptr(VIRT_KERNEL_BASE), virt_to_paddr(l2_kern_pagetable), L3_PROT);
-    set_pdpe(_ptr(VIRT_IDENT_BASE), virt_to_paddr(l2_kern_pagetable), L3_PROT);
+    set_pdpe(_ptr(VIRT_KERNEL_BASE), virt_to_paddr(l2_pagetable), L3_PROT);
+    set_pdpe(_ptr(VIRT_IDENT_BASE), virt_to_paddr(l2_pagetable), L3_PROT);
 
     /* L2 page tables mapping: several L1 tables mapped */
     for (int i = 0; i < L1_KERN_PT_CNT; i++) {
@@ -123,9 +123,9 @@ void init_pagetables(void) {
 
 void init_user_pagetables(void) {
 #if defined (__x86_64__)
-    set_pml4(_ptr(VIRT_USER_BASE), virt_to_paddr(l3_pagetable), L4_PROT_USER);
+    set_pml4(_ptr(VIRT_USER_BASE), virt_to_paddr(l3_pagetable_ident), L4_PROT_USER);
 #endif
-    set_pdpe(_ptr(VIRT_USER_BASE), virt_to_paddr(l2_user_pagetable), L3_PROT_USER);
+    set_pdpe(_ptr(VIRT_USER_BASE), virt_to_paddr(l2_pagetable), L3_PROT_USER);
 
     /* L2 page tables mapping: several L1 tables mapped */
     for (int i = 0; i < L1_USER_PT_CNT; i++) {
