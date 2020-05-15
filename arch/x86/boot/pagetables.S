@@ -6,10 +6,7 @@
 /* Initial identity map page tables */
 SECTION(.data.init, "aw", 0x1000)
 GLOBAL(l1_pt_entries)
-    /* NULL page */
-    .quad 0
-
-    .rept L1_PT_ENTRIES - 1
+    .rept L1_PT_ENTRIES
     .long _PADDR(l1_pt_entries, L1_PT_SHIFT) + L1_PROT, 0
     .endr
 END_OBJECT(l1_pt_entries)
