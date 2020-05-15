@@ -9,6 +9,8 @@
 #include <pagetable.h>
 #include <multiboot.h>
 
+io_port_t com_ports[2];
+
 /*
  * KTF Stack layout:
  *
@@ -56,7 +58,11 @@ void display_memory_map(void) {
 }
 
 static void init_console(void) {
+    get_com_ports();
+
     register_console_callback(serial_console_write);
+
+    printk("COM1: %x, COM2: %x\n", com_ports[0], com_ports[1]);
 }
 
 static __always_inline void zero_bss(void) {

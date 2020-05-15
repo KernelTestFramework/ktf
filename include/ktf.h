@@ -10,6 +10,8 @@
 
 #include <compiler.h>
 
+typedef uint16_t io_port_t;
+
 typedef void (*user_func_t)(void *arg);
 
 extern void usermode_call(user_func_t fn, void *fn_arg);
