@@ -1,10 +1,11 @@
 #include <ktf.h>
 #include <lib.h>
+#include <setup.h>
 #include <string.h>
 #include <console.h>
 
 #define QEMU_CONSOLE   0x0e9
-#define SERIAL_CONSOLE 0x3f8
+#define SERIAL_CONSOLE (com_ports[0])
 
 #define VPRINTK_BUF_SIZE 1024
 
