@@ -10,6 +10,7 @@
 #include <multiboot.h>
 
 #include <drivers/serial.h>
+#include <drivers/vga.h>
 
 io_port_t com_ports[2];
 
@@ -26,10 +27,11 @@ uint8_t user_stack[PAGE_SIZE] __aligned(PAGE_SIZE) __user_data;
 char kernel_cmdline[PAGE_SIZE];
 
 addr_range_t kern_addr_ranges[] = {
-    { .name = ".text",   .base = VIRT_KERNEL_BASE, .flags = L1_PROT, .from = &__start_text,  .to = &__end_text   },
-    { .name = ".data",   .base = VIRT_KERNEL_BASE, .flags = L1_PROT, .from = __start_data,   .to = __end_data   },
-    { .name = ".bss",    .base = VIRT_KERNEL_BASE, .flags = L1_PROT, .from = __start_bss,    .to = __end_bss    },
-    { .name = ".rodata", .base = VIRT_KERNEL_BASE, .flags = L1_PROT, .from = __start_rodata, .to = __end_rodata },
+    { .name = ".text",   .base = VIRT_KERNEL_BASE, .flags = L1_PROT_RO, .from = __start_text,         .to = __end_text         },
+    { .name = ".data",   .base = VIRT_KERNEL_BASE, .flags = L1_PROT,    .from = __start_data,         .to = __end_data         },
+    { .name = ".bss",    .base = VIRT_KERNEL_BASE, .flags = L1_PROT,    .from = __start_bss,          .to = __end_bss          },
+    { .name = ".rodata", .base = VIRT_KERNEL_BASE, .flags = L1_PROT,    .from = __start_rodata,       .to = __end_rodata       },
+    { .name = "VIDEO",   .base = VIRT_KERNEL_BASE, .flags = L1_PROT,    .from = _ptr(VIRT_KERNEL_BASE + VGA_START_ADDR), .to = _ptr(VIRT_KERNEL_BASE + VGA_END_ADDR) },
 };
 
 addr_range_t user_addr_ranges[] = {
@@ -66,6 +68,7 @@ static void init_console(void) {
     uart_init(com_ports[0], DEFAULT_BAUD_SPEED);
 
     register_console_callback(serial_console_write);
+    register_console_callback(vga_console_write);
 
     printk("COM1: %x, COM2: %x\n", com_ports[0], com_ports[1]);
 }
