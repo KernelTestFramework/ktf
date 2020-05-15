@@ -4,6 +4,8 @@
 #include <string.h>
 #include <console.h>
 
+#include <drivers/serial.h>
+
 #define QEMU_CONSOLE   0x0e9
 #define SERIAL_CONSOLE (com_ports[0])
 
@@ -39,7 +41,7 @@ void putchar(int c) {
 }
 
 void serial_console_write(const char *buf, size_t len) {
-    puts(SERIAL_CONSOLE, buf, len);
+    serial_write(SERIAL_CONSOLE, buf, len);
 }
 
 void qemu_console_write(const char *buf, size_t len) {
