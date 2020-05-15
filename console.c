@@ -12,18 +12,6 @@
 static console_callback_t console_callbacks[2];
 static unsigned int num_console_callbacks;
 
-static inline void putc(int c, int port) {
-    asm volatile("outb %%al, %%dx"
-                 : "+a" (c)
-                 : "d" (port));
-}
-
-static inline void puts(const char *buf, size_t len, int port) {
-    asm volatile("rep; outsb"
-                 : "+S" (buf), "+c" (len)
-                 : "d" (port));
-}
-
 static void vprintk(const char *fmt, va_list args) {
     static char buf[VPRINTK_BUF_SIZE];
     unsigned int i;
@@ -51,11 +39,11 @@ void putchar(int c) {
 }
 
 void serial_console_write(const char *buf, size_t len) {
-    puts(buf, len, SERIAL_CONSOLE);
+    puts(SERIAL_CONSOLE, buf, len);
 }
 
 void qemu_console_write(const char *buf, size_t len) {
-    puts(buf, len, QEMU_CONSOLE);
+    puts(QEMU_CONSOLE, buf, len);
 }
 
 void register_console_callback(console_callback_t cb) {

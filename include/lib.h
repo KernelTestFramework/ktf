@@ -153,6 +153,34 @@ static inline void str(unsigned int *selector) {
     asm volatile ("str %0" : "=m" (*selector));
 }
 
+/* I/O Ports handling */
+
+static inline uint8_t inb(io_port_t port) {
+    uint8_t value;
+
+    asm volatile ("inb %1, %0" : "=a" (value) : "Nd" (port));
+
+    return value;
+}
+
+static inline void outb(io_port_t port, uint8_t value) {
+    asm volatile ("outb %0, %1" :: "a" (value), "Nd" (port));
+}
+
+static inline void outw(io_port_t port, uint16_t value) {
+    asm volatile ("outw %0, %1" :: "a" (value), "Nd" (port));
+}
+
+static inline void putc(io_port_t port, int c) {
+    outb(port, c);
+}
+
+static inline void puts(io_port_t port, const char *buf, size_t len) {
+    asm volatile("rep; outsb"
+                 : "+S" (buf), "+c" (len)
+                 : "d" (port));
+}
+
 /* External declarations */
 
 extern void halt(void);
