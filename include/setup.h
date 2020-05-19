@@ -33,6 +33,8 @@ extern unsigned long __start_text_init[], __end_text_init[];
 extern unsigned long __start_data_init[], __end_data_init[];
 extern unsigned long __start_bss_init[], __end_bss_init[];
 
+extern unsigned long __start_rmode[], __end_rmode[];
+
 struct addr_range {
     const char *name;
     unsigned long base;
@@ -46,7 +48,7 @@ typedef struct addr_range addr_range_t;
 extern addr_range_t kern_addr_ranges[];
 #define USER_ADDR_RANGES_NUM 3
 extern addr_range_t user_addr_ranges[];
-#define INIT_ADDR_RANGES_NUM 3
+#define INIT_ADDR_RANGES_NUM 4
 extern addr_range_t init_addr_ranges[];
 
 extern void display_memory_map(void);
