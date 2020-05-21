@@ -153,6 +153,21 @@ static inline void str(unsigned int *selector) {
     asm volatile ("str %0" : "=m" (*selector));
 }
 
+static inline void ud2(void) {
+    asm volatile ("ud2");
+}
+
+#define BUG() do { ud2(); } while(0)
+#define BUG_ON(cond) do { \
+    if ((cond)) BUG();    \
+} while(0)
+
+#define ASSERT(cond) do {                       \
+    if (!(cond))                                \
+        panic("%s: Assert at %d failed: %s\n",  \
+              __func__, STR((cond)), __LINE__); \
+} while(0)
+
 /* I/O Ports handling */
 
 static inline uint8_t inb(io_port_t port) {
