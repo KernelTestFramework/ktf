@@ -61,10 +61,12 @@ void uart_init(io_port_t port, unsigned baud) {
 
 static inline int uart_port_status(io_port_t port) {
     if (!receiver_ready(port))
-        return -1; /* BUSY */
+        return -1; /* ENODEV */
 
-    if (!thr_empty(port))
+    if (!thr_empty(port)) {
+        io_delay();
         return 1; /* EAGAIN */
+    }
 
     return 0;
 }
@@ -87,24 +89,26 @@ static int uart_puts(io_port_t port, const char *buf, size_t len) {
     return rc;
 }
 
-#define SERIAL_RETRIES 100000
+#define SERIAL_TIMEOUT 1000 /* ~1s */
 int serial_putchar(io_port_t port, char c) {
-   unsigned retries = SERIAL_RETRIES;
+   unsigned retries = SERIAL_TIMEOUT;
    int rc;
 
    do {
        rc = uart_putc(port, c);
+       BUG_ON(rc < 0);
    } while(rc > 0 && retries--);
 
    return rc;
 }
 
 int serial_write(io_port_t port, const char *buf, size_t len) {
-   unsigned retries = SERIAL_RETRIES;
+   unsigned retries = SERIAL_TIMEOUT;
    int rc;
 
    do {
        rc = uart_puts(port, buf, len);
+       BUG_ON(rc < 0);
    } while(rc > 0 && retries--);
 
    return rc;
