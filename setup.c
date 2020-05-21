@@ -41,6 +41,7 @@ addr_range_t user_addr_ranges[] = {
 };
 
 addr_range_t init_addr_ranges[] = {
+    { .name = "Low memory", .base = VIRT_IDENT_BASE, .flags = L1_PROT_RO, .from = _ptr(0x0),         .to = _ptr(MB(1))     },
     { .name = ".text.init", .base = VIRT_IDENT_BASE, .flags = L1_PROT_RO, .from = __start_text_init, .to = __end_text_init },
     { .name = ".data.init", .base = VIRT_IDENT_BASE, .flags = L1_PROT,    .from = __start_data_init, .to = __end_data_init },
     { .name = ".bss.init",  .base = VIRT_IDENT_BASE, .flags = L1_PROT,    .from = __start_bss_init,  .to = __end_bss_init  },
