@@ -277,4 +277,7 @@ struct multiboot_apm_info
 extern void display_multiboot_mmap(void);
 extern void init_multiboot(multiboot_info_t *mbi);
 
+uint32_t mbi_lower_memory(void);
+uint32_t mbi_upper_memory(void);
+
 #endif /* KTF_MULTIBOOT_H */

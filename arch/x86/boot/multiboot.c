@@ -17,8 +17,20 @@ static const char *multiboot_region_type_name[] = {
     [MULTIBOOT_MEMORY_BADRAM]           = "Bad RAM",
 };
 
+static inline bool has_mbi_flag(unsigned flag) {
+    return !!(multiboot_info.flags & flag);
+}
+
 void display_multiboot_mmap(void) {
+    if (!has_mbi_flag(MULTIBOOT_INFO_MEMORY))
+        return;
+
     printk("\nPhysical Memory Map\n");
+    printk("REGION: Lower %8u KB\n", multiboot_info.mem_lower);
+    printk("REGION: Upper %8u KB\n", multiboot_info.mem_upper);
+
+    if (!has_mbi_flag(MULTIBOOT_INFO_MEM_MAP))
+        return;
 
     for (int i = 0; i < ARRAY_SIZE(multiboot_mmap); i++) {
         multiboot_memory_map_t *entry = &multiboot_mmap[i];
@@ -33,6 +45,16 @@ void display_multiboot_mmap(void) {
 
 void init_multiboot(multiboot_info_t *mbi) {
     memcpy(&multiboot_info, mbi, sizeof(multiboot_info));
-    memcpy(&multiboot_mmap, _ptr(mbi->mmap_addr), mbi->mmap_length);
-    strcpy(kernel_cmdline, _ptr(mbi->cmdline));
+    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP))
+        memcpy(&multiboot_mmap, _ptr(mbi->mmap_addr), mbi->mmap_length);
+    if (has_mbi_flag(MULTIBOOT_INFO_CMDLINE))
+        strcpy(kernel_cmdline, _ptr(mbi->cmdline));
+}
+
+uint32_t mbi_lower_memory(void) {
+    return multiboot_info.mem_lower;
+}
+
+uint32_t mbi_upper_memory(void) {
+    return multiboot_info.mem_upper;
 }
