@@ -12,6 +12,14 @@ OUTPUT_ARCH(i386)
 
 #endif
 
+PHDRS
+{
+    init PT_LOAD AT(0x1000);
+    user PT_LOAD;
+    kernel PT_LOAD;
+    note PT_NOTE;
+}
+
 ENTRY(_start)
 SECTIONS
 {
@@ -20,7 +28,7 @@ SECTIONS
     .multiboot BLOCK(4K) : ALIGN(4K)
     {
         *(.multiboot)
-    }
+    } :init
 
     .rmode BLOCK(4K) : ALIGN(4K)
     {
@@ -39,7 +47,7 @@ SECTIONS
             *(.text.init)
         . = ALIGN(4K);
         __end_text_init = .;
-    }
+    } :init
 
     .data.init BLOCK(4K) : ALIGN(4K)
     {
@@ -48,7 +56,7 @@ SECTIONS
             *(.data.init)
         . = ALIGN(4K);
         __end_data_init = .;
-    }
+    } :init
 
     .bss.init BLOCK(4K) : ALIGN(4K)
     {
@@ -59,7 +67,7 @@ SECTIONS
         . = ALIGN(4K);
         __end_bss_init = .;
 
-    }
+    } :init
 
     . += VIRT_USER_BASE;
 
@@ -70,7 +78,7 @@ SECTIONS
             *(.text.user)
         . = ALIGN(4K);
         __end_text_user = .;
-    }
+    } :user
 
     .data.user BLOCK(4K) : ALIGN(4K)
     {
@@ -79,7 +87,7 @@ SECTIONS
             *(.data.user)
         . = ALIGN(4K);
         __end_data_user = .;
-    }
+    } :user
 
     .bss.user BLOCK(4K) : ALIGN(4K)
     {
@@ -90,7 +98,7 @@ SECTIONS
         . = ALIGN(4K);
         __end_bss_user = .;
 
-    }
+    } :user
 
     . += VIRT_KERNEL_BASE - VIRT_USER_BASE;
 
@@ -101,7 +109,7 @@ SECTIONS
             *(.text)
         . = ALIGN(4K);
         __end_text = .;
-    }
+    } :kernel
 
     .data BLOCK(4K) : ALIGN(4K)
     {
@@ -110,7 +118,7 @@ SECTIONS
             *(.data)
         . = ALIGN(4K);
         __end_data = .;
-    }
+    } :kernel
 
     .bss BLOCK(4K) : ALIGN(4K)
     {
@@ -120,7 +128,7 @@ SECTIONS
             *(.bss)
         . = ALIGN(4K);
         __end_bss = .;
-    }
+    } :kernel
 
     .rodata BLOCK(4K) : ALIGN(4K)
     {
@@ -130,7 +138,7 @@ SECTIONS
         *(.rodata.*)
         . = ALIGN(4K);
         __end_rodata = .;
-    }
+    } :kernel
 
     .note :
     {
@@ -140,7 +148,7 @@ SECTIONS
         *(.note.*)
         . = ALIGN(4K);
         __end_note = .;
-    }
+    } :kernel :note
 
     /DISCARD/ :
     {
