@@ -47,6 +47,26 @@
 
 #define barrier() __asm__ __volatile__ ("" ::: "memory")
 
+#define likely(x)   __builtin_expect(!!(x),1)
+#define unlikely(x) __builtin_expect(!!(x),0)
+
+#ifndef offsetof
+#define offsetof(type, member) ((off_t) &((type *)0)->member)
+#endif
+
+#define BUILD_BUG_ON(cond) ({ _Static_assert(!(cond), "!(" STR(cond) ")"); })
+
+#ifndef __same_type
+# define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
+#endif
+
+#define container_of(ptr, type, member) ({                    \
+    void *_ptr = (void *) (ptr);                              \
+    BUILD_BUG_ON(!__same_type(*(ptr), ((type *)0)->member) && \
+                 !__same_type(*(ptr), void));                 \
+    ((type *) (_ptr - offsetof(type, member)));               \
+})
+
 #define ARRAY_SIZE(a)    (sizeof(a) / sizeof(*a))
 
 #define VA_NARGS_(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
