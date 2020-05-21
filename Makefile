@@ -50,7 +50,7 @@ QEMU_PARAMS := -machine q35,accel=kvm -m 1024
 QEMU_PARAMS += -display none -vga none -vnc none
 QEMU_PARAMS += -debugcon stdio -serial file:/dev/stdout
 QEMU_PARAMS += -no-reboot -no-shutdown
-QEMU_PARAMS += -enable-kvm
+QEMU_PARAMS += -enable-kvm -smp cpus=2
 QEMU_PARAMS_KERNEL := -append "param1 param2 param3"
 QEMU_PARAMS_DEBUG := -s &
 
