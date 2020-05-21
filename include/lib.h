@@ -196,6 +196,12 @@ static inline void puts(io_port_t port, const char *buf, size_t len) {
                  : "d" (port));
 }
 
+/* I/O port delay is believed to take ~1ms */
+#define IO_DELAY_PORT 0x80
+static inline void io_delay(void) {
+    outb(IO_DELAY_PORT, 0xff); /* Random data write */
+}
+
 /* External declarations */
 
 extern void halt(void);
