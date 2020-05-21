@@ -1,7 +1,13 @@
 #ifndef SETUP_SETUP_H
 #define SETUP_SETUP_H
 
+#define BDA_ADDR_START 0x400
+#define BDA_ADDR_END   0x4FF
+
 #define BDA_COM_PORTS_ENTRY 0x400
+#define EBDA_ADDR_ENTRY     0x40E
+
+#define BIOS_ROM_ADDR_START 0xF0000
 
 #define KERN_STACK_SIZE (3 * PAGE_SIZE)
 
