@@ -99,6 +99,23 @@ static inline void *memcpy(void *d, void *s, size_t n) {
    return d;
 }
 
+static inline int memcmp(const void *m1, const void *m2, size_t n)
+{
+    const uint8_t *_m1 = m1;
+    const uint8_t *_m2 = m2;
+    register uint8_t res = 0;
+
+    if (m1 == m2)
+        return 0;
+
+    while(n--) {
+        if ((res = (*_m1++ - *_m2++)) != 0)
+            break;
+    }
+
+    return res;
+}
+
 static inline char *strcpy(char *d, const char *s) {
     int d0, d1, d2;
 
@@ -111,6 +128,34 @@ static inline char *strcpy(char *d, const char *s) {
     : "memory");
 
     return d;
+}
+
+static inline int strcmp(const char *s1, const char *s2) {
+    register char res;
+
+    if (s1 == s2)
+        return 0;
+
+    while(1) {
+        if ((res = *s1 - *s2++) != 0 || !*s1++)
+            break;
+    }
+
+    return res;
+}
+
+static inline int strncmp(const char *s1, const char *s2, size_t n) {
+    register char res;
+
+    if (s1 == s2)
+        return 0;
+
+    while(n--) {
+        if ((res = *s1 - *s2++) != 0 || !*s1++)
+            break;
+    }
+
+    return res;
 }
 
 /* External declarations */
