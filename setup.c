@@ -9,6 +9,8 @@
 #include <pagetable.h>
 #include <multiboot.h>
 
+#include <smp/smp.h>
+
 #include <drivers/serial.h>
 #include <drivers/vga.h>
 
@@ -120,6 +122,8 @@ void __noreturn __text_init kernel_start(multiboot_info_t *mbi) {
     /* TODO PerCPU support */
 
     /* TODO: SMP support */
+
+    smp_init();
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" :: "r" (&kernel_main));
