@@ -42,7 +42,8 @@ save cr's and MSRs ; cr0, cr3, gdtr, ldtr, idtr, efer, rsp, tr
 */
 GLOBAL(_long_to_real)
 	/* Disable interrupts. If we get NMI or MC, hope we get back here */
-	cli
+	/* Once we've Interrupt enabled and APIC handling, we would want below code to be interrupt safe */
+	#cli
 	/* clean up caches */
 	wbinvd				
 	/* save registers */
@@ -180,7 +181,7 @@ label_32bit_code_end:
 GLOBAL(_real_to_prot)
 	.balign 16	
 
-	cli
+	#cli
 	wbinvd
 	LJMPW_RM(4f)
 4:
@@ -233,7 +234,6 @@ label_16bitcode_end:
 	 * EFER.LMA = 1). Now we want to jump in 64bit mode, to do that we use
 	 * the new gdt/idt that has __KERNEL_CS with CS.L = 1.
 	 */
-# 	reached here
 
 	#ljmpl	$__KERN_TRAMP_CS64, $.Llong_mode_on
 	ljmpl	$__KERN_CS64, $.Llong_mode_on
@@ -275,7 +275,7 @@ long_mode_orig_cs:
 	
 	popfq
 	RESTORE_REGS
-	sti
+	#sti
 
 	ret
 
