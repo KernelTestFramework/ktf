@@ -16,9 +16,9 @@
 #define TRAMP_GDT_NULL		0
 #define TRAMP_GDT_CS32		1
 #define TRAMP_GDT_DS32		2
-#define TRAMP_GDT_REALM_CS	3
-#define	TRAMP_GDT_REALM_DS	4
-#define	TRAMP_GDT_CS64		5
+#define	TRAMP_GDT_CS64		3
+#define TRAMP_GDT_REALM_CS	4
+#define	TRAMP_GDT_REALM_DS	5
 
 #define __KERN_TRAMP_CS32	(TRAMP_GDT_CS32 << 3)
 #define __KERN_TRAMP_DS32	(TRAMP_GDT_DS32 << 3)
@@ -63,6 +63,8 @@ GLOBAL(_long_to_real)
 	mov	%cr4, %rax	
 	mov	%rax, prot_cr4
 	/* save efer msr */
+	xor	%rax, %rax
+	xor	%rdx, %rdx
 	movl	$MSR_EFER, %ecx
 	rdmsr
 	shl	$32, %rdx
@@ -180,13 +182,14 @@ GLOBAL(_real_to_prot)
 
 	cli
 	wbinvd
-	#ljmpw	$0, $3f
 	LJMPW_RM(4f)
 4:
 	/* No one should have clobbered on IDTR and GDTR but still let's load it up */
-        lidtl	realidt 
-        lgdtl	trampgdt
-        movw	$__KERN_TRAMP_DS32, %dx       # Data segment descriptor
+        #lidt	realidt 
+        #lgdt	trampgdt
+	lgdt	prot_gdt
+	lidt	prot_idt
+        movw	$__KERN_DS32, %dx       # Data segment descriptor
 
         # Enable protected mode
 	# reached here
@@ -194,7 +197,7 @@ GLOBAL(_real_to_prot)
         movl	%eax, %cr0              # into protected mode
 
         # flush prefetch and jump to 32bit code
-        ljmp	$__KERN_TRAMP_CS32, $.Lcr0_pe_on 
+        ljmp	$__KERN_CS32, $.Lcr0_pe_on 
 label_16bitcode_end:
 
 .code32
@@ -216,6 +219,7 @@ label_16bitcode_end:
 
 	# Set up EFER
 	movl	efer_msr, %eax
+	or	$EFER_LME, %eax
 	movl	efer_msr + 4, %edx
 	movl	$MSR_EFER, %ecx
 	wrmsr
@@ -231,25 +235,11 @@ label_16bitcode_end:
 	 */
 # 	reached here
 
-
-	/*
-	Important Note: This works for now because trampoline 64bit code selector and KTF's GDT 64bit selector are at same position
-	For some reason, using any form of ljmps with new GDT are leading to fault. Will debug it later. 
-	*/
-
-	ljmpl	$__KERN_TRAMP_CS64, $.Llong_mode_on
-
-
-	# ljmpl	$__KERN_CS64, $(long_mode_orig_cs - .Llong_mode_on)
-
+	#ljmpl	$__KERN_TRAMP_CS64, $.Llong_mode_on
+	ljmpl	$__KERN_CS64, $.Llong_mode_on
 
 .Llong_mode_on:
-
-	lgdt	prot_gdt
-	lidt	prot_idt
-	#ljmpl	$__KERN_CS64, $long_mode_orig_cs
-	#ljmpl	*(indir_jmp_long_2_long)
-	#ljmpl	$__KERN_CS64, $0x0
+	wbinvd
 	
 long_mode_orig_cs:
 .code64
@@ -282,8 +272,7 @@ long_mode_orig_cs:
 	/* reload rsp */
 	mov	prot_rsp, %rax
 	mov	%rax, %rsp
-
-#	ltr	task_reg
+	
 	popfq
 	RESTORE_REGS
 	sti
@@ -301,12 +290,12 @@ rm_stack_high:
 prot_save_area_low:
 
 prot_gdt:
-	.word 0, 0
-	.byte 0, 0, 0, 0
+	.word 0
+	.quad 0
 
 prot_idt:
 	.word 0
-	.long 0
+	.quad 0
 
 	.balign 16
 prot_cr0:
@@ -360,6 +349,9 @@ GLOBAL(machine_tramp_gdt)
 	# .quad	GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
 	.quad	GDT_ENTRY(0xcf93, 0, 0xfffff)
 
+	/* 64bit code segment, flat segment with base 0*/
+	.quad	GDT_ENTRY(0xa09b, 0, 0x00000)
+
 	/* 16bit real mode code segment, limit 0xFFFFF (1B granularity), present */
 	/* type = 16bit code exec/read only/confirming, DPL = 0 */
 	# .quad	GDT_ENTRY(0x9b, _long_to_real, 0xffff)
@@ -374,18 +366,16 @@ GLOBAL(machine_tramp_gdt)
 	.long	0x93000000 #+ rm_stack_low
 	.word	0
 	
-	/* 64bit code segment, flat segment with base 0*/
-	.quad	GDT_ENTRY(0xa09b, 0, 0x00000)
 	
 end_machine_tramp_gdt:
 
 
 trampgdt:
 	.word end_machine_tramp_gdt - machine_tramp_gdt - 1
-	.long machine_tramp_gdt
+	.quad machine_tramp_gdt
 realidt:
 	.word 0x400
-	.long 0
+	.quad 0
 
 indir_jmp_long_2_real:
 	.long long_to_prot32bit_code
