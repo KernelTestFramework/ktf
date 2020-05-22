@@ -9,7 +9,7 @@
 
 #define BIOS_ROM_ADDR_START 0xF0000
 
-#define KERN_STACK_SIZE (3 * PAGE_SIZE)
+#define KERN_STACK_SIZE (5 * PAGE_SIZE)
 
 #ifndef __ASSEMBLY__
 #include <page.h>
@@ -54,7 +54,7 @@ typedef struct addr_range addr_range_t;
 extern addr_range_t kern_addr_ranges[];
 #define USER_ADDR_RANGES_NUM 3
 extern addr_range_t user_addr_ranges[];
-#define INIT_ADDR_RANGES_NUM 4
+#define INIT_ADDR_RANGES_NUM 5
 extern addr_range_t init_addr_ranges[];
 
 extern void display_memory_map(void);
