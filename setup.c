@@ -14,6 +14,8 @@
 #include <drivers/serial.h>
 #include <drivers/vga.h>
 
+bool opt_debug;
+
 io_port_t com_ports[2];
 
 /*

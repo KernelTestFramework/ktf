@@ -17,6 +17,8 @@
 
 extern io_port_t com_ports[2];
 
+extern bool opt_debug;
+
 extern uint8_t kernel_stack[KERN_STACK_SIZE + 2 * PAGE_SIZE];
 extern uint8_t user_stack[PAGE_SIZE];
 
