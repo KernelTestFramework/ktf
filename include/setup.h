@@ -52,12 +52,11 @@ struct addr_range {
 };
 typedef struct addr_range addr_range_t;
 
-#define KERN_ADDR_RANGES_NUM 5
-extern addr_range_t kern_addr_ranges[];
-#define USER_ADDR_RANGES_NUM 3
-extern addr_range_t user_addr_ranges[];
-#define INIT_ADDR_RANGES_NUM 5
-extern addr_range_t init_addr_ranges[];
+extern addr_range_t addr_ranges[];
+#define for_each_memory_range(ptr)                                  \
+    for (addr_range_t *ptr = &addr_ranges[0];                       \
+         ptr->name != NULL || (ptr->from != 0x0 && ptr->to != 0x0); \
+         ptr++)
 
 extern void display_memory_map(void);
 extern void dump_pagetables(void);
