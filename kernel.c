@@ -7,7 +7,7 @@
 extern void _long_to_real(void);
 
 void kernel_main(void) {
-    printk("\nKTF - KVM Test Framework!\n\n");
+    printk("\nKTF - Kernel Test Framework!\n\n");
 
     display_memory_map();
     display_multiboot_mmap();
