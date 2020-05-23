@@ -105,19 +105,16 @@ void init_pagetables(void) {
     }
 
     /* L1 page tables mapping: .init sections mapping */
-    for (int i = 0; i < INIT_ADDR_RANGES_NUM; i++) {
-        addr_range_t *r = &init_addr_ranges[i];
-
-        for (mfn_t mfn = virt_to_mfn(r->from); mfn <= virt_to_mfn(r->to); mfn++)
-            set_pte(mfn_to_virt_kern(mfn), mfn_to_paddr(mfn), r->flags);
-    }
-
-    /* L1 page tables mapping: kernel sections mapping */
-    for (int i = 0; i < KERN_ADDR_RANGES_NUM; i++) {
-        addr_range_t *r = &kern_addr_ranges[i];
-
-        for (mfn_t mfn = virt_to_mfn(r->from); mfn <= virt_to_mfn(r->to); mfn++)
-            set_pte(mfn_to_virt_kern(mfn), mfn_to_paddr(mfn), r->flags);
+    for_each_memory_range(r) {
+        switch (r->base) {
+        case VIRT_IDENT_BASE:
+        case VIRT_KERNEL_BASE:
+            for (mfn_t mfn = virt_to_mfn(r->from); mfn <= virt_to_mfn(r->to); mfn++)
+                set_pte(mfn_to_virt_kern(mfn), mfn_to_paddr(mfn), r->flags);
+            break;
+        default:
+            break;
+        }
     }
 }
 
@@ -134,11 +131,14 @@ void init_user_pagetables(void) {
         set_pde(_ptr(va), virt_to_paddr(l1_user_pagetable[i]), L2_PROT_USER);
     }
 
-    /* L1 page tables mapping: user sections mapping */
-    for (int i = 0; i < USER_ADDR_RANGES_NUM; i++) {
-        addr_range_t *r = &user_addr_ranges[i];
-
-        for (mfn_t mfn = virt_to_mfn(r->from); mfn <= virt_to_mfn(r->to); mfn++)
-            set_pte(mfn_to_virt_user(mfn), mfn_to_paddr(mfn), r->flags);
+    for_each_memory_range(r) {
+        switch (r->base) {
+        case VIRT_USER_BASE:
+            for (mfn_t mfn = virt_to_mfn(r->from); mfn <= virt_to_mfn(r->to); mfn++)
+                set_pte(mfn_to_virt_user(mfn), mfn_to_paddr(mfn), r->flags);
+            break;
+        default:
+            break;
+        }
     }
 }
