@@ -13,9 +13,10 @@ void kernel_main(void) {
     display_multiboot_mmap();
 
     _long_to_real();
-    printk("\n After long_to_real\n");
+    dprintk("\n After long_to_real\n");
 
-    dump_pagetables();
+    if (opt_debug)
+        dump_pagetables();
 
     test_main();
 
