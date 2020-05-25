@@ -96,3 +96,11 @@ cscope:
 	@echo "CSCOPE"
 	@ $(all_sources) > cscope.files
 	@ cscope -b -q -k
+
+DOCKERFILE  := $(shell find $(ROOT) -type f -name Dockerfile)
+DOCKERIMAGE := "ktf:build"
+
+.PHONY: dockerimage
+dockerimage:
+	@echo "Creating docker image"
+	@ docker build -t $(DOCKERIMAGE) -f $(DOCKERFILE) .
