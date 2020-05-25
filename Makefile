@@ -104,3 +104,8 @@ DOCKERIMAGE := "ktf:build"
 dockerimage:
 	@echo "Creating docker image"
 	@ docker build -t $(DOCKERIMAGE) -f $(DOCKERFILE) .
+
+.PHONY: docker%
+docker%: dockerimage
+	@echo "running target '$(strip $(subst :,, $*))' in docker"
+	@ docker run -it -v $(PWD):$(PWD) -w $(PWD) $(DOCKERIMAGE) bash -c "make $(strip $(subst :,, $*))"
