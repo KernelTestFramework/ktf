@@ -44,6 +44,7 @@ clean:
 	@ find $(ROOT) -name \*.lds -delete
 	@ find $(ROOT) -name \*.bin -delete
 	@ find $(ROOT) -name \*.iso -delete
+	@ find $(ROOT) -name \*.vhd -delete
 	@ find $(ROOT) -name cscope.\* -delete
 
 QEMU_PARAMS := -machine q35,accel=kvm -m 1024
