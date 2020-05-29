@@ -7,7 +7,7 @@ COMMON_FLAGS := -I$(ROOT)/include -pipe -MP -MMD -m64 -D__x86_64__
 
 AFLAGS  := $(COMMON_FLAGS) -D__ASSEMBLY__ -nostdlib -nostdinc
 CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O3 -g -Wall -ffreestanding
-CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse
+CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse2
 CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin
 CFLAGS  += -mcmodel=kernel -fno-pic -fno-asynchronous-unwind-tables -fno-unwind-tables
 
