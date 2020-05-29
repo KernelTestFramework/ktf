@@ -8,7 +8,7 @@ SECTION(.multiboot, "a", 4)
 #define MULTIBOOT_CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
 
 .code32
-multibool_header:
+multiboot_header:
     .long MULTIBOOT_HEADER_MAGIC
     .long MULTIBOOT_HEADER_FLAGS
     .long MULTIBOOT_CHECKSUM
