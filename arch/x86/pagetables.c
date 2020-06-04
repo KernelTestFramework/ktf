@@ -173,4 +173,6 @@ void init_pagetables(void) {
             break;
         }
     }
+
+    map_used_memory();
 }
