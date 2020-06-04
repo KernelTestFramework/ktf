@@ -22,22 +22,20 @@ pml4_t l4_pagetable[L4_PT_ENTRIES] __aligned(0x1000);
 pdpe_t l3_pagetable[L3_PT_ENTRIES] __aligned(0x1000);
 #endif
 
-cr3_t cr3;
+cr3_t __data_init cr3;
 
-static inline const char *dump_pte_flags(char *buf, size_t size, pgentry_t pgentry) {
-    pte_t pte = (pte_t) pgentry;
-
-    snprintf(buf, size, "%c%c%c%c%c%c%c%c%c%c",
-        pte.P ? 'P' : '-',
-        pte.RW ? 'W' : 'R',
-        pte.US ? 'U' : 'S',
-        pte.PWT ? 'w' : '-',
-        pte.PCD ? '-' : 'C',
-        pte.A ? 'A' : '-',
-        pte.D ? 'D' : '-',
+static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
+    snprintf(buf, size, "%c %c%c%c%c%c%c%c%c%c",
+        pte.NX  ? 'X' : '-',
+        pte.G   ? 'G' : '-',
         pte.PAT ? 'p' : '-',
-        pte.G ? 'G' : '-',
-        pte.NX ? 'X' : '-');
+        pte.D   ? 'D' : '-',
+        pte.A   ? 'A' : '-',
+        pte.PCD ? '-' : 'C',
+        pte.PWT ? 'w' : '-',
+        pte.US  ? 'U' : 'S',
+        pte.RW  ? 'W' : 'R',
+        pte.P   ? 'P' : '-');
 
     return buf;
 }
@@ -68,9 +66,9 @@ static inline void dump_page_table(void *table, int level) {
         if (!pt[i].P)
             continue;
 
-        dump_pte_flags(flags, sizeof(flags), pt[i].entry);
+        dump_pte_flags(flags, sizeof(flags), pt[i]);
         paddr_t paddr = mfn_to_paddr(pt[i].mfn);
-        printk("[%p] %*s%d[%03u] paddr: %p flags: %s\n",
+        printk("[%p] %*s%d[%03u] paddr: 0x%016lx flags: %s\n",
                virt_to_paddr(pt), (4 - level) * 2, "L", level, i, paddr, flags);
 
         dump_page_table(paddr_to_virt_kern(paddr), level - 1);
@@ -79,6 +77,7 @@ static inline void dump_page_table(void *table, int level) {
 
 void dump_pagetables(void) {
     printk("\nPage Tables:\n");
+    printk("CR3: paddr: 0x%lx\n", cr3.paddr);
     dump_page_table(get_l4_table(), 4);
 }
 

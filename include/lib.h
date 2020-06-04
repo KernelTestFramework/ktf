@@ -204,7 +204,7 @@ static inline void ud2(void) {
 #define ASSERT(cond) do {                       \
     if (!(cond))                                \
         panic("%s: Assert at %d failed: %s\n",  \
-              __func__, STR((cond)), __LINE__); \
+              __func__, __LINE__, STR((cond))); \
 } while(0)
 
 /* I/O Ports handling */

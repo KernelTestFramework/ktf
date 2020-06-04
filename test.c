@@ -8,6 +8,6 @@ void test_main(void) {
     printk("\nTest:\n");
 
     usermode_call(func, NULL);
-    printk("Test done\n");
 
+    printk("Test done\n");
 }

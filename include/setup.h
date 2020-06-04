@@ -1,5 +1,5 @@
-#ifndef SETUP_SETUP_H
-#define SETUP_SETUP_H
+#ifndef KTF_SETUP_H
+#define KTF_SETUP_H
 
 #define KERN_STACK_SIZE (5 * PAGE_SIZE)
 
@@ -18,7 +18,7 @@ extern uint8_t user_stack[PAGE_SIZE];
 
 #define GET_KERN_STACK()    (&kernel_stack[KERN_STACK_SIZE])
 #define GET_KERN_EX_STACK() (&kernel_stack[KERN_STACK_SIZE + PAGE_SIZE])
-#define GET_KERN_EM_STACK() (&kernel_stack[KERN_STACK_SIZE + PAGE_SIZE])
+#define GET_KERN_EM_STACK() (&kernel_stack[KERN_STACK_SIZE + 2 * PAGE_SIZE])
 
 extern const char *kernel_cmdline;
 extern void dump_pagetables(void);
@@ -35,4 +35,4 @@ static inline void get_com_ports(void) {
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* SETUP_SETUP_H */
+#endif /* KTF_SETUP_H */
