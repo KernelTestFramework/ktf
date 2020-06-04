@@ -66,7 +66,6 @@ SECTIONS
             *(COMMON.init)
         . = ALIGN(4K);
         __end_bss_init = .;
-
     } :init
 
     . += VIRT_USER_BASE;
@@ -97,7 +96,6 @@ SECTIONS
             *(COMMON.user)
         . = ALIGN(4K);
         __end_bss_user = .;
-
     } :user
 
     . += VIRT_KERNEL_BASE - VIRT_USER_BASE;
