@@ -6,6 +6,19 @@
 #define PAGE_SHIFT 12
 #define PAGE_SIZE  (_U64(1) << PAGE_SHIFT)
 #define PAGE_MASK  (~(PAGE_SIZE - 1))
+#define PAGE_ORDER_4K 0
+
+#define PAGE_SHIFT_2M 21
+#define PAGE_SIZE_2M  (_U64(1) << PAGE_SHIFT_2M)
+#define PAGE_MASK_2M  (~(PAGE_SIZE_2M - 1))
+#define PAGE_ORDER_2M 9
+
+#define PAGE_SHIFT_1G 30
+#define PAGE_SIZE_1G  (_U64(1) << PAGE_SHIFT_1G)
+#define PAGE_MASK_1G  (~(PAGE_SIZE_1G - 1))
+#define PAGE_ORDER_1G 18
+
+#define MAX_PAGE_ORDER PAGE_ORDER_1G
 
 #define _PAGE_PRESENT           0x0001
 #define _PAGE_RW                0x0002
