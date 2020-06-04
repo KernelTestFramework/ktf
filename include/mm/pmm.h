@@ -44,6 +44,10 @@ extern addr_range_t addr_ranges[];
 
 extern void display_memory_map(void);
 
+extern addr_range_t get_memory_range(paddr_t pa);
+extern paddr_t get_memory_range_start(paddr_t pa);
+extern paddr_t get_memory_range_end(paddr_t pa);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PMM_H */

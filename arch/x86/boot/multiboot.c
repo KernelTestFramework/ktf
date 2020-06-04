@@ -58,10 +58,39 @@ void init_multiboot(multiboot_info_t *mbi, const char **cmdline) {
         *cmdline = (const char *) _ptr(mbi->cmdline);
 }
 
-uint32_t mbi_lower_memory(void) {
-    return multiboot_info->mem_lower;
-}
+int mbi_get_memory_range(paddr_t pa, addr_range_t *r) {
+    paddr_t _start, _end;
 
-uint32_t mbi_upper_memory(void) {
-    return multiboot_info->mem_upper;
+    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
+        for (int i = 0; i < multiboot_mmap_num; i++) {
+            multiboot_memory_map_t *entry = &multiboot_mmap[i];
+
+            _start = _paddr(entry->addr);
+            _end = _paddr(_start + entry->len);
+
+            if (pa >= _start && pa < _end)
+                goto found;
+        }
+    }
+    else if (has_mbi_flag(MULTIBOOT_INFO_MEMORY)) {
+        _start = 0x0;
+        _end = multiboot_info->mem_lower * KB(1);
+
+        if (pa >= _start && pa < _end)
+            goto found;
+
+        _start = MB(1);
+        _end = _start + multiboot_info->mem_upper * KB(1);
+
+        if (pa >= _start && pa < _end)
+            goto found;
+    }
+
+    return -1;
+
+found:
+    r->start = _ptr(_start);
+    r->end = _ptr(_end);
+
+    return 0;
 }

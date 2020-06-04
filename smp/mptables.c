@@ -48,6 +48,7 @@ static inline mpf_t *find_mpf(void *from, void *to) {
 
 static mpf_t *get_mpf_addr(void) {
     uint32_t ebda_addr;
+    void *sysm_addr;
     mpf_t *ptr;
 
     ebda_addr = (* (uint16_t *) paddr_to_virt_kern(EBDA_ADDR_ENTRY)) << 4;
@@ -55,7 +56,8 @@ static mpf_t *get_mpf_addr(void) {
     if (ptr)
         return ptr;
 
-    ptr = find_mpf(paddr_to_virt_kern(mbi_lower_memory()), paddr_to_virt_kern(mbi_lower_memory() + KB(1)));
+    sysm_addr = paddr_to_virt_kern(get_memory_range_end(KB(512)));
+    ptr = find_mpf(sysm_addr - KB(1), sysm_addr);
     if (ptr)
         return ptr;
 
