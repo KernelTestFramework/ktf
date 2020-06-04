@@ -64,6 +64,15 @@ extern paddr_t get_memory_range_end(paddr_t pa);
 
 extern void init_pmm(void);
 
+extern mfn_t get_free_frames(unsigned int order);
+extern void put_frame(mfn_t mfn, unsigned int order);
+
+/* Static definitions */
+
+static inline mfn_t get_free_frame(void) {
+    return get_free_frames(PAGE_ORDER_4K);
+}
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PMM_H */
