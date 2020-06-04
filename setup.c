@@ -28,8 +28,7 @@ io_port_t com_ports[2];
 uint8_t kernel_stack[7 * PAGE_SIZE] __aligned(PAGE_SIZE) __data;
 uint8_t user_stack[PAGE_SIZE] __aligned(PAGE_SIZE) __user_data;
 
-char kernel_cmdline[PAGE_SIZE];
-
+const char *kernel_cmdline;
 #define VIDEO_START _ptr(VIRT_KERNEL_BASE + VGA_START_ADDR)
 #define VIDEO_END  _ptr(VIRT_KERNEL_BASE + VGA_END_ADDR)
 addr_range_t addr_ranges[] = {
