@@ -21,7 +21,6 @@ extern uint8_t user_stack[PAGE_SIZE];
 #define GET_KERN_EM_STACK() (&kernel_stack[KERN_STACK_SIZE + 2 * PAGE_SIZE])
 
 extern const char *kernel_cmdline;
-extern void dump_pagetables(void);
 
 static inline void get_com_ports(void) {
     memcpy((void *) com_ports, (void *)(BDA_COM_PORTS_ENTRY), sizeof(com_ports));
