@@ -229,12 +229,14 @@ void mptables_init(void) {
         return;
     }
 
-    dump_mpf(mpf_ptr);
+    if (opt_debug)
+        dump_mpf(mpf_ptr);
 
     if (mpf_ptr->mpc_type > 0 || mpf_ptr->mpc_base == 0x0)
         panic("No MP Configuration Table present!\n");
 
     mpc_ptr = get_mpc_addr(mpf_ptr);
-    dump_mpc_hdr(mpc_ptr);
+    if (opt_debug)
+        dump_mpc_hdr(mpc_ptr);
     process_mpc_entries(mpc_ptr);
 }
