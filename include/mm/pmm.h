@@ -10,6 +10,9 @@
 #define BIOS_ROM_ADDR_START 0xF0000
 
 #ifndef __ASSEMBLY__
+#include <list.h>
+#include <page.h>
+
 extern unsigned long __start_text[], __end_text[];
 extern unsigned long __start_data[], __end_data[];
 extern unsigned long __start_bss[],  __end_bss[];
@@ -40,6 +43,17 @@ extern addr_range_t addr_ranges[];
          ptr->name != NULL || (ptr->start != 0x0 && ptr->end != 0x0); \
          ptr++)
 
+struct frame {
+    struct list_head list;
+    mfn_t mfn;
+    uint32_t refcount;
+    uint32_t :24, order:6, uncachable:1, free:1;
+};
+typedef struct frame frame_t;
+
+#define for_each_order(order) \
+    for (int order = 0; order < MAX_PAGE_ORDER + 1; order++)
+
 /* External definitions */
 
 extern void display_memory_map(void);
@@ -47,6 +61,8 @@ extern void display_memory_map(void);
 extern addr_range_t get_memory_range(paddr_t pa);
 extern paddr_t get_memory_range_start(paddr_t pa);
 extern paddr_t get_memory_range_end(paddr_t pa);
+
+extern void init_pmm(void);
 
 #endif /* __ASSEMBLY__ */
 
