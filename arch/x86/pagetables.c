@@ -109,7 +109,7 @@ void init_pagetables(void) {
         switch (r->base) {
         case VIRT_IDENT_BASE:
         case VIRT_KERNEL_BASE:
-            for (mfn_t mfn = virt_to_mfn(r->from); mfn <= virt_to_mfn(r->to); mfn++)
+            for (mfn_t mfn = virt_to_mfn(r->start); mfn <= virt_to_mfn(r->end); mfn++)
                 set_pte(mfn_to_virt_kern(mfn), mfn_to_paddr(mfn), r->flags);
             break;
         default:
@@ -134,7 +134,7 @@ void init_user_pagetables(void) {
     for_each_memory_range(r) {
         switch (r->base) {
         case VIRT_USER_BASE:
-            for (mfn_t mfn = virt_to_mfn(r->from); mfn <= virt_to_mfn(r->to); mfn++)
+            for (mfn_t mfn = virt_to_mfn(r->start); mfn <= virt_to_mfn(r->end); mfn++)
                 set_pte(mfn_to_virt_user(mfn), mfn_to_paddr(mfn), r->flags);
             break;
         default:
