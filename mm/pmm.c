@@ -1,11 +1,21 @@
 #include <ktf.h>
 #include <lib.h>
+#include <list.h>
 #include <page.h>
+#include <setup.h>
 #include <console.h>
 #include <multiboot.h>
 
 #include <mm/pmm.h>
 #include <drivers/vga.h>
+
+static list_head_t free_frames[MAX_PAGE_ORDER + 1];
+static list_head_t busy_frames[MAX_PAGE_ORDER + 1];
+
+static frame_t early_frames[2 * PAGE_SIZE];
+static unsigned int free_frame_idx;
+
+static size_t frames_count[MAX_PAGE_ORDER + 1];
 
 #define _RANGE(_name, _base, _flags, _start, _end) {   \
     .name = _name, .base = (_base), .flags = (_flags), \
@@ -75,4 +85,108 @@ paddr_t get_memory_range_end(paddr_t pa) {
     addr_range_t r = get_memory_range(pa);
 
     return _paddr(r.end);
+}
+
+static void display_frames_count(size_t size) {
+    printk("Avail memory frames: (total size: %lu MB)\n", size / MB(1));
+
+    for_each_order(order) {
+        size_t count = frames_count[order];
+
+        if (count)
+            printk("  %lu KB: %lu\n",  (PAGE_SIZE << order) / KB(1), count);
+    }
+}
+
+static inline void display_frame(const frame_t *frame) {
+    printk("Frame: mfn: %lx, order: %u, refcnt: %u, uc: %u, free: %u\n",
+           frame->mfn, frame->order, frame->refcount, frame->uncachable, frame->free);
+}
+
+static void add_frame(paddr_t *pa, unsigned int order) {
+    frame_t *free_frame = &early_frames[free_frame_idx++];
+
+    if (free_frame_idx > ARRAY_SIZE(early_frames))
+        panic("Not enough initial frames for PMM allocation!\n");
+
+    free_frame->order = order;
+    free_frame->mfn = paddr_to_mfn(*pa);
+    free_frame->free = true;
+
+    *pa += (PAGE_SIZE << order);
+
+    list_add(&free_frame->list, &free_frames[order]);
+}
+
+static size_t process_memory_range(unsigned index) {
+    paddr_t start, end, cur;
+    addr_range_t range;
+    size_t size;
+
+    if (mbi_get_avail_memory_range(index, &range) < 0)
+        return 0;
+
+    cur = start = _paddr(range.start);
+    end = _paddr(range.end);
+    size = end - start;
+
+    while(cur % PAGE_SIZE_2M) {
+        add_frame(&cur, PAGE_ORDER_4K);
+        frames_count[PAGE_ORDER_4K]++;
+    }
+
+    while((cur % PAGE_SIZE_1G) && cur + (PAGE_SIZE_2M - 1) <= end) {
+        add_frame(&cur, PAGE_ORDER_2M);
+        frames_count[PAGE_ORDER_2M]++;
+    }
+
+    while(cur + (PAGE_SIZE_1G - 1) <= end) {
+        add_frame(&cur, PAGE_ORDER_1G);
+        frames_count[PAGE_ORDER_1G]++;
+    }
+
+    while(cur + (PAGE_SIZE_2M - 1) <= end) {
+        add_frame(&cur, PAGE_ORDER_2M);
+        frames_count[PAGE_ORDER_2M]++;
+    }
+
+    BUG_ON(cur > end);
+
+    return size;
+}
+
+void init_pmm(void) {
+    size_t total_size = 0;
+    unsigned num;
+
+    printk("Initialize Physical Memory Manager\n");
+
+    BUG_ON(ARRAY_SIZE(free_frames) != ARRAY_SIZE(busy_frames));
+    for_each_order(order) {
+        list_init(&free_frames[order]);
+        list_init(&busy_frames[order]);
+    }
+
+    num = mbi_get_avail_memory_ranges_num();
+
+    /* Skip low memory range */
+    for (int i = 1; i < num; i++)
+        total_size += process_memory_range(i);
+
+    display_frames_count(total_size);
+
+    if (opt_debug)
+    {
+        frame_t *frame;
+
+        printk("List of frames:\n");
+        for_each_order(order) {
+            if (list_is_empty(&free_frames[order]))
+                continue;
+
+            printk("Order: %u\n", order);
+            list_for_each_entry(frame, &free_frames[order], list)
+                display_frame(frame);
+        }
+    }
 }

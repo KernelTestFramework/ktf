@@ -67,6 +67,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
         init_multiboot(mbi, &kernel_cmdline);
     }
 
+    /* Initialize Physical Memory Manager */
+    init_pmm();
+
     /* Setup final pagetables */
     init_pagetables();
 
