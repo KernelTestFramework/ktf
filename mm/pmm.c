@@ -245,3 +245,13 @@ void put_frame(mfn_t mfn, unsigned int order) {
     list_add(&frame->list, &free_frames[order]);
     /* FIXME: Add frame merge */
 }
+
+void map_used_memory(void) {
+    frame_t *frame;
+
+    for_each_order(order) {
+        list_for_each_entry(frame, &busy_frames[order], list)
+            kmap(frame->mfn, order, L1_PROT);
+    }
+
+}

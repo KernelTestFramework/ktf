@@ -67,6 +67,8 @@ extern void init_pmm(void);
 extern mfn_t get_free_frames(unsigned int order);
 extern void put_frame(mfn_t mfn, unsigned int order);
 
+extern void map_used_memory(void);
+
 /* Static definitions */
 
 static inline mfn_t get_free_frame(void) {
