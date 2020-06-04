@@ -12,7 +12,8 @@ union pte {
     pgentry_t entry;
     struct __packed {
         unsigned int flags:12;
-        unsigned long :52;
+        unsigned long :47;
+        unsigned int flags_top:5;
     };
     struct __packed {
         unsigned long paddr:52;
@@ -20,9 +21,10 @@ union pte {
     };
     struct __packed {
         unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, D:1, PAT:1, G:1;
-        unsigned int AVL0:3;
+        unsigned int IGN0:3;
         unsigned long mfn:40;
-        unsigned int AVL1:11, NX:1;
+        unsigned int IGN1:7;
+        unsigned int PKE: 4, NX:1;
     };
 };
 typedef union pte pte_t;
@@ -31,17 +33,18 @@ union pde {
     pgentry_t entry;
     struct __packed {
         unsigned int flags:12;
-        unsigned long :52;
+        unsigned long :51;
+        unsigned int flags_top:1;
     };
     struct __packed {
         unsigned long paddr:52;
         unsigned int :12;
     };
     struct __packed {
-        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, Z:1, IGN1:1;
-        unsigned int AVL0:3;
+        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, Z:1;
+        unsigned int IGN1:4;
         unsigned long mfn:40;
-        unsigned int AVL1:11, NX:1;
+        unsigned int IGN2:11, NX:1;
     };
 };
 typedef union pde pde_t;
@@ -50,17 +53,18 @@ union pdpe {
     pgentry_t entry;
     struct __packed {
         unsigned int flags:12;
-        unsigned long :52;
+        unsigned long :51;
+        unsigned int flags_top:1;
     };
     struct __packed {
         unsigned long paddr:52;
         unsigned int :12;
     };
     struct __packed {
-        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, Z:1, MBZ:1;
-        unsigned int AVL0:3;
+        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, Z:1;
+        unsigned int IGN1:4;
         unsigned long mfn:40;
-        unsigned int AVL1:11, NX:1;
+        unsigned int IGN2:11, NX:1;
     };
 };
 typedef union pdpe pdpe_t;
@@ -70,17 +74,18 @@ union pml4 {
     pgentry_t entry;
     struct __packed {
         unsigned int flags:12;
-        unsigned long :52;
+        unsigned long :51;
+        unsigned int flags_top:1;
     };
     struct __packed {
         unsigned long paddr:52;
         unsigned int :12;
     };
     struct __packed {
-        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, MBZ:2;
-        unsigned int AVL0:3;
+        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, Z:1;
+        unsigned int IGN1:4;
         unsigned long mfn:40;
-        unsigned int AVL1:11, NX:1;
+        unsigned int IGN2:11, NX:1;
     };
 };
 typedef union pml4 pml4_t;
@@ -93,9 +98,13 @@ union cr3 {
         unsigned int :12;
     };
     struct __packed {
-        unsigned int RSVD0:3, PWT:1, PCD:1, RSVD1:7;
+        unsigned int IGN0:3, PWT:1, PCD:1, IGN1:7;
         unsigned long mfn:40;
-        unsigned int RSVD2:12;
+        unsigned int RSVD:12;
+    };
+    struct __packed {
+        unsigned int PCID:12;
+        unsigned long :52;
     };
 };
 typedef union cr3 cr3_t;
@@ -199,14 +208,12 @@ static inline void set_pte(const void *va, paddr_t pa, unsigned long flags) {
 
 /* External declarations */
 
-extern pgentry_t l1_pt_entries[L1_PT_ENTRIES];
-extern pgentry_t l2_pt_entries[L2_PT_ENTRIES];
-extern pgentry_t l3_pt_entries[L3_PT_ENTRIES];
+extern pte_t l1_pt_entries[L1_PT_ENTRIES];
+extern pde_t l2_pt_entries[L2_PT_ENTRIES];
+extern pdpe_t l3_pt_entries[L3_PT_ENTRIES];
 #if defined (__x86_64__)
 extern pml4_t l4_pt_entries[L4_PT_ENTRIES];
-extern pml4_t l4_pagetable[L4_PT_ENTRIES];
 #elif defined (__i386__)
-extern pdpe_t l3_pagetable[L3_PT_ENTRIES];
 #endif
 
 extern void init_pagetables(void);

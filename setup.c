@@ -70,11 +70,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
     /* Setup final pagetables */
     init_pagetables();
 
-#if defined (__x86_64__)
     write_cr3(cr3.paddr);
-#elif defined (__i386__)
-    write_cr3(cr3.paddr);
-#endif
 
     write_sp(_ul(GET_KERN_STACK()));
 
