@@ -190,3 +190,58 @@ void init_pmm(void) {
         }
     }
 }
+
+mfn_t get_free_frames(unsigned int order) {
+    frame_t *frame;
+
+    if (order > MAX_PAGE_ORDER)
+        return MFN_INVALID;
+
+    if (list_is_empty(&free_frames[order])) {
+        /* FIXME: Add page split */
+        return MFN_INVALID;
+    }
+
+    frame = list_first_entry(&free_frames[order], frame_t, list);
+    BUG_ON(!frame->free);
+    frame->free = false;
+
+    BUG_ON(frame->refcount > 0);
+    frame->refcount++;
+
+    list_unlink(&frame->list);
+    list_add(&frame->list, &busy_frames[order]);
+
+    return frame->mfn;
+}
+
+void put_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame;
+    frame_t *found = NULL;
+
+    if (mfn == MFN_INVALID)
+        return;
+
+    list_for_each_entry(frame, &busy_frames[order], list) {
+        if (frame->mfn == mfn) {
+            found = frame;
+            break;
+        }
+    }
+
+    BUG_ON(!found);
+
+    BUG_ON(frame->refcount == 0);
+    frame->refcount--;
+
+    if (found->refcount > 0)
+        return;
+
+    BUG_ON(frame->free);
+    frame->free = true;
+
+    list_unlink(&frame->list);
+    /* FIXME: Maintain order wrt mfn value */
+    list_add(&frame->list, &free_frames[order]);
+    /* FIXME: Add frame merge */
+}
