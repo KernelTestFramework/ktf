@@ -7,6 +7,10 @@
 .code32
 SECTION(.text.init, "ax", 16)
 GLOBAL(_start)
+    /* Save multiboot bootloader magic */
+    mov %eax, %edi
+    mov %ebx, %esi
+
     mov   %cs, %ax
     mov   %ax, %ds
 
@@ -62,7 +66,6 @@ GLOBAL(_start)
     popf
 
     cld
-    mov %rbx, %rdi
 
     jmp kernel_start
 
