@@ -74,6 +74,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
 
     write_sp(_ul(GET_KERN_STACK()));
 
+    if (opt_debug)
+        dump_pagetables();
+
     /* TODO: Exception tables */
 
     init_traps();

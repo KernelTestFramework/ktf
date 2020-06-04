@@ -18,9 +18,6 @@ void kernel_main(void) {
     _long_to_real();
     dprintk("\n After long_to_real\n");
 
-    if (opt_debug)
-        dump_pagetables();
-
     test_main();
 
     while(1)
