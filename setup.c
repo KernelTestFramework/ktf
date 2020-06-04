@@ -89,15 +89,17 @@ static __always_inline void zap_boot_mappings(void) {
     memset(paddr_to_virt_kern(virt_to_paddr(l1_pt_entries)), 0, L1_PT_ENTRIES * sizeof(pgentry_t));
 }
 
-void __noreturn __text_init kernel_start(multiboot_info_t *mbi) {
+void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_info_t *mbi) {
     /* Zero-out BSS sections */
     zero_bss();
 
-    /* Indentity mapping is still on, so fill in multiboot structures */
-    init_multiboot(mbi);
-
     /* Initialize console early */
     init_console();
+
+    if (multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC) {
+        /* Indentity mapping is still on, so fill in multiboot structures */
+        init_multiboot(mbi, &kernel_cmdline);
+    }
 
     /* Setup final pagetables */
     init_pagetables();

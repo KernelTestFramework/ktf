@@ -43,7 +43,7 @@ void display_multiboot_mmap(void) {
     }
 }
 
-void init_multiboot(multiboot_info_t *mbi) {
+void init_multiboot(multiboot_info_t *mbi, const char **cmdline) {
     memcpy(&multiboot_info, mbi, sizeof(multiboot_info));
     if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP))
         memcpy(&multiboot_mmap, _ptr(mbi->mmap_addr), mbi->mmap_length);

@@ -275,7 +275,7 @@ struct multiboot_apm_info
 #endif /* ! MULTIBOOT_HEADER */
 
 extern void display_multiboot_mmap(void);
-extern void init_multiboot(multiboot_info_t *mbi);
+extern void init_multiboot(multiboot_info_t *mbi, const char **cmdline);
 
 uint32_t mbi_lower_memory(void);
 uint32_t mbi_upper_memory(void);
