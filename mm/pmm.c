@@ -47,7 +47,7 @@ addr_range_t addr_ranges[] = {
     USER_RANGE( ".data.user",   L1_PROT_USER,    __start_data_user, __end_data_user ),
     USER_RANGE( ".bss.user",    L1_PROT_USER,    __start_bss_user,  __end_bss_user  ),
 
-    KERNEL_RANGE( "Video",      L1_PROT,         VIDEO_START,       VIDEO_END       ),
+    KERNEL_RANGE( "Low memory", L1_PROT,         0x0,               MB(1)           ),
     KERNEL_RANGE( ".text",      L1_PROT_RO,      __start_text,      __end_text      ),
     KERNEL_RANGE( ".data",      L1_PROT,         __start_data,      __end_data      ),
     KERNEL_RANGE( ".bss",       L1_PROT,         __start_bss,       __end_bss       ),
