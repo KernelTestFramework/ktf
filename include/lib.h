@@ -5,6 +5,41 @@
 #include <segment.h>
 #include <asm-macros.h>
 
+static inline void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
+    asm volatile ("cpuid"
+        : "=a" (*eax), "=b" (*ebx), "=c" (*ecx), "=d" (*edx)
+        : "0" (leaf)
+    );
+}
+
+static inline uint32_t cpuid_eax(uint32_t leaf) {
+    uint32_t eax, ign;
+
+    cpuid(leaf, &eax, &ign, &ign, &ign);
+    return eax;
+}
+
+static inline uint32_t cpuid_ebx(uint32_t leaf) {
+    uint32_t ebx, ign;
+
+    cpuid(leaf, &ign, &ebx, &ign, &ign);
+    return ebx;
+}
+
+static inline uint32_t cpuid_ecx(uint32_t leaf) {
+    uint32_t ecx, ign;
+
+    cpuid(leaf, &ign, &ign, &ecx, &ign);
+    return ecx;
+}
+
+static inline uint32_t cpuid_edx(uint32_t leaf) {
+    uint32_t edx, ign;
+
+    cpuid(leaf, &ign, &ign, &ign, &edx);
+    return edx;
+}
+
 static inline void sti(void) {
     asm volatile ("sti");
 }
