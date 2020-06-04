@@ -1,12 +1,12 @@
 #include <ktf.h>
 #include <string.h>
-#include <setup.h>
 #include <console.h>
 #include <multiboot.h>
 
-static multiboot_info_t multiboot_info;
-#define MAX_MULTIBOOT_MMAP_ENTRIES 16
-static multiboot_memory_map_t multiboot_mmap[MAX_MULTIBOOT_MMAP_ENTRIES];
+static multiboot_info_t *multiboot_info;
+
+static multiboot_memory_map_t *multiboot_mmap;
+static unsigned multiboot_mmap_num;
 
 static const char *multiboot_region_type_name[] = {
     [MULTIBOOT_MEMORY_UNDEFINED]        = "Undefined",
@@ -18,7 +18,7 @@ static const char *multiboot_region_type_name[] = {
 };
 
 static inline bool has_mbi_flag(unsigned flag) {
-    return !!(multiboot_info.flags & flag);
+    return multiboot_info && !!(multiboot_info->flags & flag);
 }
 
 void display_multiboot_mmap(void) {
@@ -26,13 +26,16 @@ void display_multiboot_mmap(void) {
         return;
 
     printk("\nPhysical Memory Map\n");
-    printk("REGION: Lower %8u KB\n", multiboot_info.mem_lower);
-    printk("REGION: Upper %8u KB\n", multiboot_info.mem_upper);
 
-    if (!has_mbi_flag(MULTIBOOT_INFO_MEM_MAP))
+    if (!has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
+        printk("REGION: [0x%016lx - 0x%016lx] Lower memory\n",
+               0, multiboot_info->mem_lower * KB(1));
+        printk("REGION: [0x%016lx - 0x%016lx] Upper memory\n",
+               MB(1), MB(1) + (multiboot_info->mem_upper * KB(1)));
         return;
+    }
 
-    for (int i = 0; i < ARRAY_SIZE(multiboot_mmap); i++) {
+    for (int i = 0; i < multiboot_mmap_num; i++) {
         multiboot_memory_map_t *entry = &multiboot_mmap[i];
 
         if (entry->type != MULTIBOOT_MEMORY_UNDEFINED) {
@@ -44,17 +47,21 @@ void display_multiboot_mmap(void) {
 }
 
 void init_multiboot(multiboot_info_t *mbi, const char **cmdline) {
-    memcpy(&multiboot_info, mbi, sizeof(multiboot_info));
-    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP))
-        memcpy(&multiboot_mmap, _ptr(mbi->mmap_addr), mbi->mmap_length);
-    if (has_mbi_flag(MULTIBOOT_INFO_CMDLINE))
-        strcpy(kernel_cmdline, _ptr(mbi->cmdline));
+    multiboot_info = mbi;
+
+    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
+        multiboot_mmap = (multiboot_memory_map_t *) _ptr(mbi->mmap_addr);
+        multiboot_mmap_num = mbi->mmap_length / sizeof(*multiboot_mmap);
+    }
+
+    if (has_mbi_flag(MULTIBOOT_INFO_CMDLINE) && cmdline)
+        *cmdline = (const char *) _ptr(mbi->cmdline);
 }
 
 uint32_t mbi_lower_memory(void) {
-    return multiboot_info.mem_lower;
+    return multiboot_info->mem_lower;
 }
 
 uint32_t mbi_upper_memory(void) {
-    return multiboot_info.mem_upper;
+    return multiboot_info->mem_upper;
 }

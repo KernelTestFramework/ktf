@@ -26,8 +26,6 @@ extern uint8_t user_stack[PAGE_SIZE];
 #define GET_KERN_EX_STACK() (&kernel_stack[KERN_STACK_SIZE + PAGE_SIZE])
 #define GET_KERN_EM_STACK() (&kernel_stack[KERN_STACK_SIZE + PAGE_SIZE])
 
-extern char kernel_cmdline[PAGE_SIZE];
-
 extern unsigned long __start_text[], __end_text[];
 extern unsigned long __start_data[], __end_data[];
 extern unsigned long __start_bss[],  __end_bss[];
@@ -58,6 +56,7 @@ extern addr_range_t addr_ranges[];
          ptr->name != NULL || (ptr->from != 0x0 && ptr->to != 0x0); \
          ptr++)
 
+extern const char *kernel_cmdline;
 extern void display_memory_map(void);
 extern void dump_pagetables(void);
 
