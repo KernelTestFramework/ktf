@@ -2,6 +2,7 @@
 #include <lib.h>
 #include <page.h>
 #include <console.h>
+#include <multiboot.h>
 
 #include <mm/pmm.h>
 #include <drivers/vga.h>
@@ -52,4 +53,26 @@ void display_memory_map(void) {
         printk("%11s: VA: [0x%016lx - 0x%016lx] PA: [0x%08lx - 0x%08lx]\n",
                r->name, r->start, r->end, r->start - r->base, r->end - r->base);
     }
+}
+
+addr_range_t get_memory_range(paddr_t pa) {
+    addr_range_t r;
+
+    if (mbi_get_memory_range(pa, &r) < 0)
+        /* FIXME: e820_lower_memory_bound() */
+        panic("Unable to get memory range for: 0x%016lx\n", pa);
+
+    return r;
+}
+
+paddr_t get_memory_range_start(paddr_t pa) {
+    addr_range_t r = get_memory_range(pa);
+
+    return _paddr(r.start);
+}
+
+paddr_t get_memory_range_end(paddr_t pa) {
+    addr_range_t r = get_memory_range(pa);
+
+    return _paddr(r.end);
 }
