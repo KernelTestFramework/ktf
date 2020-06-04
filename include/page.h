@@ -138,6 +138,13 @@ static inline mfn_t virt_to_mfn(const void *va) {
     return paddr_to_mfn(virt_to_paddr(va));
 }
 
+/* External declarations */
+
+extern void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags);
+extern void *vunmap(void *va, unsigned int order);
+extern void *kmap(mfn_t mfn, unsigned int order, unsigned long flags);
+extern void *kunmap(void *va, unsigned int order);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PAGE_H */
