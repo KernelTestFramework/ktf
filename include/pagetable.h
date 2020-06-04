@@ -142,68 +142,54 @@ static inline pgentry_t pgentry_from_paddr(paddr_t pa, unsigned long flags) {
     return (pgentry_t) ((pa & ~(PADDR_MASK & PAGE_MASK)) | (flags & _PAGE_ALL_FLAGS));
 }
 
+static inline paddr_t paddr_from_pgentry(pgentry_t pgentry) {
+    return (paddr_t) (pgentry & ~PADDR_MASK) & PAGE_MASK;
+}
+
 static inline pgentry_t pgentry_from_mfn(mfn_t mfn, unsigned long flags) {
     return pgentry_from_paddr(mfn_to_paddr(mfn), flags);
+}
+
+static inline mfn_t mfn_from_pgentry(pgentry_t pgentry) {
+    return paddr_to_mfn(paddr_from_pgentry(pgentry));
 }
 
 static inline pgentry_t pgentry_from_virt(const void *va, unsigned long flags) {
     return pgentry_from_paddr(virt_to_paddr(va), flags);
 }
 
-static inline pml4_t *_get_l4_table(const cr3_t *cr3) {
-    return (pml4_t *) mfn_to_virt_kern(cr3->mfn);
-}
-
+#if defined (__x86_64__)
 static inline pml4_t *get_l4_table(void) {
-    return _get_l4_table(&cr3);
+    return paddr_to_virt_kern(read_cr3());
 }
 
 static inline pdpe_t *get_l3_table(const void *va) {
-    pml4_t *l3_entry = l4_table_entry(get_l4_table(), va);
+    pml4_t *l3e = l4_table_entry(get_l4_table(), va);
 
-    return (pdpe_t *) mfn_to_virt_kern(l3_entry->mfn);
+    return mfn_invalid(l3e->mfn) ? NULL : mfn_to_virt_kern(l3e->mfn);
 }
-
-static inline pde_t *get_l2_table(const void *va) {
-    pdpe_t *l2_entry = l3_table_entry(get_l3_table(va), va);
-
-    return (pde_t *) mfn_to_virt_kern(l2_entry->mfn);
-}
-
-static inline pte_t *get_l1_table(const void *va) {
-    pde_t *l1_entry = l2_table_entry(get_l2_table(va), va);
-
-    return (pte_t *) mfn_to_virt_kern(l1_entry->mfn);
-}
-
-static inline pte_t *get_pte(const void *va) {
-    return l1_table_entry(get_l1_table(va), va);
-}
-
-#if defined (__x86_64__)
-static inline void set_pml4(const void *va, paddr_t pa, unsigned long flags) {
-    pml4_t *l4e = l4_table_entry(get_l4_table(), va);
-
-    l4e->entry = pgentry_from_paddr(pa, flags);
+#elif defined (__i386__)
+static inline pdpe_t *get_l3_table(void) {
+    return paddr_to_virt_kern(read_cr3());
 }
 #endif
 
-static inline void set_pdpe(const void *va, paddr_t pa, unsigned long flags) {
-    pdpe_t *l3e = l3_table_entry(get_l3_table(va), va);
+static inline pde_t *get_l2_table(const void *va) {
+    pdpe_t *l2e = l3_table_entry(get_l3_table(va), va);
 
-    l3e->entry = pgentry_from_paddr(pa, flags);
+    return mfn_invalid(l2e->mfn) ? NULL : mfn_to_virt_kern(l2e->mfn);
 }
 
-static inline void set_pde(const void *va, paddr_t pa, unsigned long flags) {
-    pde_t *l2e = l2_table_entry(get_l2_table(va), va);
+static inline pte_t *get_l1_table(const void *va) {
+    pde_t *l1e = l2_table_entry(get_l2_table(va), va);
 
-    l2e->entry = pgentry_from_paddr(pa, flags);
+    return mfn_invalid(l1e->mfn) ? NULL : mfn_to_virt_kern(l1e->mfn);
 }
 
-static inline void set_pte(const void *va, paddr_t pa, unsigned long flags) {
-    pte_t *l1e = l1_table_entry(get_l1_table(va), va);
-
-    l1e->entry = pgentry_from_paddr(pa, flags);
+static inline void set_pgentry(pgentry_t *e, mfn_t mfn, unsigned long flags) {
+    *e = pgentry_from_mfn(mfn, flags);
+    barrier();
+    flush_tlb();
 }
 
 /* External declarations */
@@ -217,8 +203,8 @@ extern pml4_t l4_pt_entries[L4_PT_ENTRIES];
 #endif
 
 extern void init_pagetables(void);
-extern void init_user_pagetables(void);
 extern void dump_pagetables(void);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PAGETABLE_H */

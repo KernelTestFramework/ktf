@@ -84,8 +84,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
 
     init_traps();
 
-    init_user_pagetables();
-
     zap_boot_mappings();
 
     /* TODO PerCPU support */
