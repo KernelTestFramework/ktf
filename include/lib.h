@@ -188,6 +188,10 @@ static inline void str(unsigned int *selector) {
     asm volatile ("str %0" : "=m" (*selector));
 }
 
+static inline void flush_tlb(void) {
+    write_cr3(read_cr3());
+}
+
 static inline void ud2(void) {
     asm volatile ("ud2");
 }
