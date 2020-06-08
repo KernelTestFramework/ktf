@@ -58,6 +58,57 @@ void init_multiboot(multiboot_info_t *mbi, const char **cmdline) {
         *cmdline = (const char *) _ptr(mbi->cmdline);
 }
 
+unsigned mbi_get_avail_memory_ranges_num(void) {
+    unsigned num = 0;
+
+    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
+        for (int i = 0; i < multiboot_mmap_num; i++) {
+            multiboot_memory_map_t *entry = &multiboot_mmap[i];
+
+            if (entry->type == MULTIBOOT_MEMORY_AVAILABLE)
+                num++;
+        }
+    }
+    else if (has_mbi_flag(MULTIBOOT_INFO_MEMORY))
+        num = 2;
+
+    return num;
+}
+
+int mbi_get_avail_memory_range(unsigned index, addr_range_t *r) {
+    unsigned avail = 0;
+
+    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
+        for (int i = 0; i < multiboot_mmap_num; i++) {
+            multiboot_memory_map_t *entry = &multiboot_mmap[i];
+
+            if (entry->type != MULTIBOOT_MEMORY_AVAILABLE)
+                continue;
+
+            if (avail++ == index) {
+                r->start = _ptr(_paddr(entry->addr));
+                r->end = _ptr(_paddr(r->start + entry->len));
+                return 0;
+            }
+
+        }
+    }
+    else if (has_mbi_flag(MULTIBOOT_INFO_MEMORY)) {
+        if (index == 0) {
+            r->start = 0x0;
+            r->end = _ptr(multiboot_info->mem_lower * KB(1));
+            return 0;
+        }
+        else if (index == 1) {
+            r->start = _ptr(MB(1));
+            r->end = r->start + (multiboot_info->mem_upper * KB(1));
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
 int mbi_get_memory_range(paddr_t pa, addr_range_t *r) {
     paddr_t _start, _end;
 
