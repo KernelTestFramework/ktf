@@ -284,6 +284,22 @@ static inline void io_delay(void) {
     outb(IO_DELAY_PORT, 0xff); /* Random data write */
 }
 
+static inline uint64_t rdtsc(void) {
+  unsigned int low, high;
+
+  asm volatile ("rdtsc" : "=a" (low), "=d" (high));
+
+  return ((uint64_t) high << 32) | low;
+}
+
+static inline uint64_t rdtscp(void) {
+  unsigned int low, high;
+
+  asm volatile ("rdtscp" : "=a" (low), "=d" (high) :: "ecx");
+
+  return ((uint64_t) high << 32) | low;
+}
+
 /* External declarations */
 
 extern void halt(void);
