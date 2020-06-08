@@ -41,7 +41,7 @@ union pde {
         unsigned int :12;
     };
     struct __packed {
-        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, Z:1;
+        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, PS:1;
         unsigned int IGN1:4;
         unsigned long mfn:40;
         unsigned int IGN2:11, NX:1;
@@ -61,7 +61,7 @@ union pdpe {
         unsigned int :12;
     };
     struct __packed {
-        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, Z:1;
+        unsigned int P:1, RW:1, US:1, PWT:1, PCD:1, A:1, IGN0:1, PS:1;
         unsigned int IGN1:4;
         unsigned long mfn:40;
         unsigned int IGN2:11, NX:1;
