@@ -7,6 +7,8 @@
 
 #include <smp/mptables.h>
 
+static unsigned nr_cpus;
+
 static inline uint8_t get_mp_checksum(void *ptr, size_t len) {
     uint8_t checksum = 0;
 
@@ -182,6 +184,8 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
         case MPC_PROCESSOR_ENTRY: {
             mpc_processor_entry_t *mpc_cpu = (mpc_processor_entry_t *) entry_ptr;
 
+            nr_cpus++;
+
             dump_mpc_processor_entry(mpc_cpu);
             entry_ptr += sizeof(*mpc_cpu);
             break;
@@ -220,13 +224,13 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
     }
 }
 
-void mptables_init(void) {
+int mptables_init(void) {
     mpf_t *mpf_ptr = get_mpf_addr();
     mpc_hdr_t *mpc_ptr;
 
     if (!mpf_ptr) {
         printk("No MP Floating Structure Pointer found!\n");
-        return;
+        return -1;
     }
 
     if (opt_debug)
@@ -239,4 +243,6 @@ void mptables_init(void) {
     if (opt_debug)
         dump_mpc_hdr(mpc_ptr);
     process_mpc_entries(mpc_ptr);
+
+    return nr_cpus;
 }

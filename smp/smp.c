@@ -5,8 +5,11 @@
 #include <smp/smp.h>
 #include <smp/mptables.h>
 
-void smp_init(void) {
-    printk("Initializing SMP support\n");
+static unsigned nr_cpus;
 
-    mptables_init();
+void smp_init(void) {
+    nr_cpus = mptables_init();
+
+    printk("Initializing SMP support (CPUs: %u)\n", nr_cpus);
+
 }
