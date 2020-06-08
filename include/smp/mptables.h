@@ -123,6 +123,6 @@ typedef struct mpc_lint_entry mpc_lint_entry_t;
 
 /* External declarations */
 
-extern void mptables_init(void);
+extern int mptables_init(void);
 
 #endif /* KTF_MPTABLES_H */
