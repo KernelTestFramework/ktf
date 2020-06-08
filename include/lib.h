@@ -300,6 +300,11 @@ static inline uint64_t rdtscp(void) {
   return ((uint64_t) high << 32) | low;
 }
 
+static inline void rep_nop(void) {
+    asm volatile ("rep;nop" ::: "memory");
+}
+#define cpu_relax() rep_nop()
+
 /* External declarations */
 
 extern void halt(void);
