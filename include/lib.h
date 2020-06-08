@@ -54,6 +54,23 @@ static inline uint32_t cpuid_edx(uint32_t leaf) {
     return edx;
 }
 
+static inline uint64_t rdmsr(uint32_t msr_idx) {
+    uint32_t low, high;
+
+    asm volatile ("rdmsr"
+        : "=a" (low), "=d" (high)
+        : "c" (msr_idx)
+    );
+
+    return (((uint64_t) high) << 32) | low;
+}
+
+static inline void wrmsr(uint32_t msr_idx, uint64_t value) {
+    asm volatile ("wrmsr"
+        :: "c" (msr_idx), "a" ((uint32_t) value), "d" ((uint32_t) (value >> 32))
+    );
+}
+
 static inline void sti(void) {
     asm volatile ("sti");
 }
