@@ -122,13 +122,17 @@ static void dump_flags(const struct cpu_regs *regs) {
 }
 
 static void dump_stack(const struct cpu_regs *regs, int words, int lines) {
+    unsigned long *sp;
     int i;
 
-    printk("STACK[0x%016lx]:", regs->_ASM_SP);
+    sp = (unsigned long *) regs->_ASM_SP;
+    printk("STACK[0x%016p]:", sp);
     for (i = 0; i < (words * lines); i++) {
+        if (i > 0 && (_ul(&sp[i]) % PAGE_SIZE) == 0)
+            break;
         if ((i % words) == 0)
             printk("\n0x%04x: ", i * (sizeof(unsigned long)));
-        printk("%016lx ", ((unsigned long *) regs->_ASM_SP)[i]);
+        printk("%016lx ", sp[i]);
     }
     printk("\n\n");
 
