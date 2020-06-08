@@ -279,6 +279,8 @@ extern void init_multiboot(multiboot_info_t *mbi, const char **cmdline);
 
 #include <page.h>
 #include <mm/pmm.h>
+extern unsigned mbi_get_avail_memory_ranges_num(void);
+extern int mbi_get_avail_memory_range(unsigned index, addr_range_t *r);
 extern int mbi_get_memory_range(paddr_t pa, addr_range_t *r);
 
 #endif /* KTF_MULTIBOOT_H */
