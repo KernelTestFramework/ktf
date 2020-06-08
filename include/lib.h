@@ -139,12 +139,20 @@ static inline unsigned long read_fs(void) {
     return fs;
 }
 
+static inline void write_fs(unsigned long fs) {
+    asm volatile ("mov %0, %%fs" :: "r" (fs));
+}
+
 static inline unsigned long read_gs(void) {
     unsigned long gs;
 
     asm volatile ("mov %%gs, %0" : "=r" (gs));
 
     return gs;
+}
+
+static inline void write_gs(unsigned long gs) {
+    asm volatile ("mov %0, %%gs" :: "r" (gs));
 }
 
 static inline unsigned long read_cr0(void) {
@@ -181,6 +189,10 @@ static inline unsigned long read_cr4(void) {
     asm volatile ("mov %%cr4, %0" : "=r" (cr4));
 
     return cr4;
+}
+
+static inline void write_cr4(unsigned long cr4) {
+    asm volatile ("mov %0, %%cr4" :: "r" (cr4));
 }
 
 static inline unsigned long read_cr8(void) {
