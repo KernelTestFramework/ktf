@@ -54,6 +54,10 @@ static inline void dump_page_table(void *table, int level) {
         printk("[%p] %*s%d[%03u] paddr: 0x%016lx flags: %s\n",
                virt_to_paddr(pt), (4 - level) * 2, "L", level, i, paddr, flags);
 
+        if (level == 2 && ((pde_t *) pt)[i].PS)
+            continue;
+        if (level == 3 && ((pdpe_t *) pt)[i].PS)
+            continue;
         dump_page_table(paddr_to_virt_kern(paddr), level - 1);
     }
 }
