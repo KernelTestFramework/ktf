@@ -5,6 +5,20 @@
 #include <segment.h>
 #include <asm-macros.h>
 
+#define min(a, b) ({          \
+    const typeof(a) _a = (a); \
+    const typeof(b) _b = (b); \
+    (void)(&_a == &_b);       \
+    _a < _b ? _a : _b;        \
+})
+
+#define max(a, b) ({          \
+    const typeof(a) _a = (a); \
+    const typeof(b) _b = (b); \
+    (void)(&_a == &_b);       \
+    _a > _b ? _a : _b;        \
+})
+
 static inline void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
     asm volatile ("cpuid"
         : "=a" (*eax), "=b" (*ebx), "=c" (*ecx), "=d" (*edx)
