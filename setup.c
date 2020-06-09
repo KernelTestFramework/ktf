@@ -8,6 +8,7 @@
 #include <console.h>
 #include <pagetable.h>
 #include <multiboot.h>
+#include <percpu.h>
 
 #include <mm/pmm.h>
 #include <smp/smp.h>
@@ -82,11 +83,11 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
 
     /* TODO: Exception tables */
 
+    init_percpu();
+
     init_traps();
 
     zap_boot_mappings();
-
-    /* TODO PerCPU support */
 
     /* TODO: SMP support */
 

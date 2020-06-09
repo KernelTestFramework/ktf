@@ -4,6 +4,7 @@
 #include <setup.h>
 #include <console.h>
 #include <multiboot.h>
+#include <percpu.h>
 
 #include <smp/mptables.h>
 
@@ -183,8 +184,14 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
         switch (*entry_ptr) {
         case MPC_PROCESSOR_ENTRY: {
             mpc_processor_entry_t *mpc_cpu = (mpc_processor_entry_t *) entry_ptr;
+            percpu_t *percpu = get_percpu_page(nr_cpus++);
 
-            nr_cpus++;
+            percpu->apic_id = mpc_cpu->lapic_id;
+            percpu->enabled = mpc_cpu->en;
+            percpu->bsp = mpc_cpu->bsp;
+            percpu->family = mpc_cpu->family;
+            percpu->model = mpc_cpu->model;
+            percpu->stepping = mpc_cpu->stepping;
 
             dump_mpc_processor_entry(mpc_cpu);
             entry_ptr += sizeof(*mpc_cpu);
