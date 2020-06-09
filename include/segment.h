@@ -16,6 +16,8 @@
 #define GDT_TSS       0x7
 #define GDT_TSS_DF    0x8
 
+#define GDT_PERCPU    0x9
+
 #define NR_GDT_ENTRIES 10
 
 #define __KERN_CS32 (GDT_KERN_CS32 << 3)
