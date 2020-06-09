@@ -146,6 +146,17 @@ static inline void set_gate32_offset(struct x86_gate32 *gate, unsigned long offs
     gate->offset_hi = ((offset & _ul(0xffff0000)) >> 16);
 }
 
+static inline void set_gate32(struct x86_gate32 *gate, uint8_t type,
+                              uint16_t selector, unsigned long offset,
+                              uint8_t dpl, bool present) {
+    set_gate32_offset(gate, offset);
+    gate->type = type;
+    gate->selector = selector;
+    gate->dpl = dpl;
+    gate->p = present;
+    gate->s = 0;
+}
+
 /*
  * Long mode IDT entry, GDT call gate (16-byte)
  */
@@ -170,6 +181,18 @@ static inline void set_gate64_offset(struct x86_gate64 *gate, unsigned long offs
     gate->offset_lo =  (offset & _ul(0x000000000000ffff));
     gate->offset_mi = ((offset & _ul(0x00000000ffff0000)) >> 16);
     gate->offset_hi = ((offset & _ul(0xffffffff00000000)) >> 32);
+}
+
+static inline void set_gate64(struct x86_gate64 *gate, uint8_t type,
+                              uint16_t selector, unsigned long offset,
+                              uint8_t dpl, bool present, uint8_t ist) {
+    set_gate64_offset(gate, offset);
+    gate->type = type;
+    gate->selector = selector;
+    gate->ist = ist;
+    gate->dpl = dpl;
+    gate->p = present;
+    gate->s = 0;
 }
 
 #define GATE_NOT_PRESENT 0x00
@@ -214,6 +237,12 @@ typedef struct x86_gate32 idt_entry_t;
 
 #define set_gate_offset(gate, offset) set_gate32_offset((gate), (offset))
 
+static inline void set_intr_gate(struct x86_gate32 *gate,
+                                 uint16_t selector, unsigned long offset,
+                                 uint8_t dpl, bool present) {
+    set_gate32(gate, GATE_TYPE_INTR, selector, offset, dpl, present);
+}
+
 #else
 
 typedef struct x86_gate64 task_gate_t;
@@ -224,6 +253,11 @@ typedef struct x86_gate64 idt_entry_t;
 
 #define set_gate_offset(gate, offset) set_gate64_offset((gate), (offset))
 
+static inline void set_intr_gate(struct x86_gate64 *gate,
+                                 uint16_t selector, unsigned long offset,
+                                 uint8_t dpl, bool present, uint8_t ist) {
+    set_gate64(gate, GATE_TYPE_INTR, selector, offset, dpl, present, ist);
+}
 #endif
 
 extern x86_tss_t tss;
