@@ -66,6 +66,9 @@
 /*
  * Model Specific Registers (MSR)
  */
+#define MSR_APIC_BASE      0x0000001B
+#define MSR_X2APIC_REGS    0x00000800
+
 #define MSR_EFER           0xc0000080      /* Extended Feature Enable Register */
 #define EFER_SCE           (_U64(1) <<  0) /* SYSCALL Enable */
 #define EFER_LME           (_U64(1) <<  8) /* Long Mode Enable */
