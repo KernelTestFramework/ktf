@@ -1,7 +1,8 @@
 #include <ktf.h>
 #include <console.h>
 
-static void __user_text func(void *arg) {
+static int __user_text func(void *arg) {
+    return 0;
 }
 
 void test_main(void) {

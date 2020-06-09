@@ -56,19 +56,14 @@ ENTRY(handle_exception)
 #endif
 END_FUNC(handle_exception)
 
-ENTRY(ret2kern_handler)
-    mov (ret2kern_sp), %_ASM_SP
-    ret
-END_FUNC(ret2kern_handler)
-
-ENTRY(usermode_call)
+ENTRY(usermode_call_asm)
     /* FIXME: Add 32-bit support */
 
-    mov %_ASM_SP, (ret2kern_sp)
+    mov %_ASM_SP, %fs:(%rdx)
 
     /* SS + SP */
     push $__USER_DS
-    push $user_stack + PAGE_SIZE
+    push %fs:(%rcx)
 
     /* EFLAGS */
 #if defined(__x86_64__)
@@ -88,7 +83,7 @@ ENTRY(usermode_call)
 #else
     iret
 #endif
-END_FUNC(usermode_call)
+END_FUNC(usermode_call_asm)
 
 SECTION(.text.user, "ax", 16)
 ENTRY(usermode_stub)
