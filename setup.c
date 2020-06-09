@@ -8,6 +8,7 @@
 #include <console.h>
 #include <pagetable.h>
 #include <multiboot.h>
+#include <apic.h>
 #include <percpu.h>
 
 #include <mm/pmm.h>
@@ -79,6 +80,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
     init_traps(0);
 
     zap_boot_mappings();
+
+    init_apic(APIC_MODE_XAPIC);
 
     /* TODO: SMP support */
 
