@@ -19,6 +19,18 @@
     _a > _b ? _a : _b;        \
 })
 
+#define sfence() asm volatile ("sfence" ::: "memory")
+#define lfence() asm volatile ("lfence" ::: "memory")
+#define mfence() asm volatile ("mfence" ::: "memory")
+
+#define mb()  mfence()
+#define rmb() lfence()
+#define wmb() sfence()
+
+#define smp_mb()  do {  mb(); barrier(); } while(0)
+#define smp_rmb() do { rmb(); barrier(); } while(0)
+#define smp_wmb() do { wmb(); barrier(); } while(0)
+
 static inline void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
     asm volatile (
         "cpuid"
