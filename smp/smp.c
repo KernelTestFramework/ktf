@@ -16,11 +16,67 @@
 #include <ktf.h>
 #include <lib.h>
 #include <console.h>
+#include <setup.h>
+#include <apic.h>
+#include <traps.h>
+#include <percpu.h>
+
+#include <mm/vmm.h>
 
 #include <smp/smp.h>
 #include <smp/mptables.h>
 
+extern void ap_start(void);
+
 static unsigned nr_cpus;
+
+static unsigned ap_cpuid;
+static bool ap_callin;
+
+void __noreturn ap_startup(void) {
+    write_sp(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
+
+    init_traps(ap_cpuid);
+
+    ap_callin = true;
+    smp_wmb();
+
+    while(true)
+        halt();
+
+    UNREACHABLE();
+}
+
+static void boot_cpu(unsigned int cpu) {
+    percpu_t *percpu = get_percpu_page(cpu);
+    uint64_t icr;
+
+    if (percpu->bsp)
+        return;
+
+    ap_cpuid = cpu;
+    ap_callin = false;
+    smp_wmb();
+
+    dprintk("Starting AP: %u\n", cpu);
+
+    /* Set ICR2 part */
+    icr = (_ul(SET_APIC_DEST_FIELD(percpu->apic_id)) << 32);
+
+    /* Wake up the secondary processor: INIT-SIPI-SIPI... */
+    apic_wait_ready();
+    apic_icr_write(icr | APIC_DM_INIT);
+    apic_wait_ready();
+    apic_icr_write(icr | (APIC_DM_STARTUP | GET_SIPI_VECTOR(ap_start)));
+    apic_wait_ready();
+    apic_icr_write(icr | (APIC_DM_STARTUP | GET_SIPI_VECTOR(ap_start)));
+    apic_wait_ready();
+
+    while(!ap_callin)
+        cpu_relax();
+
+    dprintk("AP: %u Done \n", cpu);
+}
 
 void smp_init(void) {
     nr_cpus = mptables_init();
@@ -32,4 +88,6 @@ void smp_init(void) {
 
     printk("Initializing SMP support (CPUs: %u)\n", nr_cpus);
 
+    for (int i = 0; i < nr_cpus; i++)
+        boot_cpu(i);
 }

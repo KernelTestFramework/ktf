@@ -86,10 +86,10 @@ GLOBAL(_start)
 
     ud2
 
-SECTION(.data.init, "aw", 16)
+SECTION(.bss.init, "aw", 16)
 _boot_stack:
     .skip BOOT_STACK_SIZE
-_boot_stack_top:
+GLOBAL(_boot_stack_top)
 
 #define XEN_ELFNOTE_PHYS32_ENTRY  18
 ELF_NOTE(Xen, XEN_ELFNOTE_PHYS32_ENTRY, .long, _start)

@@ -98,8 +98,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
 
     init_apic(APIC_MODE_XAPIC);
 
-    /* TODO: SMP support */
-
     smp_init();
 
     /* Jump from .text.init section to .text */

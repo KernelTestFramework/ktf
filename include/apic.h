@@ -47,6 +47,8 @@
 #define GET_APIC_DEST_FIELD(x) (((x) >> 24) & 0xFF)
 #define SET_APIC_DEST_FIELD(x) ((x) << 24)
 
+#define GET_SIPI_VECTOR(addr) ((_ul((addr)) >> PAGE_SHIFT) & 0xFF)
+
 #ifndef __ASSEMBLY__
 
 enum apic_mode {
