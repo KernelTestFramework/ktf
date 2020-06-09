@@ -11,6 +11,7 @@
 #include <percpu.h>
 
 #include <mm/pmm.h>
+#include <mm/vmm.h>
 #include <smp/smp.h>
 
 #include <drivers/serial.h>
@@ -19,12 +20,6 @@ bool opt_debug;
 
 io_port_t com_ports[2];
 
-/*
- * KTF Stack layout:
- *
- * kernel_stack[page 1-3] Regular stack
- */
-uint8_t kernel_stack[7 * PAGE_SIZE] __aligned(PAGE_SIZE) __data;
 uint8_t user_stack[PAGE_SIZE] __aligned(PAGE_SIZE) __user_data;
 
 const char *kernel_cmdline;
@@ -74,7 +69,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
 
     write_cr3(cr3.paddr);
 
-    write_sp(_ul(GET_KERN_STACK()));
+    write_sp(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
 
     if (opt_debug)
         dump_pagetables();
