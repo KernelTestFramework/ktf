@@ -13,8 +13,6 @@ extern io_port_t com_ports[2];
 
 extern bool opt_debug;
 
-extern uint8_t user_stack[PAGE_SIZE];
-
 extern const char *kernel_cmdline;
 
 static inline void get_com_ports(void) {

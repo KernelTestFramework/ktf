@@ -10,7 +10,6 @@
 
 #include <mm/vmm.h>
 
-unsigned long ret2kern_sp;
 extern void ret2kern_handler(void);
 
 static void init_tss(percpu_t *percpu) {

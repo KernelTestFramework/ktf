@@ -20,8 +20,6 @@ bool opt_debug;
 
 io_port_t com_ports[2];
 
-uint8_t user_stack[PAGE_SIZE] __aligned(PAGE_SIZE) __user_data;
-
 const char *kernel_cmdline;
 
 static void init_console(void) {

@@ -20,6 +20,9 @@ struct percpu {
 #if defined(__i386__)
     x86_tss_t tss_df __aligned(16);
 #endif
+
+    unsigned long ret2kern_sp;
+    void *user_stack;
 } __aligned(PAGE_SIZE);
 typedef struct percpu percpu_t;
 
