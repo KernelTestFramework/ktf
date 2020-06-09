@@ -13,8 +13,10 @@
 #define GDT_USER_DS32 0x5
 #define GDT_USER_CS64 0x6
 
-#define GDT_TSS 0x7
-#define GDT_TSS_DF 0x8
+#define GDT_TSS       0x7
+#define GDT_TSS_DF    0x8
+
+#define NR_GDT_ENTRIES 10
 
 #define __KERN_CS32 (GDT_KERN_CS32 << 3)
 #define __KERN_DS32 (GDT_KERN_DS32 << 3)
@@ -46,38 +48,6 @@
          (((base)  & _U64(0x00ffffff)) << 16)      | \
          (((limit) & _U64(0x0000ffff))))
 
-#ifdef __ASSEMBLY__
-
-#define GDT_ENTRY(flags, base, limit) _GDT_ENTRY(flags, base, limit)
-
-#else
-
-#define GDT_ENTRY(flags, base, limit)  { .quad = (_GDT_ENTRY(flags, base, limit)) }
-
-struct __packed x86_segment_desc {
-    union {
-        uint64_t quad;
-        struct {
-            uint32_t lo, hi;
-        };
-        struct __packed {
-            uint16_t limit_lo;
-            uint16_t base_lo;
-            uint8_t base_mi;
-            struct __packed {
-                uint8_t A:1, RW:1, DC:1, E:1, S:1, DPL:2, P:1;
-            };
-            struct __packed {
-                uint8_t limit_hi:4;
-                uint8_t :1, L:1, SZ:1, GR:1;
-	    };
-            uint8_t base_hi;
-	};
-
-    };
-};
-typedef struct x86_segment_desc x86_segment_desc_t;
-
 #define DESC_FLAG_GR     0x8000 /* Granularity of limit (0 = 1, 1 = 4K) */
 #define DESC_FLAG_SZ     0x4000 /* Default operand size (0 = 16bit, 1 = 32bit) */
 #define DESC_FLAG_B      0x4000 /* 'Big' flag. */
@@ -99,7 +69,35 @@ typedef struct x86_segment_desc x86_segment_desc_t;
 
 #define DESC_FLAGS(...) (TOKEN_OR(DESC_FLAG_, ##__VA_ARGS__))
 
-typedef x86_segment_desc_t gdtdesc_t;
+#define GDT_ENTRY(flags, base, limit) _GDT_ENTRY(flags, base, limit)
+
+#ifndef __ASSEMBLY__
+
+struct __packed x86_segment_desc {
+    union {
+        uint64_t desc;
+        struct {
+            uint32_t lo, hi;
+        };
+        struct __packed {
+            uint16_t limit_lo;
+            uint16_t base_lo;
+            uint8_t base_mi;
+            struct __packed {
+                uint8_t A:1, RW:1, DC:1, E:1, S:1, DPL:2, P:1;
+            };
+            struct __packed {
+                uint8_t limit_hi:4;
+                uint8_t :1, L:1, SZ:1, GR:1;
+	    };
+            uint8_t base_hi;
+	};
+
+    };
+};
+typedef struct x86_segment_desc x86_segment_desc_t;
+
+typedef x86_segment_desc_t gdt_desc_t;
 
 static inline void set_desc_base(x86_segment_desc_t *desc, unsigned long base) {
     desc[0].base_lo =  (base & _ul(0x0000ffff));
@@ -259,12 +257,6 @@ static inline void set_intr_gate(struct x86_gate64 *gate,
     set_gate64(gate, GATE_TYPE_INTR, selector, offset, dpl, present, ist);
 }
 #endif
-
-extern x86_tss_t tss;
-extern x86_tss_t tss_df;
-
-extern gdtdesc_t gdt[];
-extern gdt_ptr_t gdt_ptr;
 
 extern idt_entry_t idt[256];
 extern idt_ptr_t idt_ptr;
