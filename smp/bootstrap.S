@@ -26,19 +26,13 @@
 #include <processor.h>
 #include <segment.h>
 
-#define BOOT_STACK_SIZE 0x1000
-
-.code32
-SECTION(.text.init, "ax", 16)
-GLOBAL(_start)
-    /* Save multiboot bootloader magic */
-    mov %eax, %edi
-    mov %ebx, %esi
-
+.code16
+SECTION(.text.init, "ax", 0x1000)
+GLOBAL(ap_start)
     mov   %cs, %ax
     mov   %ax, %ds
 
-    lgdt  boot_gdt_ptr
+    lgdt boot_gdt_ptr - ap_start
 
     xor   %ax, %ax
     inc   %ax
@@ -46,6 +40,7 @@ GLOBAL(_start)
 
     ljmp  $__KERN_CS32, $.Lprot_mode
 
+.code32
 .Lprot_mode:
     mov   $__KERN_DS32, %eax
     mov   %eax, %ds
@@ -60,7 +55,7 @@ GLOBAL(_start)
     or    $(X86_CR4_PAE | X86_CR4_PSE), %eax
     mov   %eax, %cr4
 
-    mov   $l4_pt_entries, %eax
+    mov   (cr3), %eax
     mov   %eax, %cr3
 
     /* Enable long mode */
@@ -91,14 +86,6 @@ GLOBAL(_start)
 
     cld
 
-    jmp kernel_start
+    jmp ap_startup
 
     ud2
-
-SECTION(.bss.init, "aw", 16)
-_boot_stack:
-    .skip BOOT_STACK_SIZE
-GLOBAL(_boot_stack_top)
-
-#define XEN_ELFNOTE_PHYS32_ENTRY  18
-ELF_NOTE(Xen, XEN_ELFNOTE_PHYS32_ENTRY, .long, _start)
