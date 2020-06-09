@@ -33,6 +33,8 @@
 #include <drivers/vga.h>
 #include <drivers/serial.h>
 
+#include <smp/smp.h>
+
 #define QEMU_CONSOLE   0x0e9
 #define SERIAL_CONSOLE (com_ports[0])
 
@@ -92,7 +94,7 @@ void __noreturn panic(const char *fmt, ...) {
     va_list args;
 
     printk("******************************\n");
-    printk("PANIC: ");
+    printk("CPU[%u] PANIC: ", smp_processor_id());
 
     va_start(args, fmt);
     vprintk(fmt, args);
