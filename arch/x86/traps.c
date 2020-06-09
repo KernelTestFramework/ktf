@@ -6,74 +6,112 @@
 #include <setup.h>
 #include <traps.h>
 #include <processor.h>
+#include <percpu.h>
+
+#include <mm/vmm.h>
 
 unsigned long ret2kern_sp;
 extern void ret2kern_handler(void);
 
-void init_traps(void) {
-    set_gate_offset(&idt[X86_EX_DE],  _ul(entry_DE));
-    set_gate_offset(&idt[X86_EX_DB],  _ul(entry_DB));
-    set_gate_offset(&idt[X86_EX_NMI], _ul(entry_NMI));
-    set_gate_offset(&idt[X86_EX_BP],  _ul(entry_BP));
-    set_gate_offset(&idt[X86_EX_OF],  _ul(entry_OF));
-    set_gate_offset(&idt[X86_EX_BR],  _ul(entry_BR));
-    set_gate_offset(&idt[X86_EX_UD],  _ul(entry_UD));
-    set_gate_offset(&idt[X86_EX_NM],  _ul(entry_NM));
-    set_gate_offset(&idt[X86_EX_CS],  _ul(entry_CS));
-    set_gate_offset(&idt[X86_EX_TS],  _ul(entry_TS));
-    set_gate_offset(&idt[X86_EX_NP],  _ul(entry_NP));
-    set_gate_offset(&idt[X86_EX_SS],  _ul(entry_SS));
-    set_gate_offset(&idt[X86_EX_GP],  _ul(entry_GP));
-    set_gate_offset(&idt[X86_EX_PF],  _ul(entry_PF));
-    set_gate_offset(&idt[X86_EX_MF],  _ul(entry_MF));
-    set_gate_offset(&idt[X86_EX_AC],  _ul(entry_AC));
-    set_gate_offset(&idt[X86_EX_MC],  _ul(entry_MC));
-    set_gate_offset(&idt[X86_EX_XM],  _ul(entry_XM));
-    set_gate_offset(&idt[X86_EX_VE],  _ul(entry_VE));
-    set_gate_offset(&idt[X86_EX_SE],  _ul(entry_SE));
-
-    tss_df.iopb = sizeof(tss_df);
+static void init_tss(percpu_t *percpu) {
 #if defined (__i386__)
-    tss_df.esp0 = _ul(GET_KERN_EM_STACK());
-    tss_df.ss   = __KERN_DS;
-    tss_df.ds   = __KERN_DS;
-    tss_df.es   = __KERN_DS;
-    tss_df.fs   = __KERN_DS;
-    tss_df.gs   = __KERN_DS;
-    tss_df.eip  = _ul(entry_DF);
-    tss_df.cs   = __KERN_CS;
-    tss_df.cr3  = _ul(l4_pt_entries);
+    percpu->tss_df.iopb = sizeof(percpu->tss_df);
+    percpu->tss_df.esp0 = _ul(get_free_page_top(GFP_KERNEL));
+    percpu->tss_df.ss   = __KERN_DS;
+    percpu->tss_df.ds   = __KERN_DS;
+    percpu->tss_df.es   = __KERN_DS;
+    percpu->tss_df.fs   = __KERN_DS;
+    percpu->tss_df.gs   = __KERN_DS;
+    percpu->tss_df.eip  = _ul(entry_DF);
+    percpu->tss_df.cs   = __KERN_CS;
+    percpu->tss_df.cr3  = _ul(cr3.reg);
 
-    set_desc_base(&gdt[GDT_TSS_DF], _ul(&tss_df));
+    /* Assign identity mapping of the tss_df, because GDT has only 32-bit base. */
+    percpu->gdt[GDT_TSS_DF].desc = \
+        GDT_ENTRY(DESC_FLAGS(SZ, P, CODE, A), virt_to_paddr(&percpu->tss_df), sizeof(percpu->tss_df) - 1);
+
     /* FIXME */
-#else
-    set_gate_offset(&idt[X86_EX_DF], _ul(entry_DF));
-    idt[X86_EX_DF].ist = 0x1;
-#endif
-
-    barrier();
-    lidt(&idt_ptr);
-
-#if defined(__i386__)
-    tss.esp0 = _ul(GET_KERN_EX_STACK());
-    tss.ss0  = __KERN_DS;
-    tss.cr3  = _ul(l4_pt_entries);
+    percpu->tss.esp0   = _ul(get_free_page_top(GFP_KERNEL));
+    percpu->tss.ss0    = __KERN_DS;
+    percpu->tss.cr3    = _ul(cr3.reg);
 #elif defined(__x86_64__)
-    tss.rsp0 =   _ul(GET_KERN_EX_STACK());
-    tss.ist[0] = _ul(GET_KERN_EM_STACK());
+    percpu->tss.rsp0   = _ul(get_free_page_top(GFP_KERNEL));
+    percpu->tss.ist[0] = _ul(get_free_page_top(GFP_KERNEL));
 #endif
-    tss.iopb = sizeof(tss);
+    percpu->tss.iopb = sizeof(percpu->tss);
 
-    set_desc_base(&gdt[GDT_TSS], _ul(&tss));
-
-    barrier();
-    lgdt(&gdt_ptr);
+    /* Assign identity mapping of the tss, because GDT has only 32-bit base. */
+    percpu->gdt[GDT_TSS].desc = \
+        GDT_ENTRY(DESC_FLAGS(SZ, P, CODE, A), virt_to_paddr(&percpu->tss), sizeof(percpu->tss) - 1);
+#if defined(__x86_64__)
+    percpu->gdt[GDT_TSS + 1].desc = GDT_ENTRY(0x0, 0x0, 0x0);
+#endif
 
     barrier();
     ltr(GDT_TSS << 3);
+}
+
+static void init_gdt(percpu_t *percpu) {
+    percpu->gdt[GDT_NULL].desc      = GDT_ENTRY(0x0, 0x0, 0x0);
+    percpu->gdt[GDT_KERN_CS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, CODE, R, A), 0x0, 0xfffff);
+    percpu->gdt[GDT_KERN_DS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, DATA, W, A), 0x0, 0xfffff);
+    percpu->gdt[GDT_KERN_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, CODE, R, A), 0x0, 0x00000);
+
+    percpu->gdt[GDT_USER_CS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL3, S, CODE, R, A), 0x0, 0xfffff);
+    percpu->gdt[GDT_USER_DS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL3, S, DATA, W, A), 0x0, 0xfffff);
+    percpu->gdt[GDT_USER_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL3, S, CODE, R, A), 0x0, 0x00000);
+
+    percpu->gdt_ptr.size = sizeof(percpu->gdt) - 1;
+    percpu->gdt_ptr.addr = _ul(&percpu->gdt);
+
+    barrier();
+    lgdt(&percpu->gdt_ptr);
+
+    init_tss(percpu);
+}
+
+void init_traps(unsigned int cpu) {
+    percpu_t *percpu = get_percpu_page(cpu);
+
+    BUG_ON(!percpu);
+
+    percpu->idt = get_free_page(GFP_KERNEL);
+    BUG_ON(!percpu->idt);
+
+    percpu->idt_ptr.size = (sizeof(percpu->idt) * MAX_INT) - 1;
+    percpu->idt_ptr.addr = _ul(percpu->idt);
+
+    set_intr_gate(&percpu->idt[X86_EX_DE],  __KERN_CS, _ul(entry_DE),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_DB],  __KERN_CS, _ul(entry_DB),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_NMI], __KERN_CS, _ul(entry_NMI), GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_BP],  __KERN_CS, _ul(entry_BP),  GATE_DPL3, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_OF],  __KERN_CS, _ul(entry_OF),  GATE_DPL3, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_BR],  __KERN_CS, _ul(entry_BR),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_UD],  __KERN_CS, _ul(entry_UD),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_NM],  __KERN_CS, _ul(entry_NM),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_CS],  __KERN_CS, _ul(entry_CS),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_TS],  __KERN_CS, _ul(entry_TS),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_NP],  __KERN_CS, _ul(entry_NP),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_SS],  __KERN_CS, _ul(entry_SS),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_GP],  __KERN_CS, _ul(entry_GP),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_PF],  __KERN_CS, _ul(entry_PF),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_MF],  __KERN_CS, _ul(entry_MF),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_AC],  __KERN_CS, _ul(entry_AC),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_MC],  __KERN_CS, _ul(entry_MC),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_XM],  __KERN_CS, _ul(entry_XM),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_VE],  __KERN_CS, _ul(entry_VE),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[X86_EX_SE],  __KERN_CS, _ul(entry_SE),  GATE_DPL0, GATE_PRESENT, 0);
+#if defined(__x86_64__)
+    set_intr_gate(&percpu->idt[X86_EX_DF],  __KERN_CS, _ul(entry_DF),  GATE_DPL0, GATE_PRESENT, 1);
+#endif
 
     /* User mode return to kernel handler */
-    set_gate_offset(&idt[X86_RET2KERN_INT],  _ul(ret2kern_handler));
+    set_intr_gate(&percpu->idt[X86_RET2KERN_INT], __KERN_CS, _ul(ret2kern_handler), GATE_DPL3, GATE_PRESENT, 0);
+
+    barrier();
+    lidt(&percpu->idt_ptr);
+
+    init_gdt(percpu);
 }
 
 static void dump_general_regs(const struct cpu_regs *regs) {

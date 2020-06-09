@@ -17,8 +17,6 @@ extern uint8_t kernel_stack[KERN_STACK_SIZE + 2 * PAGE_SIZE];
 extern uint8_t user_stack[PAGE_SIZE];
 
 #define GET_KERN_STACK()    (&kernel_stack[KERN_STACK_SIZE])
-#define GET_KERN_EX_STACK() (&kernel_stack[KERN_STACK_SIZE + PAGE_SIZE])
-#define GET_KERN_EM_STACK() (&kernel_stack[KERN_STACK_SIZE + 2 * PAGE_SIZE])
 
 extern const char *kernel_cmdline;
 

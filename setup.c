@@ -22,8 +22,6 @@ io_port_t com_ports[2];
 /*
  * KTF Stack layout:
  *
- * kernel_stack[page 5] Emergency stack
- * kernel_stack[page 4] Exception stack
  * kernel_stack[page 1-3] Regular stack
  */
 uint8_t kernel_stack[7 * PAGE_SIZE] __aligned(PAGE_SIZE) __data;
@@ -85,7 +83,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
 
     init_percpu();
 
-    init_traps();
+    init_traps(0);
 
     zap_boot_mappings();
 
