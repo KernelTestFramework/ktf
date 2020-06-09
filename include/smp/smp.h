@@ -18,9 +18,16 @@
 
 #include <ktf.h>
 #include <lib.h>
+#include <processor.h>
 
 /* External declarations */
 
 extern void smp_init(void);
+
+/* Static declarations */
+
+static inline unsigned int smp_processor_id(void) {
+    return (unsigned int) rdmsr(MSR_TSC_AUX);
+}
 
 #endif /* KTF_SMP_H */
