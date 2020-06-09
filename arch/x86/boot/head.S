@@ -33,7 +33,7 @@ GLOBAL(_start)
     mov   %esp, %ebp
 
     mov   %cr4, %eax
-    or    $X86_CR4_PAE, %eax
+    or    $(X86_CR4_PAE | X86_CR4_PSE), %eax
     mov   %eax, %cr4
 
     mov   $l4_pt_entries, %eax
