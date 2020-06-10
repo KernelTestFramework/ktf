@@ -45,7 +45,8 @@
 #define __user_data __section(".data.user")
 #define __user_bss __section(".bss.user")
 
-#define barrier() __asm__ __volatile__ ("" ::: "memory")
+#define barrier() asm volatile ("" ::: "memory")
+#define ACCESS_ONCE(x) (* (volatile typeof(x) *) &(x))
 
 #define likely(x)   __builtin_expect(!!(x),1)
 #define unlikely(x) __builtin_expect(!!(x),0)
