@@ -20,6 +20,7 @@
 #include <apic.h>
 #include <traps.h>
 #include <percpu.h>
+#include <sched.h>
 
 #include <mm/vmm.h>
 
@@ -40,6 +41,8 @@ void __noreturn ap_startup(void) {
 
     ap_callin = true;
     smp_wmb();
+
+    run_tasks(smp_processor_id());
 
     while(true)
         halt();

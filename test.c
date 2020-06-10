@@ -15,6 +15,7 @@
  */
 #include <ktf.h>
 #include <console.h>
+#include <sched.h>
 
 static int __user_text func(void *arg) {
     return 0;
@@ -24,6 +25,8 @@ void test_main(void) {
     printk("\nTest:\n");
 
     usermode_call(func, NULL);
+
+    wait_for_all_tasks();
 
     printk("Test done\n");
 }
