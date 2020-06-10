@@ -3,6 +3,7 @@
 #include <setup.h>
 #include <string.h>
 #include <console.h>
+#include <spinlock.h>
 
 #include <drivers/vga.h>
 #include <drivers/serial.h>
@@ -17,8 +18,11 @@ static unsigned int num_console_callbacks;
 
 static void vprintk(const char *fmt, va_list args) {
     static char buf[VPRINTK_BUF_SIZE];
+    static spinlock_t lock = SPINLOCK_INIT;
     unsigned int i;
     int rc;
+
+    spin_lock(&lock);
 
     rc = vsnprintf(buf, sizeof(buf), fmt, args);
 
@@ -27,6 +31,8 @@ static void vprintk(const char *fmt, va_list args) {
 
     for ( i = 0; i < num_console_callbacks; i++ )
         console_callbacks[i](buf, rc);
+
+    spin_unlock(&lock);
 }
 
 void printk(const char *fmt, ...) {
