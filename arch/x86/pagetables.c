@@ -4,6 +4,7 @@
 #include <setup.h>
 #include <string.h>
 #include <pagetable.h>
+#include <spinlock.h>
 
 cr3_t __data_init cr3;
 
@@ -108,6 +109,7 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
 }
 
 void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
+    static spinlock_t lock = SPINLOCK_INIT;
     mfn_t l1t_mfn, l2t_mfn, l3t_mfn;
     pgentry_t *tab, *entry;
 
@@ -115,6 +117,8 @@ void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
         return NULL;
 
     dprintk("%s: va: %p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
+
+    spin_lock(&lock);
 
 #if defined (__x86_64__)
     l3t_mfn = get_pgentry_mfn(get_cr3_mfn(&cr3), l4_table_index(va), L4_PROT_USER);
@@ -126,7 +130,7 @@ void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
         tab = init_map_mfn(l3t_mfn);
         entry = &tab[l3_table_index(va)];
         set_pgentry(entry, mfn, flags | _PAGE_PSE);
-        return va;
+        goto done;
     }
 
     l2t_mfn = get_pgentry_mfn(l3t_mfn, l3_table_index(va), L3_PROT_USER);
@@ -135,7 +139,7 @@ void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
         tab = init_map_mfn(l2t_mfn);
         entry = &tab[l2_table_index(va)];
         set_pgentry(entry, mfn, flags | _PAGE_PSE);
-        return va;
+        goto done;
     }
 
     l1t_mfn = get_pgentry_mfn(l2t_mfn, l2_table_index(va), L2_PROT_USER);
@@ -143,6 +147,9 @@ void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
     tab = init_map_mfn(l1t_mfn);
     entry = &tab[l1_table_index(va)];
     set_pgentry(entry, mfn, flags);
+
+done:
+    spin_unlock(&lock);
     return va;
 }
 
