@@ -34,6 +34,7 @@
 #include <multiboot.h>
 #include <apic.h>
 #include <percpu.h>
+#include <sched.h>
 
 #include <mm/pmm.h>
 #include <mm/vmm.h>
@@ -106,6 +107,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
     zap_boot_mappings();
 
     init_apic(APIC_MODE_XAPIC);
+
+    init_tasks();
 
     smp_init();
 

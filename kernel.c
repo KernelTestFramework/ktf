@@ -28,6 +28,7 @@
 #include <setup.h>
 #include <multiboot.h>
 #include <percpu.h>
+#include <sched.h>
 
 extern void _long_to_real(void);
 
@@ -56,6 +57,8 @@ void kernel_main(void) {
     }
 
     test_main();
+
+    printk("All tasks done.\n");
 
     while(1)
         halt();
