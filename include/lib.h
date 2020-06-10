@@ -20,7 +20,8 @@
 })
 
 static inline void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
-    asm volatile ("cpuid"
+    asm volatile (
+        "cpuid"
         : "=a" (*eax), "=b" (*ebx), "=c" (*ecx), "=d" (*edx)
         : "0" (leaf)
     );
@@ -57,7 +58,8 @@ static inline uint32_t cpuid_edx(uint32_t leaf) {
 static inline uint64_t rdmsr(uint32_t msr_idx) {
     uint32_t low, high;
 
-    asm volatile ("rdmsr"
+    asm volatile (
+        "rdmsr"
         : "=a" (low), "=d" (high)
         : "c" (msr_idx)
     );
@@ -66,8 +68,10 @@ static inline uint64_t rdmsr(uint32_t msr_idx) {
 }
 
 static inline void wrmsr(uint32_t msr_idx, uint64_t value) {
-    asm volatile ("wrmsr"
-        :: "c" (msr_idx), "a" ((uint32_t) value), "d" ((uint32_t) (value >> 32))
+    asm volatile (
+        "wrmsr"
+        :: "c" (msr_idx), "a" ((uint32_t) value),
+           "d" ((uint32_t) (value >> 32))
     );
 }
 
@@ -90,11 +94,16 @@ static inline void hlt(void) {
 static inline unsigned long read_flags(void) {
     unsigned long flags;
 
+    asm volatile (
 #if defined(__i386__)
-    asm volatile ("pushfd; popl %0" : "=r" (flags));
+        "pushfd;"
+        "popl %0"
 #elif defined(__x86_64__)
-    asm volatile ("pushfq; popq %0" : "=r" (flags));
+        "pushfq;"
+        "popq %0"
 #endif
+        : "=r" (flags)
+    );
 
     return flags;
 }
@@ -204,7 +213,8 @@ static inline unsigned long read_cr8(void) {
 }
 
 static inline void write_sp(void *sp) {
-    asm volatile ("mov %0, %%" STR(_ASM_SP)
+    asm volatile (
+        "mov %0, %%" STR(_ASM_SP)
         :: "r" (sp)
         : "memory"
     );
@@ -258,17 +268,27 @@ static inline void ud2(void) {
 static inline uint8_t inb(io_port_t port) {
     uint8_t value;
 
-    asm volatile ("inb %1, %0" : "=a" (value) : "Nd" (port));
+    asm volatile (
+        "inb %1, %0"
+        : "=a" (value)
+        : "Nd" (port)
+    );
 
     return value;
 }
 
 static inline void outb(io_port_t port, uint8_t value) {
-    asm volatile ("outb %0, %1" :: "a" (value), "Nd" (port));
+    asm volatile (
+        "outb %0, %1"
+        :: "a" (value), "Nd" (port)
+    );
 }
 
 static inline void outw(io_port_t port, uint16_t value) {
-    asm volatile ("outw %0, %1" :: "a" (value), "Nd" (port));
+    asm volatile (
+        "outw %0, %1"
+        :: "a" (value), "Nd" (port)
+    );
 }
 
 static inline void putc(io_port_t port, int c) {
@@ -276,9 +296,11 @@ static inline void putc(io_port_t port, int c) {
 }
 
 static inline void puts(io_port_t port, const char *buf, size_t len) {
-    asm volatile("rep; outsb"
-                 : "+S" (buf), "+c" (len)
-                 : "d" (port));
+    asm volatile(
+        "rep; outsb"
+        : "+S" (buf), "+c" (len)
+        : "d" (port)
+    );
 }
 
 /* I/O port delay is believed to take ~1ms */
@@ -290,7 +312,10 @@ static inline void io_delay(void) {
 static inline uint64_t rdtsc(void) {
   unsigned int low, high;
 
-  asm volatile ("rdtsc" : "=a" (low), "=d" (high));
+  asm volatile (
+      "rdtsc"
+      : "=a" (low), "=d" (high)
+  );
 
   return ((uint64_t) high << 32) | low;
 }
@@ -298,7 +323,11 @@ static inline uint64_t rdtsc(void) {
 static inline uint64_t rdtscp(void) {
   unsigned int low, high;
 
-  asm volatile ("rdtscp" : "=a" (low), "=d" (high) :: "ecx");
+  asm volatile (
+      "rdtscp"
+      : "=a" (low), "=d" (high)
+      :: "ecx"
+  );
 
   return ((uint64_t) high << 32) | low;
 }
