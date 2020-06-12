@@ -1,6 +1,20 @@
 ROOT := $(abspath $(CURDIR))
 export ROOT
 
+ifeq ($(OS),Windows_NT)
+SYSTEM := WIN
+else
+UNAME := $(shell uname -s)
+
+ifeq ($(UNAME),Linux)
+SYSTEM := LINUX
+endif
+
+ifeq ($(UNAME),Darwin)
+SYSTEM := MACOS
+endif
+endif
+
 CC := gcc
 
 COMMON_FLAGS := -I$(ROOT)/include -pipe -MP -MMD -m64 -D__x86_64__
@@ -47,11 +61,20 @@ clean:
 	@ find $(ROOT) -name \*.vhd -delete
 	@ find $(ROOT) -name cscope.\* -delete
 
-QEMU_PARAMS := -machine q35,accel=kvm -m 1024
+ifeq ($(SYSTEM),LINUX)
+QEMU_PARAMS := -cpu host
+else
+QEMU_PARAMS := -cpu max
+endif
+QEMU_PARAMS += -m 8192
 QEMU_PARAMS += -display none -vga none -vnc none
-QEMU_PARAMS += -debugcon stdio -serial file:/dev/stdout
+QEMU_PARAMS += -serial stdio
 QEMU_PARAMS += -no-reboot -no-shutdown
-QEMU_PARAMS += -enable-kvm -smp cpus=2
+QEMU_PARAMS += -smp cpus=4
+ifeq ($(SYSTEM),LINUX)
+QEMU_PARAMS += -enable-kvm
+endif
+
 QEMU_PARAMS_KERNEL := -append "param1 param2 param3"
 QEMU_PARAMS_DEBUG := -s &
 
@@ -67,7 +90,7 @@ iso: all
 	@ qemu-img convert -f raw -O vpc $(ISO_FILE) $(VHD_FILE)
 
 .PHONY: boot
-boot: all iso
+boot: all
 	@echo "QEMU START"
 	@ sudo qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS)
 
