@@ -15,8 +15,10 @@ void kernel_main(void) {
     display_memory_map();
     display_multiboot_mmap();
 
-    _long_to_real();
-    dprintk("\n After long_to_real\n");
+    if (opt_debug) {
+        _long_to_real();
+        printk("\n After long_to_real\n");
+    }
 
     test_main();
 
