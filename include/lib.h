@@ -31,6 +31,54 @@
 #define smp_rmb() do { rmb(); barrier(); } while(0)
 #define smp_wmb() do { wmb(); barrier(); } while(0)
 
+static inline void clflush(const volatile void *p) {
+    asm volatile (
+        "clflush %0"
+        :: "m" (*(char const *) p)
+        : "memory"
+    );
+}
+
+static inline void prefetchw(const void *p) {
+    asm volatile (
+        "prefetchw %0"
+        :: "m" (*(char const *) p)
+        : "memory"
+    );
+}
+
+static inline void prefetcht0(const void *p) {
+    asm volatile (
+        "prefetcht0 %0"
+        :: "m" (*(char const *) p)
+        : "memory"
+    );
+}
+
+static inline void prefetcht1(const void *p) {
+    asm volatile (
+        "prefetcht1 %0"
+        :: "m" (*(char const *) p)
+        : "memory"
+    );
+}
+
+static inline void prefetcht2(const void *p) {
+    asm volatile (
+        "prefetcht2 %0"
+        :: "m" (*(char const *) p)
+        : "memory"
+    );
+}
+
+static inline void prefetchnta(const void *p) {
+    asm volatile (
+        "prefetchnta %0"
+        :: "m" (*(char const *) p)
+        : "memory"
+    );
+}
+
 static inline void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
     asm volatile (
         "cpuid"
