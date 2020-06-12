@@ -34,6 +34,7 @@
 /* External declarations */
 
 extern void smp_init(void);
+extern unsigned get_nr_cpus(void);
 
 /* Static declarations */
 

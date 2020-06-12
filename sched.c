@@ -160,6 +160,9 @@ task_t *get_task_for_cpu(unsigned int cpu) {
 void schedule_task(task_t *task, unsigned int cpu) {
     ASSERT(task);
 
+    if (cpu > get_nr_cpus() - 1)
+        panic("CPU[%u] does not exist.\n", cpu);
+
     BUG_ON(get_task_state(task) != TASK_STATE_READY);
 
     printk("CPU[%u]: Scheduling task %s[%u]\n",

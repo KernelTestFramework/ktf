@@ -103,3 +103,7 @@ void smp_init(void) {
     for (int i = 0; i < nr_cpus; i++)
         boot_cpu(i);
 }
+
+unsigned get_nr_cpus(void) {
+    return nr_cpus;
+}
