@@ -231,13 +231,13 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
     }
 }
 
-int mptables_init(void) {
+unsigned mptables_init(void) {
     mpf_t *mpf_ptr = get_mpf_addr();
     mpc_hdr_t *mpc_ptr;
 
     if (!mpf_ptr) {
         printk("No MP Floating Structure Pointer found!\n");
-        return -1;
+        return 0;
     }
 
     if (opt_debug)
