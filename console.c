@@ -38,7 +38,7 @@ void printk(const char *fmt, ...) {
 }
 
 void putchar(int c) {
-    putc(c, SERIAL_CONSOLE);
+    putc(SERIAL_CONSOLE, c);
 }
 
 void serial_console_write(const char *buf, size_t len) {
