@@ -19,6 +19,14 @@
     _a > _b ? _a : _b;        \
 })
 
+static inline unsigned int log2(unsigned int value) {
+    return value == 0 ? 0 : (31 - __builtin_clz(value));
+}
+
+static inline unsigned int llog2(unsigned long value) {
+    return value == 0 ? 0 : (63 - __builtin_clzl(value));
+}
+
 #define sfence() asm volatile ("sfence" ::: "memory")
 #define lfence() asm volatile ("lfence" ::: "memory")
 #define mfence() asm volatile ("mfence" ::: "memory")
