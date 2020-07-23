@@ -156,7 +156,7 @@ static const char *mpc_interrupt_trigger_names[] = {
 };
 
 static inline void dump_mpc_ioint_entry(const mpc_ioint_entry_t *e) {
-    printk("     IO Int: Type=%6s, Polarity=%11s, Trigger=%9s, Source Bus: "
+    dprintk("     IO Int: Type=%6s, Polarity=%11s, Trigger=%9s, Source Bus: "
            "ID=0x%02x IRQ=0x%02x, Dest IOAPIC: ID=0x%02x,  INTIN#=0x%02x\n",
            mpc_interrupt_type_names[e->int_type],
            mpc_interrupt_polarity_names[e->po],
@@ -166,7 +166,7 @@ static inline void dump_mpc_ioint_entry(const mpc_ioint_entry_t *e) {
 }
 
 static inline void dump_mpc_lint_entry(const mpc_lint_entry_t *e) {
-    printk("  Local Int: Type=%6s, Polarity=%11s, Trigger=%9s, Source Bus: "
+    dprintk("  Local Int: Type=%6s, Polarity=%11s, Trigger=%9s, Source Bus: "
            "ID=0x%02x IRQ=0x%02x, Dest  LAPIC: ID=0x%02x, LINTIN#=0x%02x\n",
            mpc_interrupt_type_names[e->int_type],
            mpc_interrupt_polarity_names[e->po],
