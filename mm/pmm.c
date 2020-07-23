@@ -155,6 +155,10 @@ static size_t process_memory_range(unsigned index) {
     return size;
 }
 
+bool paddr_invalid(paddr_t pa) {
+    return pa == PADDR_INVALID || mbi_get_memory_range(pa, NULL) < 0;
+}
+
 void init_pmm(void) {
     size_t total_size = 0;
     unsigned num;

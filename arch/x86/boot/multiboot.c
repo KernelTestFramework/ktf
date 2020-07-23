@@ -140,8 +140,10 @@ int mbi_get_memory_range(paddr_t pa, addr_range_t *r) {
     return -1;
 
 found:
-    r->start = _ptr(_start);
-    r->end = _ptr(_end);
+    if (r) {
+        r->start = _ptr(_start);
+        r->end = _ptr(_end);
+    }
 
     return 0;
 }

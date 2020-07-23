@@ -62,6 +62,8 @@ extern addr_range_t get_memory_range(paddr_t pa);
 extern paddr_t get_memory_range_start(paddr_t pa);
 extern paddr_t get_memory_range_end(paddr_t pa);
 
+extern bool paddr_invalid(paddr_t pa);
+
 extern void init_pmm(void);
 
 extern mfn_t get_free_frames(unsigned int order);
@@ -70,6 +72,10 @@ extern void put_frame(mfn_t mfn, unsigned int order);
 extern void map_used_memory(void);
 
 /* Static definitions */
+
+static inline bool mfn_invalid(mfn_t mfn) {
+    return paddr_invalid(mfn_to_paddr(mfn));
+}
 
 static inline mfn_t get_free_frame(void) {
     return get_free_frames(PAGE_ORDER_4K);
