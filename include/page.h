@@ -104,9 +104,6 @@ typedef unsigned long mfn_t;
 #define PADDR_INVALID (0UL)
 #define MFN_INVALID (0UL)
 
-static inline bool paddr_invalid(paddr_t pa) { return pa == PADDR_INVALID; }
-static inline bool mfn_invalid(mfn_t mfn) { return mfn == MFN_INVALID; }
-
 static inline mfn_t paddr_to_mfn(paddr_t pa)  { return (mfn_t) (pa >> PAGE_SHIFT);    }
 static inline paddr_t mfn_to_paddr(mfn_t mfn) { return (paddr_t) (mfn << PAGE_SHIFT); }
 
