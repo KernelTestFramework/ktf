@@ -403,6 +403,13 @@ static inline void rep_nop(void) {
 }
 #define cpu_relax() rep_nop()
 
+static inline void wait_cycles(unsigned int cycles) {
+    uint64_t start = rdtscp();
+
+    while(rdtscp() - start < cycles)
+        cpu_relax();
+}
+
 /* External declarations */
 
 extern void halt(void);
