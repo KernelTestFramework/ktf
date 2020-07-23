@@ -8,14 +8,12 @@
 #define min(a, b) ({          \
     const typeof(a) _a = (a); \
     const typeof(b) _b = (b); \
-    (void)(&_a == &_b);       \
     _a < _b ? _a : _b;        \
 })
 
 #define max(a, b) ({          \
     const typeof(a) _a = (a); \
     const typeof(b) _b = (b); \
-    (void)(&_a == &_b);       \
     _a > _b ? _a : _b;        \
 })
 
