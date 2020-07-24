@@ -14,8 +14,8 @@ OUTPUT_ARCH(i386)
 
 PHDRS
 {
-    init PT_LOAD AT(0x1000);
-    user PT_LOAD;
+    init PT_LOAD;
+    user PT_LOAD AT(1M);
     kernel PT_LOAD;
     note PT_NOTE;
 }
@@ -23,12 +23,19 @@ PHDRS
 ENTRY(_start)
 SECTIONS
 {
-    . = 4K;
-
     .multiboot BLOCK(4K) : ALIGN(4K)
     {
         *(.multiboot)
     } :init
+
+    .note :
+    {
+        . = ALIGN(4K);
+        __start_note = .;
+        *(.note)
+        *(.note.*)
+        __end_note = .;
+    } :init :note
 
     .rmode BLOCK(4K) : ALIGN(4K)
     {
@@ -38,7 +45,7 @@ SECTIONS
 	*(.rlm_save_area)
 	. = ALIGN(4K);
 	__end_rmode = .;
-    }
+    } :init
 
     .text.init BLOCK(4K) : ALIGN(4K)
     {
@@ -68,7 +75,7 @@ SECTIONS
         __end_bss_init = .;
     } :init
 
-    . += VIRT_USER_BASE;
+    . = VIRT_USER_BASE + 1M;
 
     .text.user : AT(ADDR(.text.user) - VIRT_USER_BASE)
     {
@@ -137,16 +144,6 @@ SECTIONS
         . = ALIGN(4K);
         __end_rodata = .;
     } :kernel
-
-    .note :
-    {
-        . = ALIGN(4K);
-        __start_note = .;
-        *(.note)
-        *(.note.*)
-        . = ALIGN(4K);
-        __end_note = .;
-    } :kernel :note
 
     /DISCARD/ :
     {
