@@ -24,6 +24,7 @@
 #include <pagetable.h>
 #include <multiboot.h>
 #include <apic.h>
+#include <acpi.h>
 #include <percpu.h>
 #include <sched.h>
 
@@ -71,6 +72,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
     /* Initialize console early */
     init_console();
 
+    /* FIXME: mask PIC */
+
     if (multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC) {
         /* Indentity mapping is still on, so fill in multiboot structures */
         init_multiboot(mbi, &kernel_cmdline);
@@ -92,6 +95,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
     /* TODO: Exception tables */
 
     init_percpu();
+
+    init_acpi();
 
     init_traps(0);
 
