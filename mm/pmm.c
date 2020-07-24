@@ -121,16 +121,24 @@ static void add_frame(paddr_t *pa, unsigned int order) {
 static size_t process_memory_range(unsigned index) {
     paddr_t start, end, cur;
     addr_range_t range;
+    unsigned space_4k = PAGE_SIZE_2M;
     size_t size;
 
     if (mbi_get_avail_memory_range(index, &range) < 0)
         return 0;
 
-    cur = start = (index == 1 ? virt_to_paddr(__end_rodata) : _paddr(range.start));
+    if (index == 1) {
+        space_4k *= 3;
+        start = virt_to_paddr(__end_rodata);
+    }
+    else
+        start = _paddr(range.start);
+
+    cur = start;
     end = _paddr(range.end);
     size = end - start;
 
-    while(cur % PAGE_SIZE_2M) {
+    while(cur % space_4k) {
         add_frame(&cur, PAGE_ORDER_4K);
         frames_count[PAGE_ORDER_4K]++;
     }
