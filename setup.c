@@ -31,6 +31,7 @@
 #include <smp/smp.h>
 
 #include <drivers/serial.h>
+#include <drivers/pic.h>
 
 bool opt_debug;
 
@@ -69,6 +70,12 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
 
     /* Initialize console early */
     init_console();
+
+    /* Initialize Programmable Interrupt Controller */
+    init_pic();
+
+    /* PIC is initialized - enable local interrupts */
+    sti();
 
     if (multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC) {
         /* Indentity mapping is still on, so fill in multiboot structures */
