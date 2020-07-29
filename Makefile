@@ -61,7 +61,7 @@ clean:
 	@ find $(ROOT) -name \*.lds -delete
 	@ find $(ROOT) -name \*.bin -delete
 	@ find $(ROOT) -name \*.iso -delete
-	@ find $(ROOT) -name \*.vhd -delete
+	@ find $(ROOT) -name \*.img -delete
 	@ find $(ROOT) -name cscope.\* -delete
 
 ifeq ($(SYSTEM),LINUX)
@@ -82,15 +82,14 @@ QEMU_PARAMS_KERNEL := -append "param1 param2 param3"
 QEMU_PARAMS_DEBUG := -s &
 
 ISO_FILE := boot.iso
-VHD_FILE := boot.vhd
 
 .PHONY: iso
 iso: all
 	@echo "GEN ISO" $(ISO_FILE)
 	@ grub-file --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	@ cp $(TARGET) grub/boot/
-	@ grub-mkrescue -o $(ISO_FILE) grub 2>> /dev/null
-	@ qemu-img convert -f raw -O vpc $(ISO_FILE) $(VHD_FILE)
+	@ grub-mkimage --format i386-pc-eltorito -p /boot/grub -o grub/boot.img multiboot iso9660 biosdisk
+	@ xorriso -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
 
 .PHONY: boot
 boot: all
