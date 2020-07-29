@@ -134,4 +134,4 @@ dockerimage:
 .PHONY: docker%
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
-	@ docker run -it -v $(PWD):$(PWD) -w $(PWD) $(DOCKERIMAGE) bash -c "make $(strip $(subst :,, $*))"
+	@ docker run -it -v $(PWD):$(PWD) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
