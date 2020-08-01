@@ -69,7 +69,7 @@ static void init_gdt(percpu_t *percpu) {
     barrier();
     lgdt(&percpu->gdt_ptr);
 
-    write_fs(GDT_PERCPU << 3);
+    write_gs(GDT_PERCPU << 3);
 
     init_tss(percpu);
 }

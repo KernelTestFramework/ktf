@@ -59,11 +59,11 @@ END_FUNC(handle_exception)
 ENTRY(usermode_call_asm)
     /* FIXME: Add 32-bit support */
 
-    mov %_ASM_SP, %fs:(%rdx)
+    mov %_ASM_SP, %gs:(%rdx)
 
     /* SS + SP */
     push $__USER_DS
-    push %fs:(%rcx)
+    push %gs:(%rcx)
 
     /* EFLAGS */
 #if defined(__x86_64__)
