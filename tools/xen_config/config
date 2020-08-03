@@ -4,7 +4,7 @@ memory=1024
 
 serial= [ 'file:/tmp/kernel.log', 'pty' ]
 
-disk = [ '/home/wipawel/boot.iso,,hdc,cdrom' ]
+disk = [ '/home/user/boot.iso,,hdc,cdrom' ]
 
 on_reboot = "destroy"
 
