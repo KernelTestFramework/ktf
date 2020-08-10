@@ -3,18 +3,15 @@ export ROOT
 
 ifeq ($(OS),Windows_NT)
 SYSTEM := WIN
-SUDO := 
 else
 UNAME := $(shell uname -s)
 
 ifeq ($(UNAME),Linux)
 SYSTEM := LINUX
-SUDO := sudo
 endif
 
 ifeq ($(UNAME),Darwin)
 SYSTEM := MACOS
-SUDO := 
 endif
 endif
 
@@ -94,24 +91,24 @@ iso: all
 .PHONY: boot
 boot: all
 	@echo "QEMU START"
-	@ $(SUDO) qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS)
+	@qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS)
 
 .PHONY: boot_debug
 boot_debug: all iso
-	$(SUDO) qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS) $(QEMU_PARAMS_DEBUG)
+	qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS) $(QEMU_PARAMS_DEBUG)
 
 .PHONY: run
 run: all
-	$(SUDO) "$$QEMU_PATH"/qemu-system-x86_64 -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL)
+	qemu-system-x86_64 -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL)
 
 .PHONY: debug
 debug: all
-	$(SUDO) "$$QEMU_PATH"/qemu-system-x86_64 -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL) $(QEMU_PARAMS_DEBUG)
+	qemu-system-x86_64 -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL) $(QEMU_PARAMS_DEBUG)
 
 .PHONY: gdb
 gdb: debug
 	gdb $(TARGET) -ex 'target remote :1234' -ex 'b _start' -ex 'c'
-	$(SUDO) killall -9 qemu-system-x86_64
+	killall -9 qemu-system-x86_64
 
 define all_sources
 	find $(ROOT) -name "*.[hcsS]"
