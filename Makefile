@@ -90,8 +90,7 @@ QEMU_PARAMS_DEBUG := -s &
 
 ISO_FILE := boot.iso
 
-.PHONY: iso
-iso: all
+$(ISO_FILE): all
 	@echo "GEN ISO" $(ISO_FILE)
 	@ $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	@ cp $(TARGET) grub/boot/
@@ -99,20 +98,20 @@ iso: all
 	@ $(XORRISO) -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
 
 .PHONY: boot
-boot: all
+boot: $(ISO_FILE)
 	@echo "QEMU START"
 	@$(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS)
 
 .PHONY: boot_debug
-boot_debug: all iso
+boot_debug: $(ISO_FILE)
 	$(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS) $(QEMU_PARAMS_DEBUG)
 
 .PHONY: run
-run: all
+run: $(TARGET)
 	$(QEMU_BIN) -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL)
 
 .PHONY: debug
-debug: all
+debug: $(TARGET)
 	$(QEMU_BIN) -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL) $(QEMU_PARAMS_DEBUG)
 
 .PHONY: gdb
