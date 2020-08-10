@@ -94,6 +94,12 @@ vcpus=1
 
 You need to generate a bootable ISO for this.
 
+## Credits and Attributions
+
+* Parts of the KTF project are inspired by and based on XTF project [1] developed by Andrew Cooper of Citrix.
+
+[1] http://xenbits.xenproject.org/docs/xtf/
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
