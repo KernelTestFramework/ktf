@@ -53,6 +53,18 @@ The `make` command generates the `kernel64.bin` multiboot-compatible ELF file, t
 The `make iso` command takes the `kernel64.bin`, places it in `grub/boot/` directory hierarchy and generates a `boot.iso`
 out of the `grub/` (using `grub/boot/grub/grub.cfg` as a default GRUB config).
 
+#### Fedora
+
+KTF builds and runs on Fedora, but you will need to tweak some of the commands. Create a Makeconf.local file with the
+following content (tested with Fedora 32):
+
+```
+GRUB_FILE := grub2-file
+GRUB_MKIMAGE := grub2-mkimage
+GRUB_MODULES += normal
+QEMU_BIN := qemu-kvm
+```
+
 ### Running the kernel
 
 #### QEMU (KVM or not)
