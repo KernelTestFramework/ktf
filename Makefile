@@ -16,6 +16,14 @@ endif
 endif
 
 CC := gcc
+LD := ld
+
+GRUB_FILE := grub-file
+GRUB_MKIMAGE := grub-mkimage
+GRUB_MODULES := multiboot iso9660 biosdisk
+XORRISO := xorriso
+QEMU_BIN := qemu-system-x86_64
+GDB := gdb
 
 COMMON_FLAGS := -I$(ROOT)/include -pipe -MP -MMD -m64 -D__x86_64__
 
@@ -24,6 +32,8 @@ CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O3 -g -Wall -ffreestanding
 CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse2
 CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin
 CFLAGS  += -mcmodel=kernel -fno-pic -fno-asynchronous-unwind-tables -fno-unwind-tables
+
+-include Makeconf.local
 
 SOURCES     := $(shell find . -name \*.c)
 ASM_SOURCES := $(shell find . -name \*.S)
@@ -41,7 +51,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	@echo "LD " $@
 	@ $(CC) $(AFLAGS) -E -P -C -x c $(LINK_SCRIPT) -o $(PREP_LINK_SCRIPT)
-	@ ld -T $(PREP_LINK_SCRIPT) -o $@ $^
+	@ $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $^
 
 %.o: %.S
 	@echo "AS " $@
@@ -83,32 +93,32 @@ ISO_FILE := boot.iso
 .PHONY: iso
 iso: all
 	@echo "GEN ISO" $(ISO_FILE)
-	@ grub-file --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
+	@ $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	@ cp $(TARGET) grub/boot/
-	@ grub-mkimage --format i386-pc-eltorito -p /boot/grub -o grub/boot.img multiboot iso9660 biosdisk
-	@ xorriso -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
+	@ $(GRUB_MKIMAGE) --format i386-pc-eltorito -p /boot/grub -o grub/boot.img $(GRUB_MODULES)
+	@ $(XORRISO) -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
 
 .PHONY: boot
 boot: all
 	@echo "QEMU START"
-	@qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS)
+	@$(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS)
 
 .PHONY: boot_debug
 boot_debug: all iso
-	qemu-system-x86_64 -cdrom $(ISO_FILE) $(QEMU_PARAMS) $(QEMU_PARAMS_DEBUG)
+	$(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS) $(QEMU_PARAMS_DEBUG)
 
 .PHONY: run
 run: all
-	qemu-system-x86_64 -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL)
+	$(QEMU_BIN) -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL)
 
 .PHONY: debug
 debug: all
-	qemu-system-x86_64 -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL) $(QEMU_PARAMS_DEBUG)
+	$(QEMU_BIN) -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL) $(QEMU_PARAMS_DEBUG)
 
 .PHONY: gdb
 gdb: debug
-	gdb $(TARGET) -ex 'target remote :1234' -ex 'b _start' -ex 'c'
-	killall -9 qemu-system-x86_64
+	$(GDB) $(TARGET) -ex 'target remote :1234' -ex 'b _start' -ex 'c'
+	killall -9 $(QEMU_BIN)
 
 define all_sources
 	find $(ROOT) -name "*.[hcsS]"
