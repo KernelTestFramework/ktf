@@ -141,6 +141,8 @@ void init_traps(unsigned int cpu) {
     lidt(&percpu->idt_ptr);
 
     init_gdt(percpu);
+
+    wrmsr(MSR_TSC_AUX, cpu);
 }
 
 static void dump_general_regs(const struct cpu_regs *regs) {
