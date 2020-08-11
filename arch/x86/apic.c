@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2020 Amazon.com, Inc. or its affiliates.
- * Copyright (c) 2014,2015 Citrix Systems Ltd.
+ * Copyright © 2020 Amazon.com, Inc. or its affiliates.
+ * Copyright © 2014,2015 Citrix Systems Ltd.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
