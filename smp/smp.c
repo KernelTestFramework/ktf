@@ -29,6 +29,7 @@
 #include <apic.h>
 #include <traps.h>
 #include <percpu.h>
+#include <sched.h>
 
 #include <mm/vmm.h>
 
@@ -49,6 +50,8 @@ void __noreturn ap_startup(void) {
 
     ap_callin = true;
     smp_wmb();
+
+    run_tasks(smp_processor_id());
 
     while(true)
         halt();
@@ -99,4 +102,8 @@ void smp_init(void) {
 
     for (int i = 0; i < nr_cpus; i++)
         boot_cpu(i);
+}
+
+unsigned get_nr_cpus(void) {
+    return nr_cpus;
 }

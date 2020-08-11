@@ -26,6 +26,7 @@
 #define KTF_LIB_H
 
 #include <ktf.h>
+#include <console.h>
 #include <segment.h>
 #include <asm-macros.h>
 
