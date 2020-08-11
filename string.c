@@ -1,11 +1,11 @@
 /*-
- * Copyright (c) 1990, 1993
+ * Copyright © 1990, 1993
  *      The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software contributed to Berkeley by
  * Chris Torek.
  *
- * Copyright (c) 2011 The FreeBSD Foundation
+ * Copyright © 2011 The FreeBSD Foundation
  * All rights reserved.
  * Portions of this software were developed by David Chisnall
  * under sponsorship from the FreeBSD Foundation.
