@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Amazon.com, Inc. or its affiliates.
+ * Copyright © 2020 Amazon.com, Inc. or its affiliates.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
