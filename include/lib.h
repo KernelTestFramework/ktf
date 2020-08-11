@@ -434,6 +434,17 @@ static inline void wait_cycles(unsigned int cycles) {
         cpu_relax();
 }
 
+static inline unsigned int next_power_of_two(unsigned int n) {
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n++;
+    return n;
+}
+
 /* External declarations */
 
 extern void halt(void);

@@ -22,27 +22,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef KTF_CONSOLE_H
-#define KTF_CONSOLE_H
+#ifndef KTF_ALLOC_SLAB_H
+#define KTF_ALLOC_SLAB_H
 
-typedef void (*console_callback_t)(const char *buf, size_t len);
+#include <ktf.h>
+#include <lib.h>
+#include <page.h>
+#include <list.h>
 
-extern void printk(const char *fmt, ...);
+enum slab_alloc_order {
+    SLAB_ORDER_8,
+    SLAB_ORDER_16,
+    SLAB_ORDER_32,
+    SLAB_ORDER_64,
+    SLAB_ORDER_128,
+    SLAB_ORDER_256,
+    SLAB_ORDER_512,
+    SLAB_ORDER_1024,
+    SLAB_ORDER_2048,
+    SLAB_ORDER_MAX,
+};
+typedef enum slab_alloc_order slab_alloc_order_t;
 
-#define dprintk(fmt, ...) do {                   \
-    if (opt_debug) \
-        printk("%s (%s.%d): " fmt, __FILE__, __func__, \
-               __LINE__, ##__VA_ARGS__); \
-} while(0)
+enum slab_size {
+    SLAB_SIZE_MIN = 8,
+    SLAB_SIZE_8 = SLAB_SIZE_MIN,
+    SLAB_SIZE_16 = SLAB_SIZE_8 << 1,
+    SLAB_SIZE_32 = SLAB_SIZE_16 << 1,
+    SLAB_SIZE_64 = SLAB_SIZE_32 << 1,
+    SLAB_SIZE_128 = SLAB_SIZE_64 << 1,
+    SLAB_SIZE_256 = SLAB_SIZE_128 << 1,
+    SLAB_SIZE_512 = SLAB_SIZE_256 << 1,
+    SLAB_SIZE_1024 = SLAB_SIZE_512 << 1,
+    SLAB_SIZE_2048 = SLAB_SIZE_1024 << 1,
+    SLAB_SIZE_MAX = SLAB_SIZE_2048,
+};
+typedef enum slab_size slab_size_t;
 
-extern void putchar(int c);
+#define SLAB_SIZE_FULL_MASK ((SLAB_SIZE_MAX<<1) - 1)
 
-extern void serial_console_write(const char *buf, size_t len);
-extern void qemu_console_write(const char *buf, size_t len);
-extern void vga_console_write(const char *buf, size_t len);
+/* 
+ * SLAB sizes >= 4K should directly allocate pages
+ */
 
-extern void register_console_callback(console_callback_t func);
+struct slab {
+    struct slab *next_slab;
+	list_head_t list;
+};
 
-extern void panic(const char *fmt, ...);
+typedef struct slab slab_t;
 
-#endif /* KTF_CONSOLE_H */
+struct meta_slab {
+    list_head_t list;
+    slab_t *next_free_slab;
+    slab_t *slab_base;
+    unsigned int slab_len;
+    unsigned int slab_size;
+};
+
+typedef struct meta_slab meta_slab_t;
+
+int  init_slab(void);
+extern void *ktf_alloc(unsigned int size);
+extern void ktf_free(void *ptr);
+
+#endif /* KTF_ALLOC_SLAB_H */
