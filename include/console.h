@@ -28,9 +28,11 @@
 typedef void (*console_callback_t)(const char *buf, size_t len);
 
 extern void printk(const char *fmt, ...);
-#define dprintk(fmt, ...) do {                   \
-    if (opt_debug) printk((fmt), ##__VA_ARGS__); \
-} while(0)
+#define dprintk(fmt, ...)                                                                \
+    do {                                                                                 \
+        if (opt_debug)                                                                   \
+            printk((fmt), ##__VA_ARGS__);                                                \
+    } while (0)
 
 extern void putchar(int c);
 

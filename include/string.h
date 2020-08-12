@@ -26,34 +26,21 @@
 #define KTF_STRING_H
 #include <asm-macros.h>
 
-static inline __used int isspace(int c) {
-    return c == ' ' || c == '\t';
-}
+static inline __used int isspace(int c) { return c == ' ' || c == '\t'; }
 
-static inline __used int isdigit(int c) {
-    return c >= '0' && c <= '9';
-}
+static inline __used int isdigit(int c) { return c >= '0' && c <= '9'; }
 
 static inline __used int isxdigit(int c) {
-    return (isdigit(c) || (c >= 'A' && c <= 'F') ||
-           (c >= 'a' && c <= 'f'));
+    return (isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
 }
 
-static inline __used int isascii(int c) {
-    return c >= 0 && c <= 127;
-}
+static inline __used int isascii(int c) { return c >= 0 && c <= 127; }
 
-static inline __used int islower(int c) {
-    return c >= 'a' && c <= 'z';
-}
+static inline __used int islower(int c) { return c >= 'a' && c <= 'z'; }
 
-static inline int isupper(int c) {
-    return c >= 'A' && c <= 'Z';
-}
+static inline int isupper(int c) { return c >= 'A' && c <= 'Z'; }
 
-static inline int isalpha(int c) {
-    return islower(c) || isupper(c);
-}
+static inline int isalpha(int c) { return islower(c) || isupper(c); }
 
 static inline size_t strlen(const char *str) {
     size_t len = 0;
@@ -64,24 +51,22 @@ static inline size_t strlen(const char *str) {
     return len;
 }
 
-static inline unsigned char tolower(unsigned char c)
-{
-        return isupper(c) ? c - ('A'-'a') : c;
+static inline unsigned char tolower(unsigned char c) {
+    return isupper(c) ? c - ('A' - 'a') : c;
 }
 
-static inline unsigned char toupper(unsigned char c)
-{
-        return islower(c) ? c + ('A'-'a') : c;
+static inline unsigned char toupper(unsigned char c) {
+    return islower(c) ? c + ('A' - 'a') : c;
 }
 
 #if defined(__i386__)
 #define SPRAY_VAL 0x01010101U
-#define STOS stosl
-#define MOVS movsl
-#elif defined (__x86_64__)
+#define STOS      stosl
+#define MOVS      movsl
+#elif defined(__x86_64__)
 #define SPRAY_VAL 0x0101010101010101UL
-#define STOS stosq
-#define MOVS movsq
+#define STOS      stosq
+#define MOVS      movsq
 #endif
 
 #define ARCH_SIZE (sizeof(void *))
@@ -119,16 +104,15 @@ static inline void *memcpy(void *d, void *s, size_t n) {
     return d;
 }
 
-static inline int memcmp(const void *m1, const void *m2, size_t n)
-{
-    const uint8_t *_m1 = m1;
-    const uint8_t *_m2 = m2;
+static inline int memcmp(const void *m1, const void *m2, size_t n) {
+    const uint8_t *  _m1 = m1;
+    const uint8_t *  _m2 = m2;
     register uint8_t res = 0;
 
     if (m1 == m2)
         return 0;
 
-    while(n--) {
+    while (n--) {
         if ((res = (*_m1++ - *_m2++)) != 0)
             break;
     }
@@ -139,13 +123,13 @@ static inline int memcmp(const void *m1, const void *m2, size_t n)
 static inline char *strcpy(char *d, const char *s) {
     int d0, d1, d2;
 
-    asm volatile ("1: lodsb \n"
-                  "   stosb \n"
-                  "   testb %%al,%%al \n"
-                  "   jne 1b"
-    : "=&S" (d0), "=&D" (d1), "=&a" (d2)
-    : "0" (s), "1" (d)
-    : "memory");
+    asm volatile("1: lodsb \n"
+                 "   stosb \n"
+                 "   testb %%al,%%al \n"
+                 "   jne 1b"
+                 : "=&S"(d0), "=&D"(d1), "=&a"(d2)
+                 : "0"(s), "1"(d)
+                 : "memory");
 
     return d;
 }
@@ -156,7 +140,7 @@ static inline int strcmp(const char *s1, const char *s2) {
     if (s1 == s2)
         return 0;
 
-    while(1) {
+    while (1) {
         if ((res = *s1 - *s2++) != 0 || !*s1++)
             break;
     }
@@ -170,7 +154,7 @@ static inline int strncmp(const char *s1, const char *s2, size_t n) {
     if (s1 == s2)
         return 0;
 
-    while(n--) {
+    while (n--) {
         if ((res = *s1 - *s2++) != 0 || !*s1++)
             break;
     }
@@ -181,8 +165,8 @@ static inline int strncmp(const char *s1, const char *s2, size_t n) {
 /* External declarations */
 
 extern unsigned long strtoul(const char *nptr, char **endptr, int base);
-extern long strtol(const char *nptr, char **endptr, int base);
-extern int vsnprintf(char *str, size_t size, char const *fmt, va_list ap);
-extern void snprintf(char *buf, size_t size, const char *fmt, ...);
+extern long          strtol(const char *nptr, char **endptr, int base);
+extern int           vsnprintf(char *str, size_t size, char const *fmt, va_list ap);
+extern void          snprintf(char *buf, size_t size, const char *fmt, ...);
 
 #endif /* KTF_STRING_H */

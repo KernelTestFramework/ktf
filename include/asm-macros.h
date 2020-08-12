@@ -27,22 +27,22 @@
 #define KTF_ASM_MACROS_H
 
 #if defined(__i386__)
-#define _ASM_REG(reg) e ## reg
+#define _ASM_REG(reg) e##reg
 #elif defined(__x86_64__)
-#define _ASM_REG(reg) r ## reg
+#define _ASM_REG(reg) r##reg
 #else
 #define _ASM_REG(reg) reg
 #endif
 
-#define _ASM_AX _ASM_REG(ax)
-#define _ASM_BX _ASM_REG(bx)
-#define _ASM_CX _ASM_REG(cx)
-#define _ASM_DX _ASM_REG(dx)
-#define _ASM_SI _ASM_REG(si)
-#define _ASM_DI _ASM_REG(di)
-#define _ASM_BP _ASM_REG(bp)
-#define _ASM_SP _ASM_REG(sp)
-#define _ASM_IP _ASM_REG(ip)
+#define _ASM_AX    _ASM_REG(ax)
+#define _ASM_BX    _ASM_REG(bx)
+#define _ASM_CX    _ASM_REG(cx)
+#define _ASM_DX    _ASM_REG(dx)
+#define _ASM_SI    _ASM_REG(si)
+#define _ASM_DI    _ASM_REG(di)
+#define _ASM_BP    _ASM_REG(bp)
+#define _ASM_SP    _ASM_REG(sp)
+#define _ASM_IP    _ASM_REG(ip)
 #define _ASM_FLAGS _ASM_REG(flags)
 
 #ifdef __ASSEMBLY__
