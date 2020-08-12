@@ -40,17 +40,17 @@ make docker:all
 
 * Native
 ```
-make iso
+make boot.iso
 ```
 
 * Docker
 
 ```
-make docker:iso
+make docker:boot.iso
 ```
 
 The `make` command generates the `kernel64.bin` multiboot-compatible ELF file, that you can directly boot with QEMU.
-The `make iso` command takes the `kernel64.bin`, places it in `grub/boot/` directory hierarchy and generates a `boot.iso`
+The `make boot.iso` command takes the `kernel64.bin`, places it in `grub/boot/` directory hierarchy and generates a `boot.iso`
 out of the `grub/` (using `grub/boot/grub/grub.cfg` as a default GRUB config).
 
 #### Fedora
@@ -59,10 +59,13 @@ KTF builds and runs on Fedora, but you will need to tweak some of the commands. 
 following content (tested with Fedora 32):
 
 ```
+DIST=$(shell grep NAME= /etc/os-release | cut -d= -f2)
+ifeq ($(DIST),Fedora)
 GRUB_FILE := grub2-file
 GRUB_MKIMAGE := grub2-mkimage
 GRUB_MODULES += normal
 QEMU_BIN := qemu-kvm
+endif
 ```
 
 ### Running the kernel
