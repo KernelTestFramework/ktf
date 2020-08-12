@@ -46,7 +46,14 @@ OBJS += $(ASM_SOURCES:%.S=%.o)
 
 TARGET := kernel64.bin
 
+# On Linux systems, we build directly. On non-Linux, we rely on the 'docker%'
+# rule below to create an Ubuntu container and perform the Linux-specific build
+# steps therein.
+ifeq ($(SYSTEM), LINUX)
 all: $(TARGET)
+else
+all: docker$(TARGET)
+endif
 
 $(TARGET): $(OBJS)
 	@echo "LD " $@
@@ -90,12 +97,16 @@ QEMU_PARAMS_DEBUG := -s &
 
 ISO_FILE := boot.iso
 
+ifneq ($(SYSTEM), LINUX)
+$(ISO_FILE): dockerboot.iso
+else
 $(ISO_FILE): all
 	@echo "GEN ISO" $(ISO_FILE)
 	@ $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	@ cp $(TARGET) grub/boot/
 	@ $(GRUB_MKIMAGE) --format i386-pc-eltorito -p /boot/grub -o grub/boot.img $(GRUB_MODULES)
 	@ $(XORRISO) -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
+endif
 
 .PHONY: boot
 boot: $(ISO_FILE)
