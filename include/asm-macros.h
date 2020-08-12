@@ -47,6 +47,7 @@
 
 #ifdef __ASSEMBLY__
 
+/* clang-format off */
 .macro putc val
   movw $0x3f8, %dx;
   movb $\val, %al;
@@ -120,12 +121,13 @@ name:
     .section .note.name, "a";            \
     .align 4;                            \
     .long 2f - 1f; /* namesz */          \
-    .long 4f - 3f;  /* descsz */         \
+    .long 4f - 3f; /* descsz */          \
     .long type;    /* type   */          \
 1:.asciz #name;    /* name   */          \
 2:.align 4;                              \
 3:size addr;       /* desc   */          \
 4:.align 4;
+/* clang-format on */
 
 #endif
 

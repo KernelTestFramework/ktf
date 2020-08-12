@@ -89,38 +89,34 @@ static inline unsigned char toupper(unsigned char c)
 static inline void *memset(void *s, int c, size_t n) {
     unsigned long d0;
 
-    asm volatile(
-        "mov %1, %%" STR(_ASM_CX) "\n"
-        "rep stosb\n"
-        "mov %2, %%" STR(_ASM_CX) "\n"
-        "rep " STR(STOS) "\n"
-    : "=&D" (d0)
-    : "ir" (n & (ARCH_SIZE - 1)),
-      "ir" (n / ARCH_SIZE),
-      "0" (s),
-      "a" (SPRAY_VAL * c)
-    : STR(_ASM_CX), "memory"
-    );
+    /* clang-format off */
+    asm volatile("mov %1, %%" STR(_ASM_CX) "\n"
+                 "rep stosb\n"
+                 "mov %2, %%" STR(_ASM_CX) "\n"
+                 "rep " STR(STOS) "\n"
+                 : "=&D"(d0)
+                 : "ir"(n & (ARCH_SIZE - 1)), "ir"(n / ARCH_SIZE), "0"(s),
+                   "a"(SPRAY_VAL * c)
+                 : STR(_ASM_CX), "memory");
+    /* clang-format on */
 
-   return s;
+    return s;
 }
 
 static inline void *memcpy(void *d, void *s, size_t n) {
     unsigned long d0;
 
-    asm volatile(
-        "mov %2, %%" STR(_ASM_CX) "\n"
-        "rep movsb \n"
-        "mov %3, %%" STR(_ASM_CX) "\n"
-        "rep " STR(MOVS) "\n"
-    : "=&D" (d0), "+&S" (s)
-    : "ir" (n & (ARCH_SIZE - 1)),
-      "ir" (n / ARCH_SIZE),
-      "0" (d)
-    : STR(_ASM_CX), "memory"
-    );
+    /* clang-format off */
+    asm volatile("mov %2, %%" STR(_ASM_CX) "\n"
+                 "rep movsb \n"
+                 "mov %3, %%" STR(_ASM_CX) "\n"
+                 "rep " STR(MOVS) "\n"
+                 : "=&D"(d0), "+&S"(s)
+                 : "ir"(n & (ARCH_SIZE - 1)), "ir"(n / ARCH_SIZE), "0"(d)
+                 : STR(_ASM_CX), "memory");
+    /* clang-format on */
 
-   return d;
+    return d;
 }
 
 static inline int memcmp(const void *m1, const void *m2, size_t n)

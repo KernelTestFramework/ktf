@@ -106,6 +106,18 @@ vcpus=1
 
 You need to generate a bootable ISO for this.
 
+## Style
+
+The style for this project is defined in `.clang-format` file in the main directory of this repository.
+
+Use the following command to apply the style automatically to the file you modify:
+
+```
+clang-format -style=file -Werror -i MODIFIED_FILE
+```
+
+For more information refer to: https://clang.llvm.org/docs/ClangFormat.html
+
 ## Credits and Attributions
 
 * Parts of the KTF project are inspired by and based on XTF project [1] developed by Andrew Cooper of Citrix.
