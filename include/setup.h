@@ -38,7 +38,7 @@ extern io_port_t com_ports[2];
 extern const char *kernel_cmdline;
 
 static inline void get_com_ports(void) {
-    memcpy((void *) com_ports, (void *)(BDA_COM_PORTS_ENTRY), sizeof(com_ports));
+    memcpy((void *) com_ports, (void *) (BDA_COM_PORTS_ENTRY), sizeof(com_ports));
 
     if (com_ports[0] == 0x0)
         com_ports[0] = 0x3f8;

@@ -25,9 +25,9 @@
 #ifndef KTF_SPINLOCK_H
 #define KTF_SPINLOCK_H
 
+#include <atomic.h>
 #include <ktf.h>
 #include <lib.h>
-#include <atomic.h>
 
 #define LOCK_BIT 0U
 
@@ -39,7 +39,7 @@ typedef volatile unsigned int spinlock_t;
 
 static inline void spin_lock(spinlock_t *lock) {
     ASSERT(lock);
-    while(test_and_set_bit(LOCK_BIT, lock))
+    while (test_and_set_bit(LOCK_BIT, lock))
         cpu_relax();
 }
 

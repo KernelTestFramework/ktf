@@ -32,9 +32,9 @@
 
 #define DEFAULT_APIC_BASE _U32(0xfee00000)
 
-#define APIC_BASE_BSP     (_U64(1) << 8)
-#define APIC_BASE_EXTD    (_U64(1) << 10)
-#define APIC_BASE_ENABLE  (_U64(1) << 11)
+#define APIC_BASE_BSP    (_U64(1) << 8)
+#define APIC_BASE_EXTD   (_U64(1) << 10)
+#define APIC_BASE_ENABLE (_U64(1) << 11)
 
 /* Local APIC definitions */
 #define APIC_ID                0x020
@@ -42,17 +42,17 @@
 #define APIC_SPIV              0x0f0
 #define APIC_SPIV_APIC_ENABLED 0x00100
 
-#define APIC_ICR               0x300
-#define APIC_ICR2              0x310
-#define APIC_LVT_TIMER         0x320
-#define APIC_LVT_LINT0         0x350
-#define APIC_LVT_LINT1         0x360
-#define APIC_DM_NMI            0x00400
-#define APIC_DM_INIT           0x00500
-#define APIC_DM_STARTUP        0x00600
-#define APIC_ICR_BUSY          0x01000
-#define APIC_DISABLE           0x10000
-#define APIC_DEST_SELF         0x40000
+#define APIC_ICR        0x300
+#define APIC_ICR2       0x310
+#define APIC_LVT_TIMER  0x320
+#define APIC_LVT_LINT0  0x350
+#define APIC_LVT_LINT1  0x360
+#define APIC_DM_NMI     0x00400
+#define APIC_DM_INIT    0x00500
+#define APIC_DM_STARTUP 0x00600
+#define APIC_ICR_BUSY   0x01000
+#define APIC_DISABLE    0x10000
+#define APIC_DEST_SELF  0x40000
 
 #define GET_APIC_DEST_FIELD(x) (((x) >> 24) & 0xFF)
 #define SET_APIC_DEST_FIELD(x) ((x) << 24)
@@ -88,7 +88,7 @@ static inline void apic_mmio_write(uint32_t reg, uint32_t val) {
 }
 
 static inline void apic_mmio_icr_write(uint64_t val) {
-    apic_mmio_write(APIC_ICR2, (uint32_t) (val >> 32));
+    apic_mmio_write(APIC_ICR2, (uint32_t)(val >> 32));
     apic_mmio_write(APIC_ICR, (uint32_t) val);
 }
 
@@ -117,7 +117,7 @@ static inline uint32_t apic_read(uint32_t reg) {
 
 static inline void apic_icr_write(uint64_t val) {
     if (apic_mode == APIC_MODE_XAPIC) {
-        apic_mmio_write(APIC_ICR2, (uint32_t) (val >> 32));
+        apic_mmio_write(APIC_ICR2, (uint32_t)(val >> 32));
         apic_mmio_write(APIC_ICR, (uint32_t) val);
     }
     else
