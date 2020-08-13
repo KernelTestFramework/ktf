@@ -22,8 +22,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _KTF_ERRNO_H
-#define _KTF_ERRNO_H
+#ifndef KTF_ERRNO_H
+#define KTF_ERRNO_H
 
 #define    ESUCCESS        0
 #define    EPERM           1
@@ -148,4 +148,4 @@
 #define    EISNAM          120
 #define    EREMOTEIO       121
 
-#endif /*_KTF_ERRNO_H */
+#endif /*KTF_ERRNO_H */
