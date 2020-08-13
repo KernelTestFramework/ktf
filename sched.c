@@ -100,6 +100,14 @@ static void prepare_task(task_t *task, const char *name, task_func_t func, void 
 
     BUG_ON(get_task_state(task) > TASK_STATE_READY);
 
+    if (name)
+        list_for_each_entry(task, &tasks, list) {
+            if (task->name && !strcmp(task->name, name)) {
+                printk("Another task with the same name [%s] exists\n", name);
+                return;
+            }
+        }
+
     task->name = name;
     task->func = func;
     task->arg = arg;
