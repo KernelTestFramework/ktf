@@ -38,6 +38,8 @@
 #include <ktf.h>
 #include <string.h>
 
+/* clang-format off */
+
 /*
  * Convert a string to an unsigned long integer.
  *
@@ -497,3 +499,4 @@ void snprintf(char *buf, size_t size, const char *fmt, ...) {
     vsnprintf(buf, size, fmt, args);
     va_end(args);
 }
+/* clang-format on */
