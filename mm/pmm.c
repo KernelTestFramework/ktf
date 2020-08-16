@@ -127,7 +127,7 @@ static inline void display_frame(const frame_t *frame) {
            frame->mfn, frame->order, frame->refcount, frame->uncachable, frame->free);
 }
 
-static void add_frame(paddr_t *pa, unsigned int order) {
+static void add_frame(paddr_t *pa, unsigned int order, bool initial) {
     frame_t *free_frame = &early_frames[free_frame_idx++];
 
     if (free_frame_idx > ARRAY_SIZE(early_frames))
@@ -139,50 +139,54 @@ static void add_frame(paddr_t *pa, unsigned int order) {
 
     *pa += (PAGE_SIZE << order);
 
-    list_add(&free_frame->list, &free_frames[order]);
+    if (initial)
+        list_add(&free_frame->list, &free_frames[order]);
+    else
+        list_add_tail(&free_frame->list, &free_frames[order]);
+    frames_count[order]++;
 }
 
 static size_t process_memory_range(unsigned index) {
     paddr_t start, end, cur;
     addr_range_t range;
-    unsigned space_4k = PAGE_SIZE_2M;
     size_t size;
 
     if (mbi_get_avail_memory_range(index, &range) < 0)
         return 0;
 
-    if (index == 1) {
-        space_4k *= 3;
-        start = virt_to_paddr(__end_rodata);
-    }
-    else
-        start = _paddr(range.start);
-
-    cur = start;
+    cur = start = (index == 1 ? virt_to_paddr(__end_rodata) : _paddr(range.start));
     end = _paddr(range.end);
     size = end - start;
 
-    while(cur % space_4k) {
-        add_frame(&cur, PAGE_ORDER_4K);
-        frames_count[PAGE_ORDER_4K]++;
-    }
+    /*
+     * It's important to add the initial frames to the front of the list,
+     * because initial virtual memory mapping is small.
+     */
 
-    while((cur % PAGE_SIZE_1G) && cur + (PAGE_SIZE_2M - 1) <= end) {
-        add_frame(&cur, PAGE_ORDER_2M);
-        frames_count[PAGE_ORDER_2M]++;
-    }
+    /* Add initial 4K frames and align to 2M. */
+    while(cur % PAGE_SIZE_2M && cur + PAGE_SIZE <= end)
+        add_frame(&cur, PAGE_ORDER_4K, true);
 
-    while(cur + (PAGE_SIZE_1G - 1) <= end) {
-        add_frame(&cur, PAGE_ORDER_1G);
-        frames_count[PAGE_ORDER_1G]++;
-    }
+    /* Add initial 2M frames and align to 1G. */
+    while(cur % PAGE_SIZE_1G && cur + PAGE_SIZE_2M <= end)
+        add_frame(&cur, PAGE_ORDER_2M, true);
 
-    while(cur + (PAGE_SIZE_2M - 1) <= end) {
-        add_frame(&cur, PAGE_ORDER_2M);
-        frames_count[PAGE_ORDER_2M]++;
-    }
+    /* Add all remaining 1G frames. */
+    while(cur + PAGE_SIZE_1G <= end)
+        add_frame(&cur, PAGE_ORDER_1G, false);
 
-    BUG_ON(cur > end);
+    /* Add all remaining 2M frames. */
+    while(cur + PAGE_SIZE_2M <= end)
+        add_frame(&cur, PAGE_ORDER_2M, false);
+
+    /* Add all remaining 4K frames. */
+    while(cur < end)
+        add_frame(&cur, PAGE_ORDER_4K, false);
+
+    if (cur != end) {
+        panic("PMM range processing failed: start=0x%016lx end=0x%016lx current=0x%016lx\n",
+              start, end, cur);
+    }
 
     return size;
 }
