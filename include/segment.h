@@ -107,7 +107,7 @@ struct __packed x86_segment_desc {
         struct __packed {
             uint16_t limit_lo;
             uint16_t base_lo;
-            uint8_t  base_mi;
+            uint8_t base_mi;
             struct __packed {
                 uint8_t A : 1, RW : 1, DC : 1, E : 1, S : 1, DPL : 2, P : 1;
             };
@@ -154,11 +154,11 @@ struct __packed x86_gate32 {
             uint32_t lo, hi;
         };
         struct {
-            uint16_t     offset_lo;
-            uint16_t     selector;
-            uint8_t      rsvd;
+            uint16_t offset_lo;
+            uint16_t selector;
+            uint8_t rsvd;
             unsigned int type : 4, s : 1, dpl : 2, p : 1;
-            uint16_t     offset_hi;
+            uint16_t offset_hi;
         };
     };
 };
@@ -187,13 +187,13 @@ struct __packed x86_gate64 {
             uint64_t lo, hi;
         };
         struct {
-            uint16_t     offset_lo;
-            uint16_t     selector;
+            uint16_t offset_lo;
+            uint16_t selector;
             unsigned int ist : 3, rsvd0 : 5;
             unsigned int type : 4, s : 1, dpl : 2, p : 1;
-            uint16_t     offset_mi;
-            uint32_t     offset_hi;
-            uint32_t     rsvd1;
+            uint16_t offset_mi;
+            uint32_t offset_hi;
+            uint32_t rsvd1;
         };
     };
 };
@@ -293,7 +293,7 @@ static inline void set_intr_gate(struct x86_gate64 *gate, uint16_t selector,
 #endif
 
 extern idt_entry_t idt[256];
-extern idt_ptr_t   idt_ptr;
+extern idt_ptr_t idt_ptr;
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_SEGMENT_H */

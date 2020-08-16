@@ -22,10 +22,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <console.h>
 #include <ktf.h>
 #include <lib.h>
 #include <list.h>
-#include <console.h>
 #include <percpu.h>
 
 #include <mm/vmm.h>
@@ -41,7 +41,7 @@ void init_percpu(void) {
 percpu_t *get_percpu_page(unsigned int cpu) {
     percpu_t *percpu;
 
-    list_for_each_entry(percpu, &percpu_frames, list) {
+    list_for_each_entry (percpu, &percpu_frames, list) {
         if (percpu->id == cpu)
             return percpu;
     }

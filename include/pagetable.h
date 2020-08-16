@@ -26,7 +26,10 @@
 #define KTF_PAGETABLE_H
 
 #include <compiler.h>
+#include <lib.h>
 #include <page.h>
+
+#include <mm/pmm.h>
 
 #ifndef __ASSEMBLY__
 
@@ -46,10 +49,10 @@ union pte {
     struct __packed {
         unsigned int P : 1, RW : 1, US : 1, PWT : 1, PCD : 1, A : 1, D : 1, PAT : 1,
             G : 1;
-        unsigned int  IGN0 : 3;
+        unsigned int IGN0 : 3;
         unsigned long mfn : 40;
-        unsigned int  IGN1 : 7;
-        unsigned int  PKE : 4, NX : 1;
+        unsigned int IGN1 : 7;
+        unsigned int PKE : 4, NX : 1;
     };
 };
 typedef union pte pte_t;
@@ -66,10 +69,10 @@ union pde {
         unsigned int : 12;
     };
     struct __packed {
-        unsigned int  P : 1, RW : 1, US : 1, PWT : 1, PCD : 1, A : 1, IGN0 : 1, PS : 1;
-        unsigned int  IGN1 : 4;
+        unsigned int P : 1, RW : 1, US : 1, PWT : 1, PCD : 1, A : 1, IGN0 : 1, PS : 1;
+        unsigned int IGN1 : 4;
         unsigned long mfn : 40;
-        unsigned int  IGN2 : 11, NX : 1;
+        unsigned int IGN2 : 11, NX : 1;
     };
 };
 typedef union pde pde_t;
@@ -86,10 +89,10 @@ union pdpe {
         unsigned int : 12;
     };
     struct __packed {
-        unsigned int  P : 1, RW : 1, US : 1, PWT : 1, PCD : 1, A : 1, IGN0 : 1, PS : 1;
-        unsigned int  IGN1 : 4;
+        unsigned int P : 1, RW : 1, US : 1, PWT : 1, PCD : 1, A : 1, IGN0 : 1, PS : 1;
+        unsigned int IGN1 : 4;
         unsigned long mfn : 40;
-        unsigned int  IGN2 : 11, NX : 1;
+        unsigned int IGN2 : 11, NX : 1;
     };
 };
 typedef union pdpe pdpe_t;
@@ -107,10 +110,10 @@ union pml4 {
         unsigned int : 12;
     };
     struct __packed {
-        unsigned int  P : 1, RW : 1, US : 1, PWT : 1, PCD : 1, A : 1, IGN0 : 1, Z : 1;
-        unsigned int  IGN1 : 4;
+        unsigned int P : 1, RW : 1, US : 1, PWT : 1, PCD : 1, A : 1, IGN0 : 1, Z : 1;
+        unsigned int IGN1 : 4;
         unsigned long mfn : 40;
-        unsigned int  IGN2 : 11, NX : 1;
+        unsigned int IGN2 : 11, NX : 1;
     };
 };
 typedef union pml4 pml4_t;
@@ -123,9 +126,9 @@ union cr3 {
         unsigned int : 12;
     };
     struct __packed {
-        unsigned int  IGN0 : 3, PWT : 1, PCD : 1, IGN1 : 7;
+        unsigned int IGN0 : 3, PWT : 1, PCD : 1, IGN1 : 7;
         unsigned long mfn : 40;
-        unsigned int  RSVD : 12;
+        unsigned int RSVD : 12;
     };
     struct __packed {
         unsigned int PCID : 12;
@@ -241,8 +244,8 @@ static inline void set_pgentry(pgentry_t *e, mfn_t mfn, unsigned long flags) {
 
 /* External declarations */
 
-extern pte_t  l1_pt_entries[L1_PT_ENTRIES];
-extern pde_t  l2_pt_entries[L2_PT_ENTRIES];
+extern pte_t l1_pt_entries[L1_PT_ENTRIES];
+extern pde_t l2_pt_entries[L2_PT_ENTRIES];
 extern pdpe_t l3_pt_entries[L3_PT_ENTRIES];
 #if defined(__x86_64__)
 extern pml4_t l4_pt_entries[L4_PT_ENTRIES];

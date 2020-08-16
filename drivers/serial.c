@@ -29,10 +29,10 @@
 #include <drivers/serial.h>
 
 static inline void set_port_mode(io_port_t port, bool stop_bit, uint8_t width) {
-    lcr_t lcr = { 0 };
+    lcr_t lcr = {0};
 
     lcr.stop_bit = stop_bit;
-    lcr.width= width;
+    lcr.width = width;
     outb(port + UART_LCR_REG_OFFSET, lcr.reg);
 }
 
@@ -61,7 +61,7 @@ static inline bool receiver_ready(io_port_t port) {
 }
 
 void uart_init(io_port_t port, unsigned baud) {
-    mcr_t mcr = { 0 };
+    mcr_t mcr = {0};
 
     /* Disable interrupts */
     outb(port + UART_IER_REG_OFFSET, 0x00);
@@ -115,25 +115,25 @@ static int uart_puts(io_port_t port, const char *buf, size_t len) {
 
 #define SERIAL_TIMEOUT 1000 /* ~1s */
 int serial_putchar(io_port_t port, char c) {
-   unsigned retries = SERIAL_TIMEOUT;
-   int rc;
+    unsigned retries = SERIAL_TIMEOUT;
+    int rc;
 
-   do {
-       rc = uart_putc(port, c);
-       BUG_ON(rc < 0);
-   } while(rc > 0 && retries--);
+    do {
+        rc = uart_putc(port, c);
+        BUG_ON(rc < 0);
+    } while (rc > 0 && retries--);
 
-   return rc;
+    return rc;
 }
 
 int serial_write(io_port_t port, const char *buf, size_t len) {
-   unsigned retries = SERIAL_TIMEOUT;
-   int rc;
+    unsigned retries = SERIAL_TIMEOUT;
+    int rc;
 
-   do {
-       rc = uart_puts(port, buf, len);
-       BUG_ON(rc < 0);
-   } while(rc > 0 && retries--);
+    do {
+        rc = uart_puts(port, buf, len);
+        BUG_ON(rc < 0);
+    } while (rc > 0 && retries--);
 
-   return rc;
+    return rc;
 }

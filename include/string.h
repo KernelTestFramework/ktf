@@ -105,8 +105,8 @@ static inline void *memcpy(void *d, void *s, size_t n) {
 }
 
 static inline int memcmp(const void *m1, const void *m2, size_t n) {
-    const uint8_t *  _m1 = m1;
-    const uint8_t *  _m2 = m2;
+    const uint8_t *_m1 = m1;
+    const uint8_t *_m2 = m2;
     register uint8_t res = 0;
 
     if (m1 == m2)
@@ -165,8 +165,8 @@ static inline int strncmp(const char *s1, const char *s2, size_t n) {
 /* External declarations */
 
 extern unsigned long strtoul(const char *nptr, char **endptr, int base);
-extern long          strtol(const char *nptr, char **endptr, int base);
-extern int           vsnprintf(char *str, size_t size, char const *fmt, va_list ap);
-extern void          snprintf(char *buf, size_t size, const char *fmt, ...);
+extern long strtol(const char *nptr, char **endptr, int base);
+extern int vsnprintf(char *str, size_t size, char const *fmt, va_list ap);
+extern void snprintf(char *buf, size_t size, const char *fmt, ...);
 
 #endif /* KTF_STRING_H */

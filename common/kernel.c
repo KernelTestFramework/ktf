@@ -22,24 +22,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <console.h>
 #include <ktf.h>
 #include <lib.h>
-#include <console.h>
-#include <setup.h>
 #include <multiboot.h>
 #include <percpu.h>
 #include <sched.h>
+#include <setup.h>
 
 extern void _long_to_real(void);
 
-extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2kern_sp, unsigned long user_stack);
+extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2kern_sp,
+                             unsigned long user_stack);
 
 void ret2kern_handler(void) {
-    asm volatile("mov %%gs:(%0), %%" STR(_ASM_SP) :: "r" (offsetof(percpu_t, ret2kern_sp)));
+    asm volatile("mov %%gs:(%0), %%" STR(_ASM_SP)::"r"(offsetof(percpu_t, ret2kern_sp)));
 }
 
 int usermode_call(user_func_t fn, void *fn_arg) {
-    return usermode_call_asm(fn, fn_arg, offsetof(percpu_t, ret2kern_sp), offsetof(percpu_t, user_stack));
+    return usermode_call_asm(fn, fn_arg, offsetof(percpu_t, ret2kern_sp),
+                             offsetof(percpu_t, user_stack));
 }
 
 void kernel_main(void) {
@@ -60,6 +62,6 @@ void kernel_main(void) {
 
     printk("All tasks done.\n");
 
-    while(1)
+    while (1)
         halt();
 }

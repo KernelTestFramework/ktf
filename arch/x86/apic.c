@@ -23,10 +23,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <console.h>
 #include <ktf.h>
 #include <lib.h>
 #include <page.h>
-#include <console.h>
 #include <processor.h>
 
 #include <apic.h>
@@ -34,11 +34,9 @@
 apic_mode_t apic_mode = APIC_MODE_UNKNOWN;
 
 static const char *apic_mode_names[] = {
-    [APIC_MODE_UNKNOWN]  = "Unknown",
-    [APIC_MODE_NONE]     = "None",
-    [APIC_MODE_DISABLED] = "Disabled",
-    [APIC_MODE_XAPIC]    = "XAPIC",
-    [APIC_MODE_X2APIC]   = "X2APIC",
+    [APIC_MODE_UNKNOWN] = "Unknown",   [APIC_MODE_NONE] = "None",
+    [APIC_MODE_DISABLED] = "Disabled", [APIC_MODE_XAPIC] = "XAPIC",
+    [APIC_MODE_X2APIC] = "X2APIC",
 };
 
 int init_apic(enum apic_mode mode) {
@@ -71,8 +69,8 @@ int init_apic(enum apic_mode mode) {
         }
     }
 
-    printk("Initializing APIC mode: %s -> %s\n",
-           apic_mode_names[apic_mode], apic_mode_names[mode]);
+    printk("Initializing APIC mode: %s -> %s\n", apic_mode_names[apic_mode],
+           apic_mode_names[mode]);
 
     /* Disable APIC */
     apic_base &= ~(APIC_BASE_EXTD | APIC_BASE_ENABLE);
@@ -90,7 +88,8 @@ int init_apic(enum apic_mode mode) {
      * X2APIC uses MSRs for accesses, so no mapping needed.
      */
     if (apic_mode == APIC_MODE_XAPIC)
-        vmap(_ptr(DEFAULT_APIC_BASE), paddr_to_mfn(DEFAULT_APIC_BASE), PAGE_ORDER_4K, L1_PROT);
+        vmap(_ptr(DEFAULT_APIC_BASE), paddr_to_mfn(DEFAULT_APIC_BASE), PAGE_ORDER_4K,
+             L1_PROT);
 
     apic_write(APIC_SPIV, APIC_SPIV_APIC_ENABLED | 0xff);
     return 0;

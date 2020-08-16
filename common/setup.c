@@ -22,19 +22,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <apic.h>
+#include <console.h>
 #include <ktf.h>
 #include <lib.h>
-#include <page.h>
-#include <traps.h>
-#include <string.h>
-#include <setup.h>
-#include <segment.h>
-#include <console.h>
-#include <pagetable.h>
 #include <multiboot.h>
-#include <apic.h>
+#include <page.h>
+#include <pagetable.h>
 #include <percpu.h>
 #include <sched.h>
+#include <segment.h>
+#include <setup.h>
+#include <string.h>
+#include <traps.h>
 
 #include <mm/pmm.h>
 #include <mm/vmm.h>
@@ -65,15 +65,20 @@ static __always_inline void zero_bss(void) {
 }
 
 static __always_inline void zap_boot_mappings(void) {
-#if defined (__x86_64__)
-    memset(paddr_to_virt_kern(virt_to_paddr(l4_pt_entries)), 0, L4_PT_ENTRIES * sizeof(pgentry_t));
+#if defined(__x86_64__)
+    memset(paddr_to_virt_kern(virt_to_paddr(l4_pt_entries)), 0,
+           L4_PT_ENTRIES * sizeof(pgentry_t));
 #endif
-    memset(paddr_to_virt_kern(virt_to_paddr(l3_pt_entries)), 0, L3_PT_ENTRIES * sizeof(pgentry_t));
-    memset(paddr_to_virt_kern(virt_to_paddr(l2_pt_entries)), 0, L2_PT_ENTRIES * sizeof(pgentry_t));
-    memset(paddr_to_virt_kern(virt_to_paddr(l1_pt_entries)), 0, L1_PT_ENTRIES * sizeof(pgentry_t));
+    memset(paddr_to_virt_kern(virt_to_paddr(l3_pt_entries)), 0,
+           L3_PT_ENTRIES * sizeof(pgentry_t));
+    memset(paddr_to_virt_kern(virt_to_paddr(l2_pt_entries)), 0,
+           L2_PT_ENTRIES * sizeof(pgentry_t));
+    memset(paddr_to_virt_kern(virt_to_paddr(l1_pt_entries)), 0,
+           L1_PT_ENTRIES * sizeof(pgentry_t));
 }
 
-void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_info_t *mbi) {
+void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
+                                         multiboot_info_t *mbi) {
     /* Zero-out BSS sections */
     zero_bss();
 
@@ -113,7 +118,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, multiboot_inf
     smp_init();
 
     /* Jump from .text.init section to .text */
-    asm volatile("push %0; ret" :: "r" (&kernel_main));
+    asm volatile("push %0; ret" ::"r"(&kernel_main));
 
     UNREACHABLE();
 }

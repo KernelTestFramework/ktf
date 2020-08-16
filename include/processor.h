@@ -239,10 +239,10 @@ struct cpu_regs {
 
     /* Hardware exception */
     x86_reg_t _ASM_IP;
-    uint16_t  cs, _pad_cs[3];
+    uint16_t cs, _pad_cs[3];
     x86_reg_t _ASM_FLAGS;
     x86_reg_t _ASM_SP;
-    uint16_t  ss, _pad_ss[3];
+    uint16_t ss, _pad_ss[3];
 };
 typedef struct cpu_regs cpu_regs_t;
 

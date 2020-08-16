@@ -36,7 +36,7 @@ enum gfp_flags {
 /* External definitions */
 
 extern void *get_free_pages(unsigned int order, uint32_t flags);
-extern void  put_pages(void *page, unsigned int order);
+extern void put_pages(void *page, unsigned int order);
 
 /* Static definitions */
 

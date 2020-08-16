@@ -22,13 +22,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <console.h>
 #include <ktf.h>
 #include <lib.h>
-#include <page.h>
-#include <setup.h>
-#include <console.h>
 #include <multiboot.h>
+#include <page.h>
 #include <percpu.h>
+#include <setup.h>
 
 #include <smp/mptables.h>
 
@@ -78,7 +78,7 @@ static mpf_t *get_mpf_addr(void) {
     void *sysm_addr;
     mpf_t *ptr;
 
-    ebda_addr = (* (uint16_t *) paddr_to_virt_kern(EBDA_ADDR_ENTRY)) << 4;
+    ebda_addr = (*(uint16_t *) paddr_to_virt_kern(EBDA_ADDR_ENTRY)) << 4;
     ptr = find_mpf(paddr_to_virt_kern(ebda_addr), paddr_to_virt_kern(ebda_addr + KB(1)));
     if (ptr)
         return ptr;
@@ -88,7 +88,8 @@ static mpf_t *get_mpf_addr(void) {
     if (ptr)
         return ptr;
 
-    return find_mpf(paddr_to_virt_kern(BIOS_ROM_ADDR_START), paddr_to_virt_kern(BIOS_ROM_ADDR_START + KB(64)));
+    return find_mpf(paddr_to_virt_kern(BIOS_ROM_ADDR_START),
+                    paddr_to_virt_kern(BIOS_ROM_ADDR_START + KB(64)));
 }
 
 static inline bool validate_mpc(mpc_hdr_t *ptr) {
@@ -122,7 +123,7 @@ static void dump_mpf(mpf_t *ptr) {
     printk("  Spec revision: 0x%02x\n", ptr->spec_rev);
     printk("  Checksum: 0x%02x\n", ptr->checksum);
     printk("  MP System Config Type: 0x%02x %s\n", ptr->mpc_type,
-           ptr->mpc_type? "(Default Config Code)" : "(MP Config Table)");
+           ptr->mpc_type ? "(Default Config Code)" : "(MP Config Table)");
     printk("  Mode implemented: %s\n", ptr->imcrp ? "PIC Mode" : "Virtual Wire Mode");
 }
 
@@ -145,58 +146,54 @@ static void dump_mpc_hdr(mpc_hdr_t *ptr) {
 static inline void dump_mpc_processor_entry(const mpc_processor_entry_t *e) {
     printk("  CPU: LAPIC ID=0x%02x, LAPIC version=0x%02x, Enabled=%x,"
            " BSP=%x, CPU F/M/S: 0x%02x/0x%02x/0x%02x, Features=0x%08x\n",
-           e->lapic_id, e->lapic_version, e->en, e->bsp, e->family,
-           e->model, e->stepping, e->feature_flags);
+           e->lapic_id, e->lapic_version, e->en, e->bsp, e->family, e->model, e->stepping,
+           e->feature_flags);
 }
 
 static inline void dump_mpc_bus_entry(const mpc_bus_entry_t *e) {
-    printk("  BUS: ID=0x%02x Type=%.6s\n", e->id , e->type_str);
+    printk("  BUS: ID=0x%02x Type=%.6s\n", e->id, e->type_str);
 }
 
 static inline void dump_mpc_ioapic_entry(const mpc_ioapic_entry_t *e) {
-    printk("  IOAPIC: ID=%x, Version=%x, Enabled=%x, Address: %p\n",
-           e->id, e->version, e->en, e->base_addr);
+    printk("  IOAPIC: ID=%x, Version=%x, Enabled=%x, Address: %p\n", e->id, e->version,
+           e->en, e->base_addr);
 }
 
 static const char *mpc_interrupt_type_names[] = {
-    [MPC_IOINT_INT]    = "INT",
-    [MPC_IOINT_NMI]    = "NMI",
-    [MPC_IOINT_SMI]    = "SMI",
+    [MPC_IOINT_INT] = "INT",
+    [MPC_IOINT_NMI] = "NMI",
+    [MPC_IOINT_SMI] = "SMI",
     [MPC_IOINT_EXTINT] = "ExtINT",
 };
 
 static const char *mpc_interrupt_polarity_names[] = {
-    [MPC_IOINT_POLARITY_BS]   = "Bus Spec",
-    [MPC_IOINT_POLARITY_AH]   = "Active High",
+    [MPC_IOINT_POLARITY_BS] = "Bus Spec",
+    [MPC_IOINT_POLARITY_AH] = "Active High",
     [MPC_IOINT_POLARITY_RSVD] = "Reserved",
-    [MPC_IOINT_POLARITY_AL]   = "Active Low",
+    [MPC_IOINT_POLARITY_AL] = "Active Low",
 };
 
 static const char *mpc_interrupt_trigger_names[] = {
-    [MPC_IOINT_TRIGGER_BS]   = "Bus Spec",
-    [MPC_IOINT_TRIGGER_ET]   = "Edge",
+    [MPC_IOINT_TRIGGER_BS] = "Bus Spec",
+    [MPC_IOINT_TRIGGER_ET] = "Edge",
     [MPC_IOINT_TRIGGER_RSVD] = "Reserved",
-    [MPC_IOINT_TRIGGER_LT]   = "Level",
+    [MPC_IOINT_TRIGGER_LT] = "Level",
 };
 
 static inline void dump_mpc_ioint_entry(const mpc_ioint_entry_t *e) {
     dprintk("     IO Int: Type=%6s, Polarity=%11s, Trigger=%9s, Source Bus: "
-           "ID=0x%02x IRQ=0x%02x, Dest IOAPIC: ID=0x%02x,  INTIN#=0x%02x\n",
-           mpc_interrupt_type_names[e->int_type],
-           mpc_interrupt_polarity_names[e->po],
-           mpc_interrupt_trigger_names[e->el],
-           e->src_bus_id, e->src_bus_irq,
-           e->dst_ioapic_id, e->dst_ioapic_intin);
+            "ID=0x%02x IRQ=0x%02x, Dest IOAPIC: ID=0x%02x,  INTIN#=0x%02x\n",
+            mpc_interrupt_type_names[e->int_type], mpc_interrupt_polarity_names[e->po],
+            mpc_interrupt_trigger_names[e->el], e->src_bus_id, e->src_bus_irq,
+            e->dst_ioapic_id, e->dst_ioapic_intin);
 }
 
 static inline void dump_mpc_lint_entry(const mpc_lint_entry_t *e) {
     dprintk("  Local Int: Type=%6s, Polarity=%11s, Trigger=%9s, Source Bus: "
-           "ID=0x%02x IRQ=0x%02x, Dest  LAPIC: ID=0x%02x, LINTIN#=0x%02x\n",
-           mpc_interrupt_type_names[e->int_type],
-           mpc_interrupt_polarity_names[e->po],
-           mpc_interrupt_trigger_names[e->el],
-           e->src_bus_id, e->src_bus_irq,
-           e->dst_lapic_id, e->dst_lapic_lintin);
+            "ID=0x%02x IRQ=0x%02x, Dest  LAPIC: ID=0x%02x, LINTIN#=0x%02x\n",
+            mpc_interrupt_type_names[e->int_type], mpc_interrupt_polarity_names[e->po],
+            mpc_interrupt_trigger_names[e->el], e->src_bus_id, e->src_bus_irq,
+            e->dst_lapic_id, e->dst_lapic_lintin);
 }
 
 static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {

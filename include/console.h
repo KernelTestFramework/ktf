@@ -25,6 +25,8 @@
 #ifndef KTF_CONSOLE_H
 #define KTF_CONSOLE_H
 
+#include <ktf.h>
+
 typedef void (*console_callback_t)(const char *buf, size_t len);
 
 extern void printk(const char *fmt, ...);

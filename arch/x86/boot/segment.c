@@ -23,15 +23,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <ktf.h>
 #include <asm-macros.h>
+#include <ktf.h>
 #include <segment.h>
 
 gdt_desc_t boot_gdt[] __aligned(16) __data_init = {
+    /* clang-format off */
     [GDT_NULL].desc      = GDT_ENTRY(0x0, 0x0, 0x0),
     [GDT_KERN_CS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, CODE, R, A), 0x0, 0xfffff),
     [GDT_KERN_DS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
     [GDT_KERN_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, CODE, R, A), 0x0, 0x00000),
+    /* clang-format on */
 };
 
 gdt_ptr_t boot_gdt_ptr __data_init = {

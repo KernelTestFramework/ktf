@@ -33,12 +33,12 @@
 struct mpf {
     uint32_t signature;
     uint32_t mpc_base;
-    uint8_t  length;
-    uint8_t  spec_rev;
-    uint8_t  checksum;
-    uint8_t  mpc_type;
-    uint8_t  rsvd0 : 6, imcrp : 1;
-    uint8_t  rsvd1[3];
+    uint8_t length;
+    uint8_t spec_rev;
+    uint8_t checksum;
+    uint8_t mpc_type;
+    uint8_t rsvd0 : 6, imcrp : 1;
+    uint8_t rsvd1[3];
 } __packed;
 typedef struct mpf mpf_t;
 
@@ -54,19 +54,19 @@ enum mpc_entry_type {
 typedef enum mpc_entry_type mpc_entry_type_t;
 
 struct mpc_hdr {
-    uint32_t   signature;
-    uint16_t   length;
-    uint8_t    spec_rev;
-    uint8_t    checksum;
+    uint32_t signature;
+    uint16_t length;
+    uint8_t spec_rev;
+    uint8_t checksum;
     const char oem_id[8];
     const char product_id[12];
-    uint32_t   oem_tlb_ptr;
-    uint16_t   oem_tlb_size;
-    uint16_t   entry_count;
-    uint32_t   lapic_base;
-    uint16_t   ext_length;
-    uint8_t    ext_checksum;
-    uint8_t    rsvd;
+    uint32_t oem_tlb_ptr;
+    uint16_t oem_tlb_size;
+    uint16_t entry_count;
+    uint32_t lapic_base;
+    uint16_t ext_length;
+    uint8_t ext_checksum;
+    uint8_t rsvd;
 } __packed;
 typedef struct mpc_hdr mpc_hdr_t;
 
