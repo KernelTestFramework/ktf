@@ -22,6 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <acpi.h>
 #include <apic.h>
 #include <console.h>
 #include <ktf.h>
@@ -107,6 +108,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     /* TODO: Exception tables */
 
     init_percpu();
+
+    init_acpi();
 
     init_traps(0);
 

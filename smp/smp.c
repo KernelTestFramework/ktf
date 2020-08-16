@@ -22,6 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <acpi.h>
 #include <apic.h>
 #include <console.h>
 #include <ktf.h>
@@ -91,10 +92,12 @@ static void boot_cpu(unsigned int cpu) {
 }
 
 void smp_init(void) {
-    nr_cpus = mptables_init();
+    unsigned mp_nr_cpus = mptables_init();
+    unsigned acpi_nr_cpus = acpi_get_nr_cpus();
 
+    nr_cpus = acpi_nr_cpus ?: mp_nr_cpus;
     if (nr_cpus == 0) {
-        nr_cpus = 1;
+        nr_cpus++;
         return;
     }
 
