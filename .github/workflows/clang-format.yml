@@ -2,7 +2,9 @@ name: test-clang-format
 
 on:
   push:
-    branches: [ master ]
+    branches: [ mainline ]
+  pull_request:
+    branches: [ mainline ]
 
 jobs:
   build:
