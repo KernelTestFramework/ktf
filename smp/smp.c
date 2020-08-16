@@ -22,19 +22,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <apic.h>
+#include <console.h>
 #include <ktf.h>
 #include <lib.h>
-#include <console.h>
-#include <setup.h>
-#include <apic.h>
-#include <traps.h>
 #include <percpu.h>
 #include <sched.h>
+#include <setup.h>
+#include <traps.h>
 
 #include <mm/vmm.h>
 
-#include <smp/smp.h>
 #include <smp/mptables.h>
+#include <smp/smp.h>
 
 extern void ap_start(void);
 
@@ -53,7 +53,7 @@ void __noreturn ap_startup(void) {
 
     run_tasks(smp_processor_id());
 
-    while(true)
+    while (true)
         halt();
 
     UNREACHABLE();
@@ -84,7 +84,7 @@ static void boot_cpu(unsigned int cpu) {
     apic_icr_write(icr | (APIC_DM_STARTUP | GET_SIPI_VECTOR(ap_start)));
     apic_wait_ready();
 
-    while(!ap_callin)
+    while (!ap_callin)
         cpu_relax();
 
     dprintk("AP: %u Done \n", cpu);
@@ -104,6 +104,4 @@ void smp_init(void) {
         boot_cpu(i);
 }
 
-unsigned get_nr_cpus(void) {
-    return nr_cpus;
-}
+unsigned get_nr_cpus(void) { return nr_cpus; }

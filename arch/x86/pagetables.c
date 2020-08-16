@@ -22,17 +22,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <console.h>
 #include <ktf.h>
 #include <page.h>
-#include <console.h>
-#include <setup.h>
-#include <string.h>
 #include <pagetable.h>
+#include <setup.h>
 #include <spinlock.h>
+#include <string.h>
 
 cr3_t __data_init cr3;
 
 static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
+    /* clang-format off */
     snprintf(buf, size, "%c %c%c%c%c%c%c%c%c%c",
         pte.NX  ? 'X' : '-',
         pte.G   ? 'G' : '-',
@@ -44,6 +45,7 @@ static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
         pte.US  ? 'U' : 'S',
         pte.RW  ? 'W' : 'R',
         pte.P   ? 'P' : '-');
+    /* clang-format on */
 
     return buf;
 }
@@ -76,8 +78,8 @@ static inline void dump_page_table(void *table, int level) {
 
         dump_pte_flags(flags, sizeof(flags), pt[i]);
         paddr_t paddr = mfn_to_paddr(pt[i].mfn);
-        printk("[%p] %*s%d[%03u] paddr: 0x%016lx flags: %s\n",
-               virt_to_paddr(pt), (4 - level) * 2, "L", level, i, paddr, flags);
+        printk("[%p] %*s%d[%03u] paddr: 0x%016lx flags: %s\n", virt_to_paddr(pt),
+               (4 - level) * 2, "L", level, i, paddr, flags);
 
         if (level == 2 && ((pde_t *) pt)[i].PS)
             continue;
@@ -144,7 +146,7 @@ void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
 
     spin_lock(&lock);
 
-#if defined (__x86_64__)
+#if defined(__x86_64__)
     l3t_mfn = get_pgentry_mfn(get_cr3_mfn(&cr3), l4_table_index(va), L4_PROT_USER);
 #else
     l3t_mfn = get_cr3_mfn(&cr3);
@@ -177,20 +179,16 @@ done:
     return va;
 }
 
-void *vunmap(void *va, unsigned int order) {
-    return vmap(va, MFN_INVALID, order, 0x0);
-}
+void *vunmap(void *va, unsigned int order) { return vmap(va, MFN_INVALID, order, 0x0); }
 
 void *kmap(mfn_t mfn, unsigned int order, unsigned long flags) {
     return vmap(mfn_to_virt_kern(mfn), mfn, order, flags);
 }
 
-void *kunmap(void *va, unsigned int order) {
-    return vmap(va, MFN_INVALID, order, 0x0);
-}
+void *kunmap(void *va, unsigned int order) { return vmap(va, MFN_INVALID, order, 0x0); }
 
 void init_pagetables(void) {
-    for_each_memory_range(r) {
+    for_each_memory_range (r) {
         switch (r->base) {
         case VIRT_IDENT_BASE:
             for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)

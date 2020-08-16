@@ -22,10 +22,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <drivers/vga.h>
 #include <ktf.h>
 #include <page.h>
 #include <string.h>
-#include <drivers/vga.h>
 
 #define MAX_ROWS VGA_ROWS
 #define MAX_COLS (2 * VGA_COLS)
@@ -67,4 +67,3 @@ void vga_write(const char *buf, size_t len, vga_color_t color) {
 
     write_vga_buffer();
 }
-

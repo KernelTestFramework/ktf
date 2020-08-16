@@ -22,13 +22,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <ktf.h>
 #include <console.h>
+#include <ktf.h>
 #include <sched.h>
 
-static int __user_text func(void *arg) {
-    return 0;
-}
+static int __user_text func(void *arg) { return 0; }
 
 void test_main(void) {
     printk("\nTest:\n");

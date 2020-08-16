@@ -28,7 +28,7 @@
 void __noreturn halt(void) {
     cli();
 
-    while(1) {
+    while (1) {
         hlt();
         pause();
     }

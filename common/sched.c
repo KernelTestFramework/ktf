@@ -22,14 +22,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <console.h>
 #include <ktf.h>
 #include <lib.h>
 #include <list.h>
 #include <sched.h>
-#include <string.h>
-#include <console.h>
-#include <spinlock.h>
 #include <setup.h>
+#include <spinlock.h>
+#include <string.h>
 
 #include <smp/smp.h>
 
@@ -49,11 +49,11 @@ void init_tasks(void) {
 }
 
 static const char *task_state_names[] = {
-    [TASK_STATE_NEW]       = "NEW",
-    [TASK_STATE_READY]     = "READY",
+    [TASK_STATE_NEW] = "NEW",
+    [TASK_STATE_READY] = "READY",
     [TASK_STATE_SCHEDULED] = "SCHEDULED",
-    [TASK_STATE_RUNNING]   = "RUNNING",
-    [TASK_STATE_DONE]      = "DONE",
+    [TASK_STATE_RUNNING] = "RUNNING",
+    [TASK_STATE_DONE] = "DONE",
 };
 
 static inline void set_task_state(task_t *task, task_state_t state) {
@@ -127,7 +127,7 @@ task_t *new_task(const char *name, task_func_t func, void *arg) {
 task_t *get_task_by_id(tid_t id) {
     task_t *task;
 
-    list_for_each_entry(task, &tasks, list) {
+    list_for_each_entry (task, &tasks, list) {
         if (task->id == id)
             return task;
     }
@@ -138,7 +138,7 @@ task_t *get_task_by_id(tid_t id) {
 task_t *get_task_by_name(const char *name) {
     task_t *task;
 
-    list_for_each_entry(task, &tasks, list) {
+    list_for_each_entry (task, &tasks, list) {
         if (!strcmp(task->name, name))
             return task;
     }
@@ -149,7 +149,7 @@ task_t *get_task_by_name(const char *name) {
 task_t *get_task_for_cpu(unsigned int cpu) {
     task_t *task;
 
-    list_for_each_entry(task, &tasks, list) {
+    list_for_each_entry (task, &tasks, list) {
         if (task->cpu == cpu)
             return task;
     }
@@ -165,8 +165,7 @@ void schedule_task(task_t *task, unsigned int cpu) {
 
     BUG_ON(get_task_state(task) != TASK_STATE_READY);
 
-    printk("CPU[%u]: Scheduling task %s[%u]\n",
-           cpu, task->name, task->id);
+    printk("CPU[%u]: Scheduling task %s[%u]\n", cpu, task->name, task->id);
 
     task->cpu = cpu;
     set_task_state(task, TASK_STATE_SCHEDULED);
@@ -178,8 +177,7 @@ static void run_task(task_t *task) {
 
     wait_for_task_state(task, TASK_STATE_SCHEDULED);
 
-    printk("CPU[%u]: Running task %s[%u]\n",
-           task->cpu, task->name, task->id);
+    printk("CPU[%u]: Running task %s[%u]\n", task->cpu, task->name, task->id);
 
     set_task_state(task, TASK_STATE_RUNNING);
     task->func(task, task->arg);
@@ -193,20 +191,19 @@ void wait_for_all_tasks(void) {
     do {
         busy = false;
 
-        list_for_each_entry(task, &tasks, list) {
+        list_for_each_entry (task, &tasks, list) {
             if (get_task_state(task) != TASK_STATE_DONE) {
                 busy = true;
                 wait_for_task_state(task, TASK_STATE_DONE);
             }
         }
         cpu_relax();
-    } while(busy && !terminate);
+    } while (busy && !terminate);
 }
 
 void run_tasks(unsigned int cpu) {
     do {
         run_task(get_task_for_cpu(cpu));
         cpu_relax();
-    } while(!terminate);
+    } while (!terminate);
 }
-

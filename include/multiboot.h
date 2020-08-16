@@ -157,7 +157,7 @@ struct multiboot_info {
     uint32_t mods_addr;
 
     union {
-        multiboot_aout_symbol_table_t        aout_sym;
+        multiboot_aout_symbol_table_t aout_sym;
         multiboot_elf_section_header_table_t elf_sec;
     } u;
 
@@ -190,7 +190,7 @@ struct multiboot_info {
     uint32_t framebuffer_pitch;
     uint32_t framebuffer_width;
     uint32_t framebuffer_height;
-    uint8_t  framebuffer_bpp;
+    uint8_t framebuffer_bpp;
 #define MULTIBOOT_FRAMEBUFFER_TYPE_INDEXED  0
 #define MULTIBOOT_FRAMEBUFFER_TYPE_RGB      1
 #define MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT 2
@@ -293,7 +293,7 @@ extern void init_multiboot(multiboot_info_t *mbi, const char **cmdline);
 #include <mm/pmm.h>
 #include <page.h>
 extern unsigned mbi_get_avail_memory_ranges_num(void);
-extern int      mbi_get_avail_memory_range(unsigned index, addr_range_t *r);
-extern int      mbi_get_memory_range(paddr_t pa, addr_range_t *r);
+extern int mbi_get_avail_memory_range(unsigned index, addr_range_t *r);
+extern int mbi_get_memory_range(paddr_t pa, addr_range_t *r);
 
 #endif /* KTF_MULTIBOOT_H */
