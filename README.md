@@ -93,7 +93,7 @@ make debug
 #### Xen guest
 
 Use the following guest domain config example for booting KTF with Xen:
-```
+```python
 name="kernel64"
 builder="hvm"
 memory=1024
@@ -115,11 +115,32 @@ The style for this project is defined in `.clang-format` file in the main direct
 
 Use the following command to apply the style automatically to the file you modify:
 
-```
+```bash
 clang-format -style=file -Werror -i MODIFIED_FILE
 ```
 
 For more information refer to: https://clang.llvm.org/docs/ClangFormat.html
+
+This project uses https://github.com/DoozyX/clang-format-lint-action action workflow to detect style mismatches automatically.
+For more information refer to: https://github.com/marketplace/actions/clang-format-lint
+
+### Running the clang-format workflow locally
+
+#### Build `clang-format-lint` container
+
+```bash
+docker build -t clang-format-lint github.com/DoozyX/clang-format-lint-action
+```
+
+This has to be done only once.
+
+#### Patch your files
+
+```bash
+for ext in c h; do
+    docker run --rm --workdir /src -v $(pwd):/src clang-format-lint --clang-format-executable /clang-format/clang-format10 -r --exclude .git $(find . -name \*.$ext -print) | patch -p1
+done
+```
 
 ## Credits and Attributions
 
