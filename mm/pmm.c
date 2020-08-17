@@ -166,28 +166,29 @@ static size_t process_memory_range(unsigned index) {
      */
 
     /* Add initial 4K frames and align to 2M. */
-    while(cur % PAGE_SIZE_2M && cur + PAGE_SIZE <= end)
+    while (cur % PAGE_SIZE_2M && cur + PAGE_SIZE <= end)
         add_frame(&cur, PAGE_ORDER_4K, true);
 
     /* Add initial 2M frames and align to 1G. */
-    while(cur % PAGE_SIZE_1G && cur + PAGE_SIZE_2M <= end)
+    while (cur % PAGE_SIZE_1G && cur + PAGE_SIZE_2M <= end)
         add_frame(&cur, PAGE_ORDER_2M, true);
 
     /* Add all remaining 1G frames. */
-    while(cur + PAGE_SIZE_1G <= end)
+    while (cur + PAGE_SIZE_1G <= end)
         add_frame(&cur, PAGE_ORDER_1G, false);
 
     /* Add all remaining 2M frames. */
-    while(cur + PAGE_SIZE_2M <= end)
+    while (cur + PAGE_SIZE_2M <= end)
         add_frame(&cur, PAGE_ORDER_2M, false);
 
     /* Add all remaining 4K frames. */
-    while(cur < end)
+    while (cur < end)
         add_frame(&cur, PAGE_ORDER_4K, false);
 
     if (cur != end) {
-        panic("PMM range processing failed: start=0x%016lx end=0x%016lx current=0x%016lx\n",
-              start, end, cur);
+        panic(
+            "PMM range processing failed: start=0x%016lx end=0x%016lx current=0x%016lx\n",
+            start, end, cur);
     }
 
     return size;
