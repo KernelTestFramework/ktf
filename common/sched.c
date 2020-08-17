@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <errno.h>
 #include <ktf.h>
 #include <lib.h>
 #include <list.h>
@@ -56,6 +57,8 @@ static const char *task_state_names[] = {
     [TASK_STATE_DONE] = "DONE",
 };
 
+#define PAGE_ORDER_TASK PAGE_ORDER_4K
+
 static inline void set_task_state(task_t *task, task_state_t state) {
     ASSERT(task);
 
@@ -77,7 +80,7 @@ static inline task_state_t get_task_state(task_t *task) {
 }
 
 static task_t *create_task(void) {
-    task_t *task = get_free_page(GFP_KERNEL);
+    task_t *task = get_free_pages(PAGE_ORDER_TASK, GFP_KERNEL);
 
     if (!task)
         return NULL;
@@ -94,9 +97,24 @@ static task_t *create_task(void) {
     return task;
 }
 
-static void prepare_task(task_t *task, const char *name, task_func_t func, void *arg) {
+/* The caller should never use the parameter again after calling this function */
+static void destroy_task(task_t *task) {
     if (!task)
         return;
+
+    spin_lock(&lock);
+    list_unlink(&task->list);
+    spin_unlock(&lock);
+
+    put_pages(task, PAGE_ORDER_TASK);
+}
+
+static int prepare_task(task_t *task, const char *name, task_func_t func, void *arg) {
+    if (!task)
+        return -EINVAL;
+
+    if (get_task_by_name(name))
+        return -EEXIST;
 
     BUG_ON(get_task_state(task) > TASK_STATE_READY);
 
@@ -104,6 +122,7 @@ static void prepare_task(task_t *task, const char *name, task_func_t func, void 
     task->func = func;
     task->arg = arg;
     set_task_state(task, TASK_STATE_READY);
+    return ESUCCESS;
 }
 
 static void wait_for_task_state(task_t *task, task_state_t state) {
@@ -120,7 +139,11 @@ task_t *new_task(const char *name, task_func_t func, void *arg) {
     if (!task)
         return NULL;
 
-    prepare_task(task, name, func, arg);
+    if (unlikely(prepare_task(task, name, func, arg) != ESUCCESS)) {
+        destroy_task(task);
+        return NULL;
+    }
+
     return task;
 }
 
@@ -139,7 +162,7 @@ task_t *get_task_by_name(const char *name) {
     task_t *task;
 
     list_for_each_entry (task, &tasks, list) {
-        if (!strcmp(task->name, name))
+        if (string_equal(task->name, name))
             return task;
     }
 

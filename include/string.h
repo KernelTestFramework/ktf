@@ -184,6 +184,12 @@ static inline const char *string_trim_whitspace(const char *s) {
     return s;
 }
 
+static inline int string_empty(const char *s) { return !s || *s == '\0'; }
+
+static inline int string_equal(const char *s1, const char *s2) {
+    return (!s1 || !s2) ? s1 == s2 : !strcmp(s1, s2);
+}
+
 /* External declarations */
 
 extern unsigned long strtoul(const char *nptr, char **endptr, int base);
