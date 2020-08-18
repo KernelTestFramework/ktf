@@ -25,6 +25,7 @@
 #ifndef KTF_STRING_H
 #define KTF_STRING_H
 #include <asm-macros.h>
+extern void *ktf_alloc(unsigned int len);
 
 static inline __used int isspace(int c) { return c == ' ' || c == '\t'; }
 
@@ -134,6 +135,21 @@ static inline char *strcpy(char *d, const char *s) {
     return d;
 }
 
+static inline char *strncpy(char *d, const char *s, size_t n) {
+    char *copy = d;
+
+    while (n--) {
+        if (*s == 0)
+            break;
+        *copy++ = *s++;
+    }
+
+    while (n--)
+        *copy++ = '\0';
+
+    return d;
+}
+
 static inline int strcmp(const char *s1, const char *s2) {
     register char res;
 
@@ -162,11 +178,207 @@ static inline int strncmp(const char *s1, const char *s2, size_t n) {
     return res;
 }
 
+static inline char *strdup(const char *s1) {
+    char *s2 = NULL;
+    size_t len = 0;
+
+    if (NULL == s1)
+        return NULL;
+    len = strlen(s1);
+    s2 = (char *) ktf_alloc(len);
+
+    if (NULL == s2)
+        return NULL;
+
+    strcpy(s2, s1);
+    return s2;
+}
+
+static inline char *strchr(const char *s, int c) {
+    if (NULL == s)
+        return NULL;
+
+    while (*s != (char) c) {
+        if ('\0' == *s)
+            return NULL;
+        s++;
+    }
+
+    return (char *) s;
+}
+
+static inline size_t strspn(const char *s1, const char *s2) {
+    size_t ret = 0;
+
+    if (NULL == s1 || NULL == s2)
+        return 0;
+
+    while (*s1 && strchr(s2, *s1)) {
+        s1++;
+        ret++;
+    }
+
+    return ret;
+}
+
+static inline size_t strcspn(const char *s1, const char *s2) {
+    size_t ret = 0;
+
+    if (NULL == s1 || NULL == s2)
+        return 0;
+
+    while (*s1) {
+        if (strchr(s2, *s1))
+            return ret;
+        else {
+            s1++;
+            ret++;
+        }
+    }
+
+    return ret;
+}
+
+static inline char *strtok(char *s, char *delim) {
+
+    static char *lasts;
+    int ch;
+
+    if (s == 0)
+        s = lasts;
+
+    do {
+        if ((ch = *s++) == '\0')
+            return 0;
+    } while (strchr(delim, ch));
+
+    s--;
+    lasts = s + strcspn(s, delim);
+
+    if (*lasts != 0)
+        *lasts = 0;
+
+    return s;
+}
+
+static inline char *strpbrk(const char *s, const char *chars) {
+    char c;
+    const char *p;
+
+    for (c = *s; c != 0; s++, c = *s) {
+        for (p = chars; *p != 0; p++) {
+            if (c == *p) {
+                return (char *) s;
+            }
+        }
+    }
+    return NULL;
+}
+
+static inline char *strstr(const char *s1, const char *s2) {
+    char *a = NULL, *b = NULL;
+
+    b = (char *) s2;
+    /* s2 is NULL terminated, return entire s1 */
+    if ('\0' == *b) {
+        return (char *) s1;
+    }
+
+    /* first char match in s1 */
+    for (; *s1 != '\0'; s1++) {
+        if (*s1 != *b) {
+            continue;
+        }
+        /* record the position */
+        a = (char *) s1;
+
+        while (1) {
+            /* s2 has been searched, return s1 */
+            if (*b == '\0') {
+                return (char *) s1;
+            }
+            /* no match, break and find new a */
+            if (*a++ != *b++) {
+                break;
+            }
+        }
+        /* rewind b all the way back to s2 start */
+        b = (char *) s2;
+    }
+
+    return NULL;
+}
+
+static inline char *strsep(char **str, char *delim) {
+    char *spanp = NULL, *s = NULL;
+    int c, sc;
+    char *tok = NULL;
+
+    s = *str;
+    if (NULL == s)
+        return NULL;
+
+    for (tok = s;; ++s) {
+        c = *s;
+        spanp = delim;
+        do {
+            if ((sc = *spanp++) == c) {
+                if (c == 0) {
+                    *str = NULL;
+                    return (tok == s ? NULL : tok);
+                }
+                *s++ = '\0';
+                *str = s;
+                return (tok);
+            }
+        } while (sc);
+    }
+}
+
+static inline int strcasecmp(const char *s1, const char *s2) {
+    unsigned char res, c1, c2;
+
+    if (s1 == s2)
+        return 0;
+
+    while (1) {
+        c1 = tolower(*(unsigned char *) s1);
+        s1++;
+        c2 = tolower(*(unsigned char *) s2);
+        s2++;
+        res = c1 - c2;
+        if ((res != 0 || c1 == 0 || c2 == 0))
+            break;
+    }
+
+    return res;
+}
+
+static inline int strncasecmp(const char *s1, const char *s2, size_t n) {
+    unsigned char res = 0, c1, c2;
+
+    if (s1 == s2)
+        return 0;
+
+    while (n--) {
+        c1 = tolower(*(unsigned char *) s1);
+        s1++;
+        c2 = tolower(*(unsigned char *) s2);
+        s2++;
+        res = c1 - c2;
+        if (res != 0 || c1 == 0 || c2 == 0)
+            break;
+    }
+
+    return res;
+}
+
 /* External declarations */
 
 extern unsigned long strtoul(const char *nptr, char **endptr, int base);
+extern unsigned long long strtoull(const char *nptr, char **endptr, int base);
 extern long strtol(const char *nptr, char **endptr, int base);
 extern int vsnprintf(char *str, size_t size, char const *fmt, va_list ap);
-extern void snprintf(char *buf, size_t size, const char *fmt, ...);
+extern int snprintf(char *buf, size_t size, const char *fmt, ...);
 
 #endif /* KTF_STRING_H */
