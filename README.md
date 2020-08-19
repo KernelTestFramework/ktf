@@ -7,6 +7,7 @@ KTF is a small and simple OS kernel, that enables writing low-level software tes
 * Machine architecture: `x86-64`, `x86-32` in the baking
 * SMP support with basic Per-CPU pages
 * (very) Basic Physical Memory Management (PMM) and Virtual Memory Management (VMM)
+* Very basic slab allocator
 * Local APIC support
 * Initial MP tables parsing
 * Basic ACPI tables parsing

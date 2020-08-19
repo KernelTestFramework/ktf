@@ -42,6 +42,7 @@
 #include <smp/smp.h>
 
 #include <drivers/serial.h>
+#include <slab.h>
 
 bool opt_debug;
 
@@ -113,6 +114,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_traps(0);
 
     zap_boot_mappings();
+
+    init_slab();
 
     init_apic(APIC_MODE_XAPIC);
 
