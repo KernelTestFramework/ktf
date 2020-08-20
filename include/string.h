@@ -177,6 +177,13 @@ static inline int strncmp(const char *s1, const char *s2, size_t n) {
     return res;
 }
 
+static inline const char *string_trim_whitspace(const char *s) {
+    while (isspace(*s))
+        s++;
+
+    return s;
+}
+
 /* External declarations */
 
 extern unsigned long strtoul(const char *nptr, char **endptr, int base);
