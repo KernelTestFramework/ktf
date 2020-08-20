@@ -148,6 +148,19 @@ static inline int strcmp(const char *s1, const char *s2) {
     return res;
 }
 
+static inline char *strchr(const char *s, int c) {
+    if (NULL == s)
+        return NULL;
+
+    while (*s != (char) c) {
+        if ('\0' == *s)
+            return NULL;
+        s++;
+    }
+
+    return (char *) s;
+}
+
 static inline int strncmp(const char *s1, const char *s2, size_t n) {
     register char res;
 
