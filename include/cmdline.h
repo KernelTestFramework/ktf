@@ -22,32 +22,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef KTF_SETUP_H
-#define KTF_SETUP_H
+#ifndef KTF_CMDLINE_H
+#define KTF_CMDLINE_H
 
 #ifndef __ASSEMBLY__
-#include <cmdline.h>
-#include <page.h>
-#include <string.h>
 
-#include <mm/pmm.h>
+#define PARAM_MAX_LENGTH 32
 
-extern io_port_t com_ports[2];
+struct __packed ktf_param {
+    char name[PARAM_MAX_LENGTH];
+    enum { STRING, ULONG, BOOL } type;
+    void *var;
+};
 
-extern const char *kernel_cmdline;
+#define __ktfparam static __cmdline __used __aligned(1) struct ktf_param
 
-static inline void get_com_ports(void) {
-    memcpy((void *) com_ports, (void *) (BDA_COM_PORTS_ENTRY), sizeof(com_ports));
+/* compile time check for param name size */
+#define __param_size_check(_name, _sizename)                                             \
+    char __unused_##_name[(sizeof(_sizename) >= PARAM_MAX_LENGTH) ? -1 : 0]
 
-    if (com_ports[0] == 0x0)
-        com_ports[0] = 0x3f8;
+#define cmd_param(_name, _var, _type)                                                    \
+    __param_size_check(_var, _name);                                                     \
+    __ktfparam __cmd_##_var = {_name, _type, &_var};
 
-    if (com_ports[1] == 0x0)
-        com_ports[1] = 0x2f8;
-}
-
-extern void zap_boot_mappings(void);
+#define bool_cmd(_cmdname, _varname)   cmd_param(_cmdname, _varname, BOOL)
+#define ulong_cmd(_cmdname, _varname)  cmd_param(_cmdname, _varname, ULONG)
+#define string_cmd(_cmdname, _varname) cmd_param(_cmdname, _varname, STRING)
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* KTF_SETUP_H */
+#endif /* KTF_CMDLINE_H */

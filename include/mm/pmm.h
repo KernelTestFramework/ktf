@@ -34,6 +34,7 @@
 #define BIOS_ROM_ADDR_START 0xF0000
 
 #ifndef __ASSEMBLY__
+#include <cmdline.h>
 #include <list.h>
 #include <page.h>
 
@@ -51,6 +52,8 @@ extern unsigned long __start_data_init[], __end_data_init[];
 extern unsigned long __start_bss_init[], __end_bss_init[];
 
 extern unsigned long __start_rmode[], __end_rmode[];
+
+extern struct ktf_param __start_cmdline[], __end_cmdline[];
 
 struct addr_range {
     const char *name;
