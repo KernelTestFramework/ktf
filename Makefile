@@ -21,11 +21,19 @@ LD := ld
 GRUB_FILE := grub-file
 GRUB_MKIMAGE := grub-mkimage
 GRUB_MODULES := multiboot iso9660 biosdisk
+ifneq ($(UNITTEST),)
+GRUB_CONFIG := grub/boot/grub/grub-test.cfg
+else
+GRUB_CONFIG := grub/boot/grub/grub.cfg
+endif
 XORRISO := xorriso
 QEMU_BIN := qemu-system-x86_64
 GDB := gdb
 
 COMMON_FLAGS := -I$(ROOT)/include -I$(ROOT)/include/arch/x86 -pipe -MP -MMD -m64 -D__x86_64__
+ifneq ($(UNITTEST),)
+COMMON_FLAGS += -DKTF_UNIT_TEST
+endif
 
 AFLAGS  := $(COMMON_FLAGS) -D__ASSEMBLY__ -nostdlib -nostdinc
 CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O3 -g -Wall -Wextra -ffreestanding
@@ -107,7 +115,7 @@ $(ISO_FILE): all
 	@echo "GEN ISO" $(ISO_FILE)
 	@ $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	@ cp $(TARGET) grub/boot/
-	@ $(GRUB_MKIMAGE) --format i386-pc-eltorito -p /boot/grub -o grub/boot.img $(GRUB_MODULES)
+	@ $(GRUB_MKIMAGE) --format i386-pc-eltorito -c $(GRUB_CONFIG) -p /boot/grub -o grub/boot.img $(GRUB_MODULES)
 	@ $(XORRISO) -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
 endif
 
@@ -160,4 +168,4 @@ dockerimage:
 .PHONY: docker%
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
-	@ docker run -it -v $(PWD):$(PWD) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
+	@ docker run -it -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
