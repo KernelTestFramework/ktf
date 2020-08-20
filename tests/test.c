@@ -26,12 +26,61 @@
 #include <ktf.h>
 #include <sched.h>
 
+#ifdef KTF_UNIT_TEST
+#include <cmdline.h>
+#include <string.h>
+
+extern char *kernel_cmdline;
+
+static char opt_string[4];
+string_cmd("string", opt_string);
+
+static unsigned long opt_ulong;
+ulong_cmd("integer", opt_ulong);
+
+static bool opt_bool = 0;
+bool_cmd("boolean", opt_bool);
+
+static bool opt_booltwo = 0;
+bool_cmd("booleantwo", opt_booltwo);
+#endif
+
 static int __user_text func(void *arg) { return 0; }
 
 void test_main(void) {
     printk("\nTest:\n");
 
     usermode_call(func, NULL);
+
+#ifdef KTF_UNIT_TEST
+    printk("\nLet the UNITTESTs begin\n");
+    printk("Commandline parsing: %s\n", kernel_cmdline);
+
+    if (strcmp(opt_string, "foo")) {
+        printk("String parameter opt_string != foo: %s\n", opt_string);
+        BUG();
+    }
+    else {
+        printk("String parameter parsing works!\n");
+    }
+
+    if (opt_ulong != 42) {
+        printk("Integer parameter opt_ulong != 42: %d\n", opt_ulong);
+        BUG();
+    }
+    else {
+        printk("Integer parameter parsing works!\n");
+    }
+
+    if (!opt_bool || !opt_booltwo) {
+        printk("Boolean parameter opt_bool != true: %d\n", opt_bool);
+        printk("Boolean parameter opt_booltwo != true: %d\n", opt_booltwo);
+        BUG();
+    }
+    else {
+        printk("Boolean parameter parsing works!\n");
+    }
+#endif
 
     wait_for_all_tasks();
 
