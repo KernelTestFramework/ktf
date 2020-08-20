@@ -78,6 +78,8 @@
 #define __user_data __section(".data.user")
 #define __user_bss  __section(".bss.user")
 
+#define __cmdline __section(".cmdline")
+
 #define barrier()      asm volatile("" ::: "memory")
 #define ACCESS_ONCE(x) (*(volatile typeof(x) *) &(x))
 

@@ -145,6 +145,9 @@ SECTIONS
         . = ALIGN(4K);
         __start_data = .;
             *(.data)
+        __start_cmdline = .;
+            *(.cmdline)
+        __end_cmdline = .;
         . = ALIGN(4K);
         __end_data = .;
     } :kernel
