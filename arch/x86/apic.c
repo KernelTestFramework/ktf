@@ -45,7 +45,7 @@ int init_apic(enum apic_mode mode) {
     ASSERT(mode > APIC_MODE_NONE && mode <= APIC_MODE_X2APIC);
 
     if ((apic_base & PAGE_MASK) != DEFAULT_APIC_BASE) {
-        printk("%s: unsupported APIC base: %lx\n", apic_base);
+        printk("%s: unsupported APIC base: %lx\n", __func__, apic_base);
         return -1;
     }
 

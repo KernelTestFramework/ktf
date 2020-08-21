@@ -52,7 +52,7 @@ void display_multiboot_mmap(void) {
     printk("\nPhysical Memory Map\n");
 
     if (!has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
-        printk("REGION: [0x%016lx - 0x%016lx] Lower memory\n", 0,
+        printk("REGION: [0x%016lx - 0x%016lx] Lower memory\n", 0UL,
                multiboot_info->mem_lower * KB(1));
         printk("REGION: [0x%016lx - 0x%016lx] Upper memory\n", MB(1),
                MB(1) + (multiboot_info->mem_upper * KB(1)));
