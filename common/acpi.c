@@ -42,7 +42,7 @@ static unsigned nr_cpus;
 static inline uint8_t get_checksum(void *ptr, size_t len) {
     uint8_t checksum = 0;
 
-    for (int i = 0; i < len; i++)
+    for (unsigned int i = 0; i < len; i++)
         checksum += *((uint8_t *) ptr + i);
 
     return checksum;
@@ -142,7 +142,7 @@ static inline xsdt_t *acpi_find_xsdt(const rsdp_rev2_t *rsdp) {
 }
 
 static void acpi_dump_tables(void) {
-    for (int i = 0; i < max_acpi_tables; i++) {
+    for (unsigned int i = 0; i < max_acpi_tables; i++) {
         acpi_table_t *tab = acpi_tables[i];
         acpi_table_hdr_t *hdr = &tab->header;
 
@@ -193,7 +193,7 @@ static unsigned process_madt_entries(void) {
 }
 
 acpi_table_t *acpi_find_table(uint32_t signature) {
-    for (int i = 0; i < max_acpi_tables; i++) {
+    for (unsigned int i = 0; i < max_acpi_tables; i++) {
         acpi_table_t *tab = acpi_tables[i];
 
         if (tab->header.signature == signature)
@@ -217,7 +217,7 @@ void init_acpi(void) {
     if (rsdp->rev < 2) {
         rsdt_t *rsdt = acpi_find_rsdt(rsdp);
 
-        for (int i = 0; i < ACPI_NR_TABLES(rsdt); i++) {
+        for (unsigned int i = 0; i < ACPI_NR_TABLES(rsdt); i++) {
             acpi_table_t *tab = acpi_map_table(rsdt->entry[i]);
 
             if (get_checksum(tab, tab->header.length) == 0x0)
@@ -227,7 +227,7 @@ void init_acpi(void) {
     else {
         xsdt_t *xsdt = acpi_find_xsdt((rsdp_rev2_t *) rsdp);
 
-        for (int i = 0; i < ACPI_NR_TABLES(xsdt); i++) {
+        for (unsigned int i = 0; i < ACPI_NR_TABLES(xsdt); i++) {
             paddr_t tab_pa = _ul(xsdt->entry[i].high) << 32 | xsdt->entry[i].low;
             acpi_table_t *tab = acpi_map_table(tab_pa);
 

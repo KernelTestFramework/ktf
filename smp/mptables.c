@@ -37,7 +37,7 @@ static unsigned nr_cpus;
 static inline uint8_t get_mp_checksum(void *ptr, size_t len) {
     uint8_t checksum = 0;
 
-    for (int i = 0; i < len; i++)
+    for (unsigned int i = 0; i < len; i++)
         checksum += *((uint8_t *) ptr + i);
 
     return checksum;
