@@ -213,7 +213,7 @@ void init_pmm(void) {
     num = mbi_get_avail_memory_ranges_num();
 
     /* Skip low memory range */
-    for (int i = 1; i < num; i++)
+    for (unsigned int i = 1; i < num; i++)
         total_size += process_memory_range(i);
 
     display_frames_count(total_size);

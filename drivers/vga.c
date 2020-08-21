@@ -41,7 +41,7 @@ static inline void write_vga_buffer(void) {
 void vga_write(const char *buf, size_t len, vga_color_t color) {
     static int row = 0, col = 0;
 
-    for (int i = 0; i < len; i++) {
+    for (unsigned int i = 0; i < len; i++) {
         char c = buf[i];
 
         /* Newline on LF or when columns limit is hit */

@@ -386,6 +386,9 @@ reswitch:       switch (ch = (unsigned char)*fmt++) {
                         goto handle_nosign;
                 case 'X':
                         upper = 1;
+                        #if defined(__GNUC__) && !defined(__clang__)
+                        __attribute__ ((fallthrough));
+                        #endif
                 case 'x':
                         base = 16;
                         goto handle_nosign;
