@@ -103,7 +103,7 @@ void smp_init(void) {
 
     printk("Initializing SMP support (CPUs: %u)\n", nr_cpus);
 
-    for (int i = 0; i < nr_cpus; i++)
+    for (unsigned int i = 0; i < nr_cpus; i++)
         boot_cpu(i);
 }
 
