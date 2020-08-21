@@ -33,6 +33,7 @@ CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse2
 CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin
 CFLAGS  += -mcmodel=kernel -fno-pic -fno-asynchronous-unwind-tables -fno-unwind-tables
 CFLAGS  += -Wno-unused-parameter -Wno-address-of-packed-member
+CFLAGS  += -Werror
 
 -include Makeconf.local
 
