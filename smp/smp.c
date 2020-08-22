@@ -27,6 +27,7 @@
 #include <console.h>
 #include <ktf.h>
 #include <lib.h>
+#include <pagetable.h>
 #include <percpu.h>
 #include <sched.h>
 #include <setup.h>
@@ -43,6 +44,7 @@ static unsigned nr_cpus;
 
 static unsigned ap_cpuid;
 static bool ap_callin;
+cr3_t __data_init ap_cr3;
 
 void __noreturn ap_startup(void) {
     write_sp(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
@@ -102,6 +104,7 @@ void smp_init(void) {
     }
 
     printk("Initializing SMP support (CPUs: %u)\n", nr_cpus);
+    ap_cr3 = cr3;
 
     for (unsigned int i = 0; i < nr_cpus; i++)
         boot_cpu(i);

@@ -55,7 +55,7 @@ GLOBAL(ap_start)
     or    $(X86_CR4_PAE | X86_CR4_PSE), %eax
     mov   %eax, %cr4
 
-    mov   (cr3), %eax
+    mov   (ap_cr3), %eax
     mov   %eax, %cr3
 
     /* Enable long mode */
