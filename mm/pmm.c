@@ -33,6 +33,8 @@
 #include <drivers/vga.h>
 #include <mm/pmm.h>
 
+size_t total_phys_memory;
+
 static list_head_t free_frames[MAX_PAGE_ORDER + 1];
 static list_head_t busy_frames[MAX_PAGE_ORDER + 1];
 
@@ -114,8 +116,8 @@ paddr_t get_memory_range_end(paddr_t pa) {
     return _paddr(r.end);
 }
 
-static void display_frames_count(size_t size) {
-    printk("Avail memory frames: (total size: %lu MB)\n", size / MB(1));
+void display_frames_count(void) {
+    printk("Avail memory frames: (total size: %lu MB)\n", total_phys_memory / MB(1));
 
     for_each_order (order) {
         size_t count = frames_count[order];
@@ -200,7 +202,6 @@ bool paddr_invalid(paddr_t pa) {
 }
 
 void init_pmm(void) {
-    size_t total_size = 0;
     unsigned num;
 
     printk("Initialize Physical Memory Manager\n");
@@ -215,9 +216,9 @@ void init_pmm(void) {
 
     /* Skip low memory range */
     for (unsigned int i = 1; i < num; i++)
-        total_size += process_memory_range(i);
+        total_phys_memory += process_memory_range(i);
 
-    display_frames_count(total_size);
+    display_frames_count();
 
     if (opt_debug) {
         frame_t *frame;

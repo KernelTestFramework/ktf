@@ -79,6 +79,7 @@ typedef struct frame frame_t;
 /* External definitions */
 
 extern void display_memory_map(void);
+extern void display_frames_count(void);
 
 extern addr_range_t get_memory_range(paddr_t pa);
 extern paddr_t get_memory_range_start(paddr_t pa);
