@@ -62,7 +62,7 @@ void __noreturn ap_startup(void) {
     UNREACHABLE();
 }
 
-static void boot_cpu(unsigned int cpu) {
+static __text_init void boot_cpu(unsigned int cpu) {
     percpu_t *percpu = get_percpu_page(cpu);
     uint64_t icr;
 
@@ -93,7 +93,7 @@ static void boot_cpu(unsigned int cpu) {
     dprintk("AP: %u Done \n", cpu);
 }
 
-void smp_init(void) {
+void __text_init init_smp(void) {
     unsigned mp_nr_cpus = mptables_init();
     unsigned acpi_nr_cpus = acpi_get_nr_cpus();
 

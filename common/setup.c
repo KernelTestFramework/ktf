@@ -121,7 +121,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     init_tasks();
 
-    smp_init();
+    init_smp();
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));
