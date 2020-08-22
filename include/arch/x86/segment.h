@@ -34,6 +34,9 @@
 #define GDT_KERN_DS32 0x2
 #define GDT_KERN_CS64 0x3
 
+#define GDT_BOOT_TSS    0x4
+#define GDT_BOOT_TSS_DF 0x5
+
 #define GDT_USER_CS32 0x4
 #define GDT_USER_DS32 0x5
 #define GDT_USER_CS64 0x6
@@ -43,7 +46,8 @@
 
 #define GDT_PERCPU 0x9
 
-#define NR_GDT_ENTRIES 10
+#define NR_BOOT_GDT_ENTRIES 6
+#define NR_GDT_ENTRIES      10
 
 #define __KERN_CS32 (GDT_KERN_CS32 << 3)
 #define __KERN_DS32 (GDT_KERN_DS32 << 3)

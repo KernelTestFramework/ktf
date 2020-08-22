@@ -33,6 +33,7 @@
 #ifndef __ASSEMBLY__
 
 extern void init_traps(unsigned int cpu);
+extern void init_boot_traps(void);
 
 #endif /* __ASSEMBLY__ */
 
