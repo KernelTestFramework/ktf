@@ -151,6 +151,12 @@ static void add_frame(paddr_t *pa, unsigned int order, bool initial) {
     frames_count[order]++;
 }
 
+void reclaim_frame(mfn_t mfn, unsigned int order) {
+    paddr_t pa = mfn_to_paddr(mfn);
+
+    add_frame(&pa, order, false);
+}
+
 static size_t process_memory_range(unsigned index) {
     paddr_t start, end, cur;
     addr_range_t range;
