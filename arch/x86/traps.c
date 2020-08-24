@@ -31,6 +31,7 @@
 #include <segment.h>
 #include <setup.h>
 #include <string.h>
+#include <symbols.h>
 #include <traps.h>
 
 #include <mm/vmm.h>
@@ -245,10 +246,21 @@ static char *x86_ex_decode_error_code(char *buf, size_t size, uint32_t vector,
     return buf;
 }
 
+void print_callstack(const void *sp, const void *ip) {
+    unsigned long *_sp = (unsigned long *) (_ul(sp) & ~0x7UL);
+
+    printk("CALLSTACK:\n");
+    print_symbol(ip);
+    for (int i = 0; _ul(&_sp[i]) % PAGE_SIZE_2M; i++)
+        print_symbol(_ptr(_sp[i]));
+    printk("\n");
+}
+
 void do_exception(struct cpu_regs *regs) {
     static char ec_str[32], panic_str[128];
 
     dump_regs(regs);
+    print_callstack(_ptr(regs->_ASM_SP), _ptr(regs->_ASM_IP));
 
     if (has_error_code(regs->vector))
         x86_ex_decode_error_code(ec_str, sizeof(ec_str), regs->vector, regs->error_code);
