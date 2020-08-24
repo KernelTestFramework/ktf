@@ -1,5 +1,9 @@
 # KTF - Kernel Test Framework
 
+![GitHub release](https://img.shields.io/github/v/release/awslabs/ktf)
+![C/C++ CI](https://github.com/awslabs/ktf/workflows/C/C++%20CI/badge.svg?branch=mainline)
+![test-clang-format](https://github.com/awslabs/ktf/workflows/test-clang-format/badge.svg?branch=mainline&event=push)
+
 KTF is a small and simple OS kernel, that enables writing low-level software tests for supported machine architectures (currently: x86-64).
 
 ### Features overview
@@ -138,9 +142,7 @@ This has to be done only once.
 #### Patch your files
 
 ```bash
-for ext in c h; do
-    docker run --rm --workdir /src -v $(pwd):/src clang-format-lint --clang-format-executable /clang-format/clang-format10 -r --exclude .git $(find . -name \*.$ext -print) | patch -p1
-done
+make style
 ```
 
 ## Credits and Attributions
@@ -154,6 +156,8 @@ done
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
+
+![GitHub](https://img.shields.io/github/license/awslabs/ktf)
 
 This project is licensed under the BSD 2-Clause License.
 

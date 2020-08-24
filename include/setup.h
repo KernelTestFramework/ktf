@@ -25,8 +25,6 @@
 #ifndef KTF_SETUP_H
 #define KTF_SETUP_H
 
-#define KERN_STACK_SIZE (5 * PAGE_SIZE)
-
 #ifndef __ASSEMBLY__
 #include <page.h>
 #include <string.h>
@@ -46,6 +44,8 @@ static inline void get_com_ports(void) {
     if (com_ports[1] == 0x0)
         com_ports[1] = 0x2f8;
 }
+
+extern void zap_boot_mappings(void);
 
 #endif /* __ASSEMBLY__ */
 

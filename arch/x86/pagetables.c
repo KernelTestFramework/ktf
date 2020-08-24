@@ -30,7 +30,7 @@
 #include <spinlock.h>
 #include <string.h>
 
-cr3_t __data_init cr3;
+cr3_t cr3;
 
 static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
     /* clang-format off */
@@ -92,6 +92,7 @@ static inline void dump_page_table(void *table, int level) {
 void dump_pagetables(void) {
     printk("\nPage Tables:\n");
     printk("CR3: paddr: 0x%lx\n", cr3.paddr);
+    map_used_memory();
     dump_page_table(get_l4_table(), 4);
 }
 
