@@ -100,5 +100,13 @@ _boot_stack:
     .skip BOOT_STACK_SIZE
 GLOBAL(_boot_stack_top)
 
+_boot_stack_ist:
+    .skip BOOT_STACK_SIZE
+GLOBAL(_boot_stack_ist_top)
+
+_boot_stack_df:
+    .skip BOOT_STACK_SIZE
+GLOBAL(_boot_stack_df_top)
+
 #define XEN_ELFNOTE_PHYS32_ENTRY  18
 ELF_NOTE(Xen, XEN_ELFNOTE_PHYS32_ENTRY, .long, _start)
