@@ -101,6 +101,30 @@ static inline bool mfn_invalid(mfn_t mfn) { return paddr_invalid(mfn_to_paddr(mf
 
 static inline mfn_t get_free_frame(void) { return get_free_frames(PAGE_ORDER_4K); }
 
+static inline bool in_text_section(const void *addr) {
+    return (addr >= _ptr(__start_text) && addr < _ptr(__end_text)) ||
+           (addr >= _ptr(__start_text_init) && addr < _ptr(__end_text_init));
+}
+
+static inline bool in_init_section(const void *addr) {
+    return (addr >= _ptr(__start_text_init) && addr < _ptr(__end_text_init)) ||
+           (addr >= _ptr(__start_data_init) && addr < _ptr(__end_data_init)) ||
+           (addr >= _ptr(__start_bss_init) && addr < _ptr(__end_bss_init));
+}
+
+static inline bool in_user_section(const void *addr) {
+    return (addr >= _ptr(__start_text_user) && addr < _ptr(__end_text_user)) ||
+           (addr >= _ptr(__start_data_user) && addr < _ptr(__end_data_user)) ||
+           (addr >= _ptr(__start_bss_user) && addr < _ptr(__end_bss_user));
+}
+
+static inline bool in_kernel_section(const void *addr) {
+    return (addr >= _ptr(__start_text) && addr < _ptr(__end_text)) ||
+           (addr >= _ptr(__start_data) && addr < _ptr(__end_data)) ||
+           (addr >= _ptr(__start_bss) && addr < _ptr(__end_bss)) ||
+           (addr >= _ptr(__start_rodata) && addr < _ptr(__end_rodata));
+}
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PMM_H */
