@@ -92,6 +92,7 @@ static inline void dump_page_table(void *table, int level) {
 void dump_pagetables(void) {
     printk("\nPage Tables:\n");
     printk("CR3: paddr: 0x%lx\n", cr3.paddr);
+    map_used_memory();
     dump_page_table(get_l4_table(), 4);
 }
 

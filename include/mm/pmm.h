@@ -70,7 +70,7 @@ struct frame {
     struct list_head list;
     mfn_t mfn;
     uint32_t refcount;
-    uint32_t : 24, order : 6, uncachable : 1, free : 1;
+    uint32_t : 23, mapped : 1, order : 6, uncachable : 1, free : 1;
 };
 typedef struct frame frame_t;
 
