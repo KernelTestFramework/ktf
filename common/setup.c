@@ -88,6 +88,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     /* Initialize console early */
     init_console();
 
+    init_boot_traps();
+
     if (multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC) {
         /* Indentity mapping is still on, so fill in multiboot structures */
         init_multiboot(mbi, &kernel_cmdline);

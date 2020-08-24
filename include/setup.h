@@ -25,8 +25,6 @@
 #ifndef KTF_SETUP_H
 #define KTF_SETUP_H
 
-#define KERN_STACK_SIZE (5 * PAGE_SIZE)
-
 #ifndef __ASSEMBLY__
 #include <page.h>
 #include <string.h>
