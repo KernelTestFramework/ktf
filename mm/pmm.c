@@ -172,7 +172,7 @@ static size_t process_memory_range(unsigned index) {
 
     /* Add initial 2M frames and align to 1G. */
     while (cur % PAGE_SIZE_1G && cur + PAGE_SIZE_2M <= end)
-        add_frame(&cur, PAGE_ORDER_2M, true);
+        add_frame(&cur, PAGE_ORDER_2M, false);
 
     /* Add all remaining 1G frames. */
     while (cur + PAGE_SIZE_1G <= end)
