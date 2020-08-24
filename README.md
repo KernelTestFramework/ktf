@@ -142,9 +142,7 @@ This has to be done only once.
 #### Patch your files
 
 ```bash
-for ext in c h; do
-    docker run --rm --workdir /src -v $(pwd):/src clang-format-lint --clang-format-executable /clang-format/clang-format10 -r --exclude .git $(find . -name \*.$ext -print) | patch -p1
-done
+make style
 ```
 
 ## Credits and Attributions

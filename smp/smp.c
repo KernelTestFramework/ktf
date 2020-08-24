@@ -27,6 +27,7 @@
 #include <console.h>
 #include <ktf.h>
 #include <lib.h>
+#include <pagetable.h>
 #include <percpu.h>
 #include <sched.h>
 #include <setup.h>
@@ -43,6 +44,7 @@ static unsigned nr_cpus;
 
 static unsigned ap_cpuid;
 static bool ap_callin;
+cr3_t __data_init ap_cr3;
 
 void __noreturn ap_startup(void) {
     write_sp(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
@@ -60,7 +62,7 @@ void __noreturn ap_startup(void) {
     UNREACHABLE();
 }
 
-static void boot_cpu(unsigned int cpu) {
+static __text_init void boot_cpu(unsigned int cpu) {
     percpu_t *percpu = get_percpu_page(cpu);
     uint64_t icr;
 
@@ -91,7 +93,7 @@ static void boot_cpu(unsigned int cpu) {
     dprintk("AP: %u Done \n", cpu);
 }
 
-void smp_init(void) {
+void __text_init init_smp(void) {
     unsigned mp_nr_cpus = mptables_init();
     unsigned acpi_nr_cpus = acpi_get_nr_cpus();
 
@@ -102,6 +104,7 @@ void smp_init(void) {
     }
 
     printk("Initializing SMP support (CPUs: %u)\n", nr_cpus);
+    ap_cr3 = cr3;
 
     for (unsigned int i = 0; i < nr_cpus; i++)
         boot_cpu(i);

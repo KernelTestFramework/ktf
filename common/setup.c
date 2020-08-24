@@ -66,17 +66,18 @@ static __always_inline void zero_bss(void) {
     memset(_ptr(__start_bss_user), 0x0, _ptr(__end_bss_user) - _ptr(__start_bss_user));
 }
 
-static __always_inline void zap_boot_mappings(void) {
-#if defined(__x86_64__)
-    memset(paddr_to_virt_kern(virt_to_paddr(l4_pt_entries)), 0,
-           L4_PT_ENTRIES * sizeof(pgentry_t));
-#endif
-    memset(paddr_to_virt_kern(virt_to_paddr(l3_pt_entries)), 0,
-           L3_PT_ENTRIES * sizeof(pgentry_t));
-    memset(paddr_to_virt_kern(virt_to_paddr(l2_pt_entries)), 0,
-           L2_PT_ENTRIES * sizeof(pgentry_t));
-    memset(paddr_to_virt_kern(virt_to_paddr(l1_pt_entries)), 0,
-           L1_PT_ENTRIES * sizeof(pgentry_t));
+void zap_boot_mappings(void) {
+    for_each_memory_range (r) {
+        if (r->base == VIRT_IDENT_BASE && IS_INIT_SECTION(r->name)) {
+            if (strcmp(r->name, ".text.init"))
+                memset(r->start, 0, r->end - r->start);
+
+            for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++) {
+                vunmap(mfn_to_virt(mfn), PAGE_ORDER_4K);
+                reclaim_frame(mfn, PAGE_ORDER_4K);
+            }
+        }
+    }
 }
 
 void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
@@ -113,15 +114,13 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     init_traps(0);
 
-    zap_boot_mappings();
-
     init_slab();
 
     init_apic(APIC_MODE_XAPIC);
 
     init_tasks();
 
-    smp_init();
+    init_smp();
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));

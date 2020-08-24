@@ -50,6 +50,7 @@ void kernel_main(void) {
     if (kernel_cmdline)
         printk("Command line: %s\n", kernel_cmdline);
 
+    zap_boot_mappings();
     display_memory_map();
     display_multiboot_mmap();
 
