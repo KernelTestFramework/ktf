@@ -18,6 +18,9 @@ endif
 CC := gcc
 LD := ld
 
+NM := nm
+PYTHON := python
+
 GRUB_FILE := grub-file
 GRUB_MKIMAGE := grub-mkimage
 GRUB_MODULES := multiboot iso9660 biosdisk
@@ -50,6 +53,10 @@ HEADERS     := $(shell find . -name \*.h)
 ASM_SOURCES := $(shell find . -name \*.S)
 LINK_SCRIPT := $(shell find . -name \*.ld)
 
+SYMBOLS_NAME := symbols
+SYMBOLS_TOOL := symbols.py
+SYMBOLS_DIR  := tools/symbols
+
 PREP_LINK_SCRIPT := $(LINK_SCRIPT:%.ld=%.lds)
 
 OBJS := $(SOURCES:%.c=%.o)
@@ -70,6 +77,13 @@ $(TARGET): $(OBJS)
 	@echo "LD " $@
 	@ $(CC) $(AFLAGS) -E -P -C -x c $(LINK_SCRIPT) -o $(PREP_LINK_SCRIPT)
 	@ $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $^
+	@echo "GEN " $(SYMBOLS_NAME).S
+	@ $(NM) -p --format=posix $(TARGET) | $(PYTHON) $(SYMBOLS_DIR)/$(SYMBOLS_TOOL)
+	@echo "CC " $(SYMBOLS_NAME).S
+	@ $(CC) -c -o $(SYMBOLS_NAME).o $(AFLAGS) $(SYMBOLS_NAME).S
+	@ rm -rf $(SYMBOLS_NAME).S
+	@echo "LD " $(TARGET) $(SYMBOLS_NAME).o
+	@ $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $^ $(SYMBOLS_NAME).o
 
 %.o: %.S
 	@echo "AS " $@
