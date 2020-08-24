@@ -45,6 +45,8 @@ static inline void get_com_ports(void) {
         com_ports[1] = 0x2f8;
 }
 
+extern void zap_boot_mappings(void);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_SETUP_H */

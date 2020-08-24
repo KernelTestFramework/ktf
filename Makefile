@@ -38,6 +38,7 @@ CFLAGS  += -Werror
 -include Makeconf.local
 
 SOURCES     := $(shell find . -name \*.c)
+HEADERS     := $(shell find . -name \*.h)
 ASM_SOURCES := $(shell find . -name \*.S)
 LINK_SCRIPT := $(shell find . -name \*.ld)
 
@@ -141,6 +142,12 @@ cscope:
 	@echo "CSCOPE"
 	@ $(all_sources) > cscope.files
 	@ cscope -b -q -k
+
+.PHONY: style
+style:
+	@echo "STYLE"
+	@ docker run --rm --workdir /src -v $(PWD):/src clang-format-lint --clang-format-executable /clang-format/clang-format10 \
+          -r $(SOURCES) $(HEADERS) | grep -v -E '^Processing [0-9]* files:' | patch -s -p1 ||:
 
 DOCKERFILE  := $(shell find $(ROOT) -type f -name Dockerfile)
 DOCKERIMAGE := "ktf:build"

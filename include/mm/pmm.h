@@ -70,7 +70,7 @@ struct frame {
     struct list_head list;
     mfn_t mfn;
     uint32_t refcount;
-    uint32_t : 24, order : 6, uncachable : 1, free : 1;
+    uint32_t : 23, mapped : 1, order : 6, uncachable : 1, free : 1;
 };
 typedef struct frame frame_t;
 
@@ -79,6 +79,7 @@ typedef struct frame frame_t;
 /* External definitions */
 
 extern void display_memory_map(void);
+extern void display_frames_count(void);
 
 extern addr_range_t get_memory_range(paddr_t pa);
 extern paddr_t get_memory_range_start(paddr_t pa);
@@ -90,6 +91,7 @@ extern void init_pmm(void);
 
 extern mfn_t get_free_frames(unsigned int order);
 extern void put_frame(mfn_t mfn, unsigned int order);
+extern void reclaim_frame(mfn_t mfn, unsigned int order);
 
 extern void map_used_memory(void);
 
