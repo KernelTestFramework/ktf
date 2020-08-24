@@ -35,6 +35,9 @@
 extern void init_traps(unsigned int cpu);
 extern void init_boot_traps(void);
 
+extern void print_callstack(const void *sp, const void *ip);
+extern void do_exception(struct cpu_regs *regs);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* TRAPS_TRAPS_H */
