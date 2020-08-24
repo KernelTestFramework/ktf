@@ -1,5 +1,9 @@
 # KTF - Kernel Test Framework
 
+![GitHub release](https://img.shields.io/github/v/release/awslabs/ktf)
+![C/C++ CI](https://github.com/awslabs/ktf/workflows/C/C++%20CI/badge.svg?branch=mainline)
+![test-clang-format](https://github.com/awslabs/ktf/workflows/test-clang-format/badge.svg?branch=mainline&event=push)
+
 KTF is a small and simple OS kernel, that enables writing low-level software tests for supported machine architectures (currently: x86-64).
 
 ### Features overview
@@ -152,6 +156,8 @@ make style
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
+
+![GitHub](https://img.shields.io/github/license/awslabs/ktf)
 
 This project is licensed under the BSD 2-Clause License.
 
