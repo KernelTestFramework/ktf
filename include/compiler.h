@@ -69,6 +69,10 @@
 #define __data_init __section(".data.init")
 #define __bss_init  __section(".bss.init")
 
+#define IS_INIT_SECTION(name)                                                            \
+    (!strcmp(name, ".text.init") || !strcmp(name, ".data.init") ||                       \
+     !strcmp(name, ".bss.init"))
+
 #define __user_text __section(".text.user")
 #define __user_data __section(".data.user")
 #define __user_bss  __section(".bss.user")
