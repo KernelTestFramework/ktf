@@ -55,6 +55,8 @@ extern unsigned long __start_rmode[], __end_rmode[];
 
 extern struct ktf_param __start_cmdline[], __end_cmdline[];
 
+extern unsigned long __weak __start_symbols[], __end_symbols[];
+
 struct addr_range {
     const char *name;
     unsigned long base;
