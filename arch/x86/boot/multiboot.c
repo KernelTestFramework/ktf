@@ -149,7 +149,7 @@ int mbi_get_memory_range(paddr_t pa, addr_range_t *r) {
         _start = 0x0;
         _end = multiboot_info->mem_lower * KB(1);
 
-        if (pa >= _start && pa < _end)
+        if (pa < _end)
             goto found;
 
         _start = MB(1);
