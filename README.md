@@ -3,6 +3,8 @@
 ![GitHub release](https://img.shields.io/github/v/release/awslabs/ktf)
 ![C/C++ CI](https://github.com/awslabs/ktf/workflows/C/C++%20CI/badge.svg?branch=mainline)
 ![test-clang-format](https://github.com/awslabs/ktf/workflows/test-clang-format/badge.svg?branch=mainline&event=push)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/awslabs/ktf.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/awslabs/ktf/alerts/)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/awslabs/ktf.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/awslabs/ktf/context:cpp)
 
 KTF is a small and simple OS kernel, that enables writing low-level software tests for supported machine architectures (currently: x86-64).
 
