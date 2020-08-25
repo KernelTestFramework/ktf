@@ -78,7 +78,7 @@ static inline void dump_page_table(void *table, int level) {
 
         dump_pte_flags(flags, sizeof(flags), pt[i]);
         paddr_t paddr = mfn_to_paddr(pt[i].mfn);
-        printk("[%p] %*s%d[%03u] paddr: 0x%016lx flags: %s\n", virt_to_paddr(pt),
+        printk("[%p] %*s%d[%03u] paddr: 0x%016lx flags: %s\n", _ptr(virt_to_paddr(pt)),
                (4 - level) * 2, "L", level, i, paddr, flags);
 
         if (level == 2 && ((pde_t *) pt)[i].PS)
@@ -109,11 +109,11 @@ static void *init_map_mfn(mfn_t mfn) {
     return _tmp;
 }
 
-static mfn_t get_cr3_mfn(cr3_t *cr3) {
-    if (mfn_invalid(cr3->mfn))
-        cr3->mfn = get_free_frame();
+static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
+    if (mfn_invalid(cr3_entry->mfn))
+        cr3_entry->mfn = get_free_frame();
 
-    return cr3->mfn;
+    return cr3_entry->mfn;
 }
 
 static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flags) {

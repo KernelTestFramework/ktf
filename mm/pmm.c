@@ -89,7 +89,8 @@ void display_memory_map(void) {
 
     for_each_memory_range (r) {
         printk("%11s: VA: [0x%016lx - 0x%016lx] PA: [0x%08lx - 0x%08lx]\n", r->name,
-               r->start, r->end, r->start - r->base, r->end - r->base);
+               _ul(r->start), _ul(r->end), _ul(r->start - r->base),
+               _ul(r->end - r->base));
     }
 }
 

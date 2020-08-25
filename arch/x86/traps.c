@@ -174,10 +174,10 @@ static void dump_control_regs(const struct cpu_regs *regs) {
 
 static void dump_segment_regs(const struct cpu_regs *regs) {
     printk("CURRENT:\n"
-           "CS=0x%04x DS=0x%04x SS=0x%04x\n"
-           "ES=0x%04x FS=0x%04x GS=0x%04x\n"
+           "CS=0x%04lx DS=0x%04lx SS=0x%04lx\n"
+           "ES=0x%04lx FS=0x%04lx GS=0x%04lx\n"
            "EXCEPTION:\n"
-           "CS=0x%04x SS=0x%04x\n\n",
+           "CS=0x%04lx SS=0x%04lx\n\n",
            read_cs(), read_ds(), read_ss(), read_es(), read_fs(), read_gs(), regs->cs,
            regs->ss);
 }
@@ -192,7 +192,7 @@ static void dump_stack(const struct cpu_regs *regs, unsigned words) {
     printk("STACK[0x%016p]:", sp);
     for (unsigned i = 0; i == 0 || (_ul(&sp[i]) % PAGE_SIZE_2M); i++) {
         if ((i % words) == 0)
-            printk("\n0x%04x: ", i * (sizeof(unsigned long)));
+            printk("\n0x%04lx: ", i * (sizeof(unsigned long)));
         printk("%016lx ", sp[i]);
     }
     printk("\n\n");
