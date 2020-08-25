@@ -129,7 +129,7 @@ static void dump_mpf(mpf_t *ptr) {
 
 static void dump_mpc_hdr(mpc_hdr_t *ptr) {
     printk("\nMP Configuration Table Header at %p:\n", ptr);
-    printk("  Signature: %.4s\n", &ptr->signature);
+    printk("  Signature: %.4s\n", (char *) &ptr->signature);
     printk("  Length: 0x%02x\n", ptr->length);
     printk("  Spec revision: 0x%02x\n", ptr->spec_rev);
     printk("  Checksum: 0x%02x\n", ptr->checksum);
@@ -138,7 +138,7 @@ static void dump_mpc_hdr(mpc_hdr_t *ptr) {
     printk("  OEM Table Ptr: %p\n", _ptr(ptr->oem_tlb_ptr));
     printk("  OEM Table Size: %x\n", ptr->oem_tlb_size);
     printk("  Entry count: %x\n", ptr->entry_count);
-    printk("  LAPIC base address: %p\n", ptr->lapic_base);
+    printk("  LAPIC base address: %p\n", _ptr(ptr->lapic_base));
     printk("  Extended Table Length: %x\n", ptr->ext_length);
     printk("  Extended Table Checksum: %x\n", ptr->ext_checksum);
 }
@@ -156,7 +156,7 @@ static inline void dump_mpc_bus_entry(const mpc_bus_entry_t *e) {
 
 static inline void dump_mpc_ioapic_entry(const mpc_ioapic_entry_t *e) {
     printk("  IOAPIC: ID=%x, Version=%x, Enabled=%x, Address: %p\n", e->id, e->version,
-           e->en, e->base_addr);
+           e->en, _ptr(e->base_addr));
 }
 
 static const char *mpc_interrupt_type_names[] = {

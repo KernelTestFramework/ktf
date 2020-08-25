@@ -47,6 +47,7 @@
 #ifndef __ASSEMBLY__
 #define _ptr(val) ((void *) (unsigned long) (val))
 #define _ul(val)  ((unsigned long) (val))
+#define _int(val) ((int) (val))
 #endif
 
 #define __aligned(x) __attribute__((__aligned__(x)))

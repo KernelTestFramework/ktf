@@ -80,8 +80,8 @@ static inline void *find_rsdp(void *from, void *to) {
         rsdp_rev1_t *rsdp = addr;
 
         if (validate_rsdp(rsdp)) {
-            printk("ACPI: RSDP [%p] v%02x %.*s\n", virt_to_paddr(rsdp), rsdp->rev,
-                   sizeof(rsdp->oem_id), rsdp->oem_id);
+            printk("ACPI: RSDP [%p] v%02x %.*s\n", _ptr(virt_to_paddr(rsdp)), rsdp->rev,
+                   _int(sizeof(rsdp->oem_id)), rsdp->oem_id);
             return rsdp;
         }
     }
@@ -147,9 +147,10 @@ static void acpi_dump_tables(void) {
         acpi_table_hdr_t *hdr = &tab->header;
 
         printk("ACPI: %.*s [%p] %04x (v%04x %.*s %04x %.*s %08x)\n",
-               sizeof(hdr->signature), &hdr->signature, tab, hdr->length, hdr->rev,
-               sizeof(hdr->oem_id), hdr->oem_id, hdr->oem_rev,
-               sizeof(hdr->asl_compiler_id), hdr->asl_compiler_id, hdr->asl_compiler_rev);
+               _int(sizeof(hdr->signature)), (char *) &hdr->signature, tab, hdr->length,
+               hdr->rev, _int(sizeof(hdr->oem_id)), hdr->oem_id, hdr->oem_rev,
+               _int(sizeof(hdr->asl_compiler_id)), hdr->asl_compiler_id,
+               hdr->asl_compiler_rev);
     }
 }
 
@@ -157,7 +158,8 @@ static unsigned process_madt_entries(void) {
     acpi_madt_t *madt = (acpi_madt_t *) acpi_find_table(MADT_SIGNATURE);
     acpi_madt_entry_t *entry;
 
-    printk("ACPI: [MADT] LAPIC Addr: %p, Flags: %08x\n", madt->lapic_addr, madt->flags);
+    printk("ACPI: [MADT] LAPIC Addr: %p, Flags: %08x\n", _ptr(madt->lapic_addr),
+           madt->flags);
 
     for (void *addr = madt->entry; addr < (_ptr(madt) + madt->header.length);
          addr += entry->len) {

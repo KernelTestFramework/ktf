@@ -143,7 +143,7 @@ void *ktf_alloc(unsigned int size) {
      */
     order_index -= 4;
 
-    printk("Alloc size %lu, powerof 2 size %lu, order %lu\n", size, size_power2,
+    printk("Alloc size %u, powerof 2 size %u, order %u\n", size, size_power2,
            order_index);
     /* Go through list of meta_slab_t and try to allocate a free slab */
     list_for_each_entry (slab, &meta_slab_list[order_index], list) {
