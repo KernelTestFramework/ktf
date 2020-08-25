@@ -28,6 +28,8 @@
 
 static inline __used int isspace(int c) { return c == ' ' || c == '\t'; }
 
+static inline __used int iseostr(int c) { return c == '\0'; }
+
 static inline __used int isdigit(int c) { return c >= '0' && c <= '9'; }
 
 static inline __used int isxdigit(int c) {
