@@ -100,10 +100,10 @@ static void *init_map_mfn(mfn_t mfn) {
     static uint8_t _tmp[PAGE_SIZE] __aligned(PAGE_SIZE);
     pgentry_t *e;
 
-    if (mfn_invalid(mfn))
-        return NULL;
+    BUG_ON(mfn_invalid(mfn));
 
     e = (pgentry_t *) l1_table_entry(get_l1_table(_tmp), _tmp);
+    BUG_ON(!e);
     set_pgentry(e, mfn, L1_PROT);
 
     return _tmp;
