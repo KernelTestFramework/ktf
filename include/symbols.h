@@ -1,6 +1,5 @@
 /*
  * Copyright © 2020 Amazon.com, Inc. or its affiliates.
- * Copyright © 2014,2015 Citrix Systems Ltd.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,21 +22,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef TRAPS_TRAPS_H
-#define TRAPS_TRAPS_H
+#ifndef KTF_SYMBOLS_H
+#define KTF_SYMBOLS_H
 
-#define MAX_INT 256
+extern unsigned int symbol_count __attribute__((weak));
+extern void *symbol_addresses[] __attribute__((weak));
+extern unsigned int symbol_sizes[] __attribute__((weak));
+extern const char *symbol_names_ptr[] __attribute__((weak));
 
-#define X86_RET2KERN_INT 32
+/* External declarations */
 
-#ifndef __ASSEMBLY__
+extern const char *symbol_name(const void *addr);
+extern void *symbol_address(const char *name);
 
-extern void init_traps(unsigned int cpu);
-extern void init_boot_traps(void);
+extern void print_symbol(const void *addr);
 
-extern void print_callstack(const void *sp, const void *ip);
-extern void do_exception(struct cpu_regs *regs);
-
-#endif /* __ASSEMBLY__ */
-
-#endif /* TRAPS_TRAPS_H */
+#endif /* KTF_SYMBOLS_H */
