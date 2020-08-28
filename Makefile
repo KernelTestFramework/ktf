@@ -182,4 +182,4 @@ dockerimage:
 .PHONY: docker%
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
-	@ docker run -it -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
+	@ docker run -it -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
