@@ -125,7 +125,7 @@ ISO_FILE := boot.iso
 ifneq ($(SYSTEM), LINUX)
 $(ISO_FILE): dockerboot.iso
 else
-$(ISO_FILE): all
+$(ISO_FILE): $(TARGET)
 	@echo "GEN ISO" $(ISO_FILE)
 	@ $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	@ cp $(TARGET) grub/boot/
@@ -185,10 +185,7 @@ endif
 dockerimage:
 	@echo "Creating docker image"
 	@ docker build -t $(DOCKERIMAGE) -f $(DOCKERFILE) \
-		--build-arg USER_ID=$$(id -u) \
-		--build-arg GROUP_ID=$$(id -g) \
-		--build-arg USER=$$USER \
-		.
+		$(DOCKER_BUILD_ARGS) .
 
 .PHONY: docker%
 docker%: dockerimage
