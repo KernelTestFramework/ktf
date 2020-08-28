@@ -125,7 +125,7 @@ ISO_FILE := boot.iso
 ifneq ($(SYSTEM), LINUX)
 $(ISO_FILE): dockerboot.iso
 else
-$(ISO_FILE): all
+$(ISO_FILE): $(TARGET)
 	@echo "GEN ISO" $(ISO_FILE)
 	@ $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	@ cp $(TARGET) grub/boot/
@@ -173,13 +173,21 @@ style:
 
 DOCKERFILE  := $(shell find $(ROOT) -type f -name Dockerfile)
 DOCKERIMAGE := "ktf:build"
+ifeq ($(SYSTEM), LINUX)
+	DOCKER_BUILD_ARGS=--build-arg USER_ID=$$(id -u) --build-arg GROUP_ID=$$(id -g) --build-arg USER=$$USER
+else
+	# On Docker for Mac I ran into issues because Mac user IDs are huge and Ubuntu did not like creating
+	# UIDs with such huge numbers. Hence, use fixed UID/GID here. Confirmed we still get our image built.
+	DOCKER_BUILD_ARGS=--build-arg USER_ID=1024 --build-arg GROUP_ID=1024 --build-arg USER=$$USER
+endif
 
 .PHONY: dockerimage
 dockerimage:
 	@echo "Creating docker image"
-	@ docker build -t $(DOCKERIMAGE) -f $(DOCKERFILE) .
+	@ docker build -t $(DOCKERIMAGE) -f $(DOCKERFILE) \
+		$(DOCKER_BUILD_ARGS) .
 
 .PHONY: docker%
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
-	@ docker run -it -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
+	@ docker run -it -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"

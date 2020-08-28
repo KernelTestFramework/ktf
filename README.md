@@ -72,6 +72,7 @@ GRUB_FILE := grub2-file
 GRUB_MKIMAGE := grub2-mkimage
 GRUB_MODULES += normal
 QEMU_BIN := qemu-kvm
+DOCKER_MOUNT_OPTS := :Z
 endif
 ```
 
