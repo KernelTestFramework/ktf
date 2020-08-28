@@ -173,11 +173,22 @@ style:
 
 DOCKERFILE  := $(shell find $(ROOT) -type f -name Dockerfile)
 DOCKERIMAGE := "ktf:build"
+ifeq ($(SYSTEM), LINUX)
+	DOCKER_BUILD_ARGS=--build-arg USER_ID=$$(id -u) --build-arg GROUP_ID=$$(id -g) --build-arg USER=$$USER
+else
+	# On Docker for Mac I ran into issues because Mac user IDs are huge and Ubuntu did not like creating
+	# UIDs with such huge numbers. Hence, use fixed UID/GID here. Confirmed we still get our image built.
+	DOCKER_BUILD_ARGS=--build-arg USER_ID=1024 --build-arg GROUP_ID=1024 --build-arg USER=$$USER
+endif
 
 .PHONY: dockerimage
 dockerimage:
 	@echo "Creating docker image"
-	@ docker build -t $(DOCKERIMAGE) -f $(DOCKERFILE) .
+	@ docker build -t $(DOCKERIMAGE) -f $(DOCKERFILE) \
+		--build-arg USER_ID=$$(id -u) \
+		--build-arg GROUP_ID=$$(id -g) \
+		--build-arg USER=$$USER \
+		.
 
 .PHONY: docker%
 docker%: dockerimage
