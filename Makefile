@@ -93,6 +93,9 @@ $(TARGET): $(OBJS)
 	@echo "CC " $@
 	@ $(CC) -c -o $@ $(CFLAGS) $<
 
+DEPFILES := $(OBJS:.o=.d)
+-include $(wildcard $(DEPFILES))
+
 clean:
 	@echo "CLEAN"
 	@ find $(ROOT) -name \*.d -delete
