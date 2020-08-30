@@ -73,9 +73,11 @@ else
 all: docker$(TARGET)
 endif
 
-$(TARGET): $(OBJS)
+$(PREP_LINK_SCRIPT) : $(LINK_SCRIPT)
+	@ $(CC) $(AFLAGS) -E -P -C -x c $< -o $@
+
+$(TARGET): $(OBJS) $(PREP_LINK_SCRIPT)
 	@echo "LD " $@
-	@ $(CC) $(AFLAGS) -E -P -C -x c $(LINK_SCRIPT) -o $(PREP_LINK_SCRIPT)
 	@ $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $^
 	@echo "GEN " $(SYMBOLS_NAME).S
 	@ $(NM) -p --format=posix $(TARGET) | $(PYTHON) $(SYMBOLS_DIR)/$(SYMBOLS_TOOL)
@@ -83,7 +85,7 @@ $(TARGET): $(OBJS)
 	@ $(CC) -c -o $(SYMBOLS_NAME).o $(AFLAGS) $(SYMBOLS_NAME).S
 	@ rm -rf $(SYMBOLS_NAME).S
 	@echo "LD " $(TARGET) $(SYMBOLS_NAME).o
-	@ $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $^ $(SYMBOLS_NAME).o
+	@ $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(SYMBOLS_NAME).o
 
 %.o: %.S
 	@echo "AS " $@
@@ -92,6 +94,9 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	@echo "CC " $@
 	@ $(CC) -c -o $@ $(CFLAGS) $<
+
+DEPFILES := $(OBJS:.o=.d)
+-include $(wildcard $(DEPFILES))
 
 clean:
 	@echo "CLEAN"
