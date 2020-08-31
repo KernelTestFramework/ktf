@@ -495,11 +495,14 @@ number:
 #undef PCHAR
 }
 
-void snprintf(char *buf, size_t size, const char *fmt, ...) {
+int snprintf(char *buf, size_t size, const char *fmt, ...) {
     va_list args;
+    int retval = 0;
 
     va_start(args, fmt);
-    vsnprintf(buf, size, fmt, args);
+    retval = vsnprintf(buf, size, fmt, args);
     va_end(args);
+
+    return retval;
 }
 /* clang-format on */
