@@ -43,6 +43,10 @@ bool_cmd("boolean", opt_bool);
 
 static bool opt_booltwo = 0;
 bool_cmd("booleantwo", opt_booltwo);
+
+static char memmove_string[4];
+static char range_string[] = "123456";
+static char *src, *dst;
 #endif
 
 static int __user_text func(void *arg) { return 0; }
@@ -79,6 +83,26 @@ void test_main(void) {
     }
     else {
         printk("Boolean parameter parsing works!\n");
+    }
+
+    printk("\nMemmove testing:\n");
+    (void) memmove(memmove_string, opt_string, sizeof(opt_string));
+    if (!strcmp(memmove_string, opt_string)) {
+        printk("Moving around memory works!\n");
+    }
+    else {
+        printk("Memmove'ing did not work: %s (%p) != %s (%p)\n", memmove_string,
+               memmove_string, opt_string, opt_string);
+    }
+
+    src = (char *) range_string;
+    dst = (char *) range_string + 2;
+    (void) memmove(dst, src, 4);
+    if (!strcmp(range_string, "121234")) {
+        printk("Moving around memory with overlaping ranges works!\n");
+    }
+    else {
+        printk("Overlaping memmove'ing did not work: %s != %s\n", range_string, "121234");
     }
 #endif
 

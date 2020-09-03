@@ -106,6 +106,38 @@ static inline void *memcpy(void *d, void *s, size_t n) {
     return d;
 }
 
+static inline void *memmove(void *d, const void *s, size_t n) {
+
+    /* dst and src are the same */
+    if (d == s) {
+        return d;
+    }
+
+    /* if we don't have a range overlap, just use memcpy */
+    if ((d > s && d > s + n) || (d < s && d + n < s)) {
+        return memcpy(d, (void *) s, n);
+    }
+
+    /*
+     * s ------
+     * d    ------
+     * needs reverse moving
+     */
+    if (s < d) {
+        while (n--)
+            *((char *) d + n) = *((char *) s + n);
+    }
+    else
+        /*
+         * s     ------
+         * d   -----
+         * normal copy
+         */
+        return memcpy(d, (void *) s, n);
+
+    return d;
+}
+
 static inline int memcmp(const void *m1, const void *m2, size_t n) {
     const uint8_t *_m1 = m1;
     const uint8_t *_m2 = m2;
