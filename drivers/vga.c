@@ -52,7 +52,8 @@ void vga_write(const char *buf, size_t len, vga_color_t color) {
 
         /* Scroll up one row when hit end of VGA area */
         if (row == (MAX_ROWS - 1)) {
-            memcpy(vga_buffer[0], vga_buffer[1], sizeof(vga_buffer) - MAX_COLS);
+            memmove(vga_buffer[0], vga_buffer[1],
+                    sizeof(vga_buffer) - sizeof(vga_buffer[0]));
             memset(vga_buffer[MAX_ROWS - 1], 0x00, MAX_COLS);
             col = 0;
             row--;
