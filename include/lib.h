@@ -108,28 +108,28 @@ static inline void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *
 }
 
 static inline uint32_t cpuid_eax(uint32_t leaf) {
-    uint32_t eax = 0, ign;
+    uint32_t eax = 0, ign = 0;
 
     cpuid(leaf, &eax, &ign, &ign, &ign);
     return eax;
 }
 
 static inline uint32_t cpuid_ebx(uint32_t leaf) {
-    uint32_t ebx = 0, ign;
+    uint32_t ebx = 0, ign = 0;
 
     cpuid(leaf, &ign, &ebx, &ign, &ign);
     return ebx;
 }
 
 static inline uint32_t cpuid_ecx(uint32_t leaf) {
-    uint32_t ecx = 0, ign;
+    uint32_t ecx = 0, ign = 0;
 
     cpuid(leaf, &ign, &ign, &ecx, &ign);
     return ecx;
 }
 
 static inline uint32_t cpuid_edx(uint32_t leaf) {
-    uint32_t edx = 0, ign;
+    uint32_t edx = 0, ign = 0;
 
     cpuid(leaf, &ign, &ign, &ign, &edx);
     return edx;
