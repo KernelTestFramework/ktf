@@ -179,8 +179,8 @@ static void dump_segment_regs(const struct cpu_regs *regs) {
            "ES=0x%04lx FS=0x%04lx GS=0x%04lx\n"
            "EXCEPTION:\n"
            "CS=0x%04x SS=0x%04x\n\n",
-           read_cs(), read_ds(), read_ss(), read_es(), read_fs(), read_gs(), regs->cs,
-           regs->ss);
+           read_cs(), read_ds(), read_ss(), read_es(), read_fs(), read_gs(),
+           _ul(regs->cs), _ul(regs->ss));
 }
 
 static void dump_flags(const struct cpu_regs *regs) {
