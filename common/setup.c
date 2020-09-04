@@ -26,6 +26,7 @@
 #include <apic.h>
 #include <cmdline.h>
 #include <console.h>
+#include <cpuid.h>
 #include <ktf.h>
 #include <lib.h>
 #include <multiboot.h>
@@ -52,6 +53,7 @@ bool_cmd("debug", opt_debug);
 io_port_t com_ports[2];
 
 const char *kernel_cmdline;
+char cpu_identifier[49];
 
 static __text_init int parse_bool(const char *s) {
     if (!strcmp("no", s) || !strcmp("off", s) || !strcmp("false", s) ||
@@ -163,6 +165,10 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_console();
 
     init_boot_traps();
+
+    /* Print cpu vendor info */
+    if (cpu_vendor_string(&cpu_identifier[0]))
+        printk("CPU: %.48s\n", cpu_identifier);
 
     /* Initialize Programmable Interrupt Controller */
     init_pic();
