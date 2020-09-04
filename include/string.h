@@ -238,6 +238,70 @@ static inline int string_equal(const char *s1, const char *s2) {
     return (!s1 || !s2) ? s1 == s2 : !strcmp(s1, s2);
 }
 
+static inline char *strdup(const char *s1) {
+    char *s2;
+    size_t len = 0;
+
+    if (string_empty(s1))
+        return NULL;
+
+    len = strlen(s1);
+    s2 = (char *) ktf_alloc(len);
+
+    if (NULL == s2)
+        return NULL;
+
+    return strcpy(s2, s1);
+}
+
+static inline size_t strspn(const char *s1, const char *s2) {
+    size_t ret = 0;
+
+    if (NULL == s1 || NULL == s2)
+        return 0;
+
+    while (*s1 && strchr(s2, *s1)) {
+        s1++;
+        ret++;
+    }
+
+    return ret;
+}
+
+static inline size_t strcspn(const char *s1, const char *s2) {
+    size_t ret = 0;
+
+    if (NULL == s1 || NULL == s2)
+        return 0;
+
+    while (*s1 && !strchr(s2, *s1)) {
+        s1++;
+        ret++;
+    }
+
+    return ret;
+}
+
+static inline char *strtok(char *s, const char *delim) {
+
+    static char *lasts;
+    int ch;
+
+    if (NULL == s)
+        s = lasts;
+
+    do {
+        if ((ch = *s++) == '\0')
+            return NULL;
+    } while (strchr(delim, ch));
+
+    s--;
+    lasts = s + strcspn(s, delim);
+    *lasts = '\0';
+
+    return s;
+}
+
 static inline char *strpbrk(const char *s, const char *chars) {
     for (int i = 0; s[i] != '\0'; i++) {
         for (int j = 0; chars[j] != '\0'; j++) {
