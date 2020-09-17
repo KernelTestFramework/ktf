@@ -185,6 +185,9 @@ static unsigned process_madt_entries(void) {
             if (madt_cpu->apic_proc_id == 0)
                 percpu->bsp = true;
 
+            if (!percpu->enabled)
+                continue;
+
             nr_cpus++;
             printk("ACPI: [MADT] APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n",
                    madt_cpu->apic_proc_id, madt_cpu->apic_id, madt_cpu->flags);
