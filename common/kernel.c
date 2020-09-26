@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <drivers/keyboard.h>
 #include <ktf.h>
 #include <lib.h>
 #include <multiboot.h>
@@ -38,6 +39,13 @@ extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2ker
 int usermode_call(user_func_t fn, void *fn_arg) {
     return usermode_call_asm(fn, fn_arg, PERCPU_OFFSET(ret2kern_sp),
                              PERCPU_OFFSET(user_stack));
+}
+
+static void echo_loop(void) {
+    while (1) {
+        io_delay();
+        keyboard_process_keys();
+    }
 }
 
 void kernel_main(void) {

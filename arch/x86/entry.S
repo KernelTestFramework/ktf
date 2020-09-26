@@ -96,6 +96,7 @@ END_FUNC(handle_exception)
 
 interrupt_handler pit pit_interrupt_handler
 interrupt_handler uart uart_interrupt_handler
+interrupt_handler keyboard keyboard_interrupt_handler
 
 ENTRY(usermode_call_asm)
     /* FIXME: Add 32-bit support */

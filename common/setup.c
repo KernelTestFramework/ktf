@@ -28,6 +28,7 @@
 #include <console.h>
 #include <cpuid.h>
 #include <ioapic.h>
+#include <drivers/keyboard.h>
 #include <ktf.h>
 #include <lib.h>
 #include <multiboot.h>
@@ -234,6 +235,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* Initialize Programmable Interrupt Timer */
     init_pit(get_bsp_cpu_id());
+
+    /* Initialize keyboard */
+    init_keyboard();
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));
