@@ -26,6 +26,7 @@
 #include <console.h>
 #include <drivers/pit.h>
 #include <drivers/serial.h>
+#include <drivers/keyboard.h>
 #include <ktf.h>
 #include <lib.h>
 #include <percpu.h>
@@ -40,6 +41,7 @@
 
 extern void asm_interrupt_handler_uart(void);
 extern void asm_interrupt_handler_pit(void);
+extern void asm_interrupt_handler_keyboard(void);
 
 static void ret2kern_handler(void) {
     /* clang-format off */
@@ -160,6 +162,8 @@ void init_traps(unsigned int cpu) {
                   _ul(asm_interrupt_handler_uart), GATE_DPL0, GATE_PRESENT, 0);
     set_intr_gate(&percpu->idt[PIT_IRQ0_OFFSET], __KERN_CS,
                   _ul(asm_interrupt_handler_pit), GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[KEYBOARD_IRQ0_OFFSET], __KERN_CS,
+                  _ul(asm_interrupt_handler_keyboard), GATE_DPL0, GATE_PRESENT, 0);
 
     barrier();
     lidt(&percpu->idt_ptr);
