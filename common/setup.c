@@ -42,6 +42,7 @@
 #include <mm/vmm.h>
 #include <smp/smp.h>
 
+#include <drivers/pic.h>
 #include <drivers/serial.h>
 #include <slab.h>
 
@@ -156,6 +157,12 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_console();
 
     init_boot_traps();
+
+    /* Initialize Programmable Interrupt Controller */
+    init_pic();
+
+    /* PIC is initialized - enable local interrupts */
+    sti();
 
     if (multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC) {
         /* Indentity mapping is still on, so fill in multiboot structures */
