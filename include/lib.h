@@ -385,4 +385,8 @@ static inline unsigned int next_power_of_two(unsigned int n) {
 
 extern void halt(void);
 
+extern void srand(unsigned s);
+
+extern int rand(void);
+
 #endif /* KTF_LIB_H */
