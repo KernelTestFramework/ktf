@@ -94,6 +94,22 @@
     pop %_ASM_AX
 .endm
 
+.macro PUSHF
+#if defined(__x86_64__)
+    pushfq
+#else
+    pushf
+#endif
+.endm
+
+.macro POPF
+#if defined(__x86_64__)
+    popfq
+#else
+    popf
+#endif
+.endm
+
 #define GLOBAL(name) \
     .global name;    \
 name:

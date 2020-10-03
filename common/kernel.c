@@ -36,7 +36,11 @@ extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2ker
                              unsigned long user_stack);
 
 void ret2kern_handler(void) {
-    asm volatile("mov %%gs:(%0), %%" STR(_ASM_SP)::"r"(offsetof(percpu_t, ret2kern_sp)));
+    /* clang-format off */
+    asm volatile("mov %%gs:(%0), %%" STR(_ASM_SP) "\n"
+                 "POPF \n"
+                 ::"r"(offsetof(percpu_t, ret2kern_sp)));
+    /* clang-format on */
 }
 
 int usermode_call(user_func_t fn, void *fn_arg) {
