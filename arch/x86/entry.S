@@ -84,6 +84,9 @@ END_FUNC(handle_exception)
 ENTRY(usermode_call_asm)
     /* FIXME: Add 32-bit support */
 
+    /* will be restored on entering back in kernel mode */
+    PUSHF
+
     mov %_ASM_SP, %gs:(%rdx)
 
     /* SS + SP */
@@ -91,11 +94,7 @@ ENTRY(usermode_call_asm)
     push %gs:(%rcx)
 
     /* EFLAGS */
-#if defined(__x86_64__)
-    pushfq
-#else
-    pushf
-#endif
+    PUSHF
 
     orl $X86_EFLAGS_IOPL, (%_ASM_SP)
 
