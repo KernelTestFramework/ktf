@@ -125,6 +125,14 @@ static inline void *acpi_map_table(paddr_t pa) {
     return kmap(mfn, PAGE_ORDER_4K, L1_PROT) + offset;
 }
 
+static inline void acpi_dump_table(const void *tab, const acpi_table_hdr_t *hdr) {
+    printk("ACPI: %.*s [%p] %04x (v%04x %.*s %04x %.*s %08x)\n",
+           _int(sizeof(hdr->signature)), (char *) &hdr->signature, tab, hdr->length,
+           hdr->rev, _int(sizeof(hdr->oem_id)), hdr->oem_id, hdr->oem_rev,
+           _int(sizeof(hdr->asl_compiler_id)), hdr->asl_compiler_id,
+           hdr->asl_compiler_rev);
+}
+
 static inline rsdt_t *acpi_find_rsdt(const rsdp_rev1_t *rsdp) {
     rsdt_t *rsdt = acpi_map_table(rsdp->rsdt_paddr);
 
@@ -155,17 +163,9 @@ static inline xsdt_t *acpi_find_xsdt(const rsdp_rev2_t *rsdp) {
     return xsdt;
 }
 
-static void acpi_dump_tables(void) {
-    for (unsigned int i = 0; i < max_acpi_tables; i++) {
-        acpi_table_t *tab = acpi_tables[i];
-        acpi_table_hdr_t *hdr = &tab->header;
-
-        printk("ACPI: %.*s [%p] %04x (v%04x %.*s %04x %.*s %08x)\n",
-               _int(sizeof(hdr->signature)), (char *) &hdr->signature, tab, hdr->length,
-               hdr->rev, _int(sizeof(hdr->oem_id)), hdr->oem_id, hdr->oem_rev,
-               _int(sizeof(hdr->asl_compiler_id)), hdr->asl_compiler_id,
-               hdr->asl_compiler_rev);
-    }
+static inline void acpi_dump_tables(void) {
+    for (unsigned int i = 0; i < max_acpi_tables; i++)
+        acpi_dump_table(acpi_tables[i], &acpi_tables[i]->header);
 }
 
 static unsigned process_madt_entries(void) {
