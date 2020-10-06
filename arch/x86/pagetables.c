@@ -120,8 +120,7 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
     pgentry_t *tab, *entry;
     mfn_t mfn;
 
-    if (mfn_invalid(tab_mfn))
-        return MFN_INVALID;
+    BUG_ON(mfn_invalid(tab_mfn));
 
     tab = init_map_mfn(tab_mfn);
     entry = &tab[index];
@@ -130,6 +129,8 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
     if (mfn_invalid(mfn)) {
         set_pgentry(entry, get_free_frame(), flags);
         mfn = mfn_from_pgentry(*entry);
+        tab = init_map_mfn(mfn);
+        memset(tab, 0, PAGE_SIZE);
     }
 
     return mfn;
