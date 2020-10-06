@@ -39,6 +39,14 @@ unsigned max_acpi_tables;
 
 static unsigned nr_cpus;
 
+unsigned acpi_get_nr_cpus(void) { return nr_cpus; }
+
+/* Calculate number of entries in the ACPI table.
+ * Formula: (table_length - header_length) / entry_size
+ */
+#define ACPI_NR_TABLES(ptr)                                                              \
+    (((ptr)->header.length - sizeof((ptr)->header)) / sizeof(*((ptr)->entry)))
+
 static inline uint8_t get_checksum(void *ptr, size_t len) {
     uint8_t checksum = 0;
 
@@ -217,10 +225,6 @@ acpi_table_t *acpi_find_table(uint32_t signature) {
     return NULL;
 }
 
-unsigned acpi_get_nr_cpus(void) { return nr_cpus; }
-
-#define ACPI_NR_TABLES(ptr)                                                              \
-    (((ptr)->header.length - sizeof((ptr)->header)) / sizeof(*(ptr)->entry))
 void init_acpi(void) {
     printk("Initializing ACPI support\n");
 
