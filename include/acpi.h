@@ -77,10 +77,7 @@ typedef struct rsdt rsdt_t;
 
 struct xsdt {
     acpi_table_hdr_t header;
-    struct {
-        uint32_t low;
-        uint32_t high;
-    } entry[0];
+    uint64_t entry[0];
 } __packed;
 typedef struct xsdt xsdt_t;
 
