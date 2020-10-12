@@ -81,6 +81,19 @@ ENTRY(handle_exception)
 #endif
 END_FUNC(handle_exception)
 
+ENTRY(asm_uart_handler)
+    cld
+    SAVE_REGS
+    lea com_ports, %_ASM_DI
+    call uart_handler
+    RESTORE_REGS
+#if defined(__x86_64__)
+    iretq
+#else
+    iret
+#endif
+END_FUNC(asm_uart_handler)
+
 ENTRY(usermode_call_asm)
     /* FIXME: Add 32-bit support */
 

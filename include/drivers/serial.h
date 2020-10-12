@@ -25,6 +25,7 @@
 #ifndef KTF_DRV_SERIAL_H
 #define KTF_DRV_SERIAL_H
 
+#include <drivers/pic.h>
 #include <ktf.h>
 
 union line_control_register {
@@ -98,10 +99,17 @@ union interrupt_enable_register {
 };
 typedef union interrupt_enable_register ier_t;
 
+#define COM1_IRQ         4 /* IRQ 4 */
+#define COM2_IRQ         3 /* IRQ 3 */
+#define COM1_IRQ0_OFFSET (PIC_IRQ0_OFFSET + COM1_IRQ)
+#define COM2_IRQ0_OFFSET (PIC_IRQ0_OFFSET + COM2_IRQ)
+
 #define UART_TXD_REG_OFFSET 0x00
+#define UART_RBR_REG_OFFSET 0x00
 #define UART_IER_REG_OFFSET 0x01
 #define UART_DLL_REG_OFFSET 0x00
 #define UART_DLH_REG_OFFSET 0x01
+#define UART_IIR_REG_OFFSET 0x02
 #define UART_FCR_REG_OFFSET 0x02
 #define UART_LCR_REG_OFFSET 0x03
 #define UART_MCR_REG_OFFSET 0x04
@@ -111,9 +119,14 @@ typedef union interrupt_enable_register ier_t;
 
 #define DEFAULT_BAUD_SPEED 115200
 
+#define UART_IIR_STATUS_MASK 0x0E /* bits 3, 2, 1 */
+#define UART_IIR_RBR_READY   0x04
+
 /* External declarations */
 
 extern void uart_init(io_port_t port, unsigned baud);
+extern void uart_handler(io_port_t ports[2]);
+extern void uart_input_init();
 extern int serial_putchar(io_port_t port, char c);
 extern int serial_write(io_port_t port, const char *buf, size_t len);
 

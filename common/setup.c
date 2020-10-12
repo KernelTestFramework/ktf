@@ -161,6 +161,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     /* Initialize Programmable Interrupt Controller */
     init_pic();
 
+    /* Initialize console input */
+    uart_input_init();
+
     /* PIC is initialized - enable local interrupts */
     sti();
 
