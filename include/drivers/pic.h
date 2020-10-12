@@ -52,8 +52,14 @@
 #define PIC_IRQ0_OFFSET 0x20
 #define PIC_IRQ8_OFFSET 0x28
 
+#define PIC_IRQ_END_OFFSET 0x08 /* One beyond the max IRQ number */
+
+enum pic_device_sel { PIC1_DEVICE_SEL = 1, PIC2_DEVICE_SEL };
+typedef enum pic_device_sel pic_device_sel_t;
+
 /* External declarations */
 
 extern void init_pic(void);
+extern void pic_enable_irq(pic_device_sel_t pic, uint8_t irq);
 
 #endif /* KTF_DRV_PIC_H */

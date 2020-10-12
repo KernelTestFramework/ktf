@@ -22,11 +22,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <drivers/pic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <setup.h>
 
 #include <drivers/serial.h>
+
+#define INPUT_BUF 80
+static struct {
+    char buf[INPUT_BUF];
+    unsigned curr;
+    unsigned init;
+} input_state;
 
 static inline void set_port_mode(io_port_t port, bool stop_bit, uint8_t width) {
     lcr_t lcr = {0};
@@ -63,8 +71,8 @@ static inline bool receiver_ready(io_port_t port) {
 void uart_init(io_port_t port, unsigned baud) {
     mcr_t mcr = {0};
 
-    /* Disable interrupts */
-    outb(port + UART_IER_REG_OFFSET, 0x00);
+    /* Enable interrupts for received data available */
+    outb(port + UART_IER_REG_OFFSET, 0x01);
 
     /* Disable FIFO control */
     outb(port + UART_FCR_REG_OFFSET, 0x00);
@@ -81,6 +89,16 @@ void uart_init(io_port_t port, unsigned baud) {
     mcr.dtr = 1;
     mcr.rts = 1;
     outb(port + UART_MCR_REG_OFFSET, mcr.reg);
+}
+
+void uart_input_init() {
+    /* Initialize input state */
+    memset(&input_state, 0, sizeof(input_state));
+
+    /* Enable IRQ lines */
+    printk("Enabling serial input\n");
+    pic_enable_irq(PIC1_DEVICE_SEL, COM1_IRQ);
+    pic_enable_irq(PIC2_DEVICE_SEL, COM2_IRQ);
 }
 
 static inline int uart_port_status(io_port_t port) {
@@ -136,4 +154,20 @@ int serial_write(io_port_t port, const char *buf, size_t len) {
     } while (rc > 0 && retries--);
 
     return rc;
+}
+
+void uart_handler(io_port_t ports[2]) {
+    unsigned int i;
+    for (i = 0; i < sizeof(*ports); ++i) {
+        uint8_t status = inb(ports[i] + UART_IIR_REG_OFFSET);
+        if ((status & UART_IIR_STATUS_MASK) == UART_IIR_RBR_READY) {
+            uint8_t input = inb(ports[i] + UART_RBR_REG_OFFSET);
+
+            input_state.buf[input_state.curr] = input;
+            input_state.curr = (input_state.curr + 1) % sizeof(input_state.buf);
+
+            printk("%c", input);
+        }
+    }
+    outb(PIC1_PORT_CMD, PIC_EOI);
 }
