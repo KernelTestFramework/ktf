@@ -35,6 +35,9 @@ extern char *kernel_cmdline;
 static char opt_string[4];
 string_cmd("string", opt_string);
 
+static char opt_badstring[5];
+string_cmd("badstring", opt_badstring);
+
 static unsigned long opt_ulong;
 ulong_cmd("integer", opt_ulong);
 
@@ -62,6 +65,14 @@ void test_main(void) {
 
     if (strcmp(opt_string, "foo")) {
         printk("String parameter opt_string != foo: %s\n", opt_string);
+        BUG();
+    }
+    else {
+        printk("String parameter parsing works!\n");
+    }
+
+    if (strcmp(opt_badstring, "tool")) {
+        printk("String parameter opt_badstring != tool: %s\n", opt_badstring);
         BUG();
     }
     else {
