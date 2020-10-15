@@ -197,7 +197,7 @@ static void dump_flags(const struct cpu_regs *regs) {
 static void dump_stack(const struct cpu_regs *regs, unsigned words) {
     unsigned long *sp = (unsigned long *) regs->_ASM_SP;
 
-    printk("STACK[0x%016p]:", sp);
+    printk("STACK[%p]:", sp);
     for (unsigned i = 0; i == 0 || (_ul(&sp[i]) % PAGE_SIZE_2M); i++) {
         if ((i % words) == 0)
             printk("\n0x%04lx: ", i * (sizeof(unsigned long)));
