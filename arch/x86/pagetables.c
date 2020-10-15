@@ -91,9 +91,14 @@ static inline void dump_page_table(void *table, int level) {
 
 void dump_pagetables(void) {
     printk("\nPage Tables:\n");
-    printk("CR3: paddr: 0x%lx\n", cr3.paddr);
+
+    /* Map all used frames to be able to parse page tables */
     map_used_memory();
-    dump_page_table(get_l4_table(), 4);
+
+    paddr_t cur_cr3 = read_cr3();
+
+    printk("CR3: paddr: 0x%lx\n", cur_cr3);
+    dump_page_table(paddr_to_virt_kern(cur_cr3), 4);
 }
 
 static void *init_map_mfn(mfn_t mfn) {
