@@ -33,6 +33,7 @@ struct __packed ktf_param {
     char name[PARAM_MAX_LENGTH];
     enum { STRING, ULONG, BOOL } type;
     void *var;
+    unsigned int varlen;
 };
 
 #define __ktfparam static __cmdline __used __aligned(1) struct ktf_param
@@ -43,7 +44,7 @@ struct __packed ktf_param {
 
 #define cmd_param(_name, _var, _type)                                                    \
     __param_size_check(_var, _name);                                                     \
-    __ktfparam __cmd_##_var = {_name, _type, &_var};
+    __ktfparam __cmd_##_var = {_name, _type, &_var, sizeof(_var)};
 
 #define bool_cmd(_cmdname, _varname)   cmd_param(_cmdname, _varname, BOOL)
 #define ulong_cmd(_cmdname, _varname)  cmd_param(_cmdname, _varname, ULONG)
