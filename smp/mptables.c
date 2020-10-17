@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <errno.h>
 #include <ktf.h>
 #include <lib.h>
 #include <multiboot.h>
@@ -252,25 +253,30 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
     }
 }
 
-unsigned mptables_init(void) {
+unsigned mptables_get_nr_cpus(void) { return nr_cpus; }
+
+int init_mptables(void) {
     mpf_t *mpf_ptr = get_mpf_addr();
     mpc_hdr_t *mpc_ptr;
 
     if (!mpf_ptr) {
         printk("No MP Floating Structure Pointer found!\n");
-        return 0;
+        nr_cpus = 0;
+        return -ENODEV;
     }
 
     if (opt_debug)
         dump_mpf(mpf_ptr);
 
-    if (mpf_ptr->mpc_type > 0 || mpf_ptr->mpc_base == 0x0)
-        panic("No MP Configuration Table present!\n");
+    if (mpf_ptr->mpc_type > 0 || mpf_ptr->mpc_base == 0x0) {
+        printk("No MP Configuration Table present!\n");
+        return -ENOENT;
+    }
 
     mpc_ptr = get_mpc_addr(mpf_ptr);
     if (opt_debug)
         dump_mpc_hdr(mpc_ptr);
     process_mpc_entries(mpc_ptr);
 
-    return nr_cpus;
+    return 0;
 }

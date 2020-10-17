@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <acpi.h>
+#include <errno.h>
 #include <ktf.h>
 #include <lib.h>
 #include <mm/pmm.h>
@@ -201,12 +202,12 @@ static inline void acpi_dump_tables(void) {
         acpi_dump_table(acpi_tables[i], &acpi_tables[i]->header);
 }
 
-static unsigned process_madt_entries(void) {
+static int process_madt_entries(void) {
     acpi_madt_t *madt = (acpi_madt_t *) acpi_find_table(MADT_SIGNATURE);
     acpi_madt_entry_t *entry;
 
     if (!madt)
-        return 0;
+        return -ENOENT;
 
     printk("ACPI: [MADT] LAPIC Addr: %p, Flags: %08x\n", _ptr(madt->lapic_addr),
            madt->flags);
@@ -244,7 +245,7 @@ static unsigned process_madt_entries(void) {
         }
     }
 
-    return nr_cpus;
+    return 0;
 }
 
 acpi_table_t *acpi_find_table(uint32_t signature) {
@@ -258,7 +259,7 @@ acpi_table_t *acpi_find_table(uint32_t signature) {
     return NULL;
 }
 
-void init_acpi(void) {
+int init_acpi(void) {
     unsigned acpi_nr_tables;
     rsdt_t *rsdt = NULL;
     xsdt_t *xsdt = NULL;
@@ -267,7 +268,7 @@ void init_acpi(void) {
 
     rsdp_rev1_t *rsdp = acpi_find_rsdp();
     if (!rsdp)
-        return;
+        return -ENOENT;
 
     if (rsdp->rev < 2)
         rsdt = acpi_find_rsdt((rsdp_rev1_t *) rsdp);
@@ -275,7 +276,7 @@ void init_acpi(void) {
         xsdt = acpi_find_xsdt((rsdp_rev2_t *) rsdp);
 
     if (!rsdt && !xsdt)
-        return;
+        return -ENOENT;
 
     acpi_nr_tables = (rsdp->rev < 2) ? ACPI_NR_TABLES(rsdt) : ACPI_NR_TABLES(xsdt);
 
@@ -306,5 +307,5 @@ void init_acpi(void) {
     }
 
     acpi_dump_tables();
-    process_madt_entries();
+    return process_madt_entries();
 }

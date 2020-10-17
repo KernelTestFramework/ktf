@@ -122,9 +122,7 @@ typedef struct mpc_ioapic_entry mpc_ioapic_entry_t;
 struct mpc_ioint_entry {
     uint8_t type;
     uint8_t int_type;
-    struct {
-        uint16_t po : 1, el : 1, rsvd : 14;
-    };
+    uint16_t po : 2, el : 2, rsvd : 12;
     uint8_t src_bus_id;
     uint8_t src_bus_irq;
     uint8_t dst_ioapic_id;
@@ -135,9 +133,7 @@ typedef struct mpc_ioint_entry mpc_ioint_entry_t;
 struct mpc_lint_entry {
     uint8_t type;
     uint8_t int_type;
-    struct {
-        uint16_t po : 1, el : 1, rsvd : 14;
-    };
+    uint16_t po : 2, el : 2, rsvd : 12;
     uint8_t src_bus_id;
     uint8_t src_bus_irq;
     uint8_t dst_lapic_id;
@@ -147,6 +143,7 @@ typedef struct mpc_lint_entry mpc_lint_entry_t;
 
 /* External declarations */
 
-extern unsigned mptables_init(void);
+extern unsigned mptables_get_nr_cpus(void);
+extern int init_mptables(void);
 
 #endif /* KTF_MPTABLES_H */

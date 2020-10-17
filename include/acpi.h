@@ -189,6 +189,6 @@ typedef struct acpi_madt acpi_madt_t;
 extern acpi_table_t *acpi_find_table(uint32_t signature);
 
 extern unsigned acpi_get_nr_cpus(void);
-extern void init_acpi(void);
+extern int init_acpi(void);
 
 #endif /* KTF_ACPI_H */

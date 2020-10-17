@@ -40,6 +40,7 @@
 
 #include <mm/pmm.h>
 #include <mm/vmm.h>
+#include <smp/mptables.h>
 #include <smp/smp.h>
 
 #include <drivers/pic.h>
@@ -198,11 +199,13 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     init_percpu();
 
-    init_acpi();
-
     init_traps(0);
 
     init_slab();
+
+    if (init_acpi() < 0 && init_mptables() < 0) {
+        BUG();
+    }
 
     init_apic(APIC_MODE_XAPIC);
 
