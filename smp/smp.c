@@ -94,7 +94,7 @@ static __text_init void boot_cpu(unsigned int cpu) {
 }
 
 void __text_init init_smp(void) {
-    unsigned mp_nr_cpus = mptables_init();
+    unsigned mp_nr_cpus = mptables_get_nr_cpus();
     unsigned acpi_nr_cpus = acpi_get_nr_cpus();
 
     nr_cpus = acpi_nr_cpus ?: mp_nr_cpus;
