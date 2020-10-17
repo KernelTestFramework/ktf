@@ -201,6 +201,24 @@ static inline void acpi_dump_tables(void) {
         acpi_dump_table(acpi_tables[i], &acpi_tables[i]->header);
 }
 
+static const char *madt_int_bus_names[] = {
+    [ACPI_MADT_INT_BUS_ISA] = "ISA",
+};
+
+static const char *madt_int_polarity_names[] = {
+    [ACPI_MADT_INT_POLARITY_BS] = "Bus Spec",
+    [ACPI_MADT_INT_POLARITY_AH] = "Active High",
+    [ACPI_MADT_INT_POLARITY_RSVD] = "Reserved",
+    [ACPI_MADT_INT_POLARITY_AL] = "Active Low",
+};
+
+static const char *madt_int_trigger_names[] = {
+    [ACPI_MADT_INT_TRIGGER_BS] = "Bus Spec",
+    [ACPI_MADT_INT_TRIGGER_ET] = "Edge",
+    [ACPI_MADT_INT_TRIGGER_RSVD] = "Reserved",
+    [ACPI_MADT_INT_TRIGGER_LT] = "Level",
+};
+
 static unsigned process_madt_entries(void) {
     acpi_madt_t *madt = (acpi_madt_t *) acpi_find_table(MADT_SIGNATURE);
     acpi_madt_entry_t *entry;
@@ -234,11 +252,59 @@ static unsigned process_madt_entries(void) {
                    madt_cpu->apic_proc_id, madt_cpu->apic_id, madt_cpu->flags);
             break;
         }
-        case ACPI_MADT_TYPE_IOAPIC:
-        case ACPI_MADT_TYPE_IRQ_SRC:
-        case ACPI_MADT_TYPE_NMI:
-        case ACPI_MADT_TYPE_LAPIC_ADDR:
+        case ACPI_MADT_TYPE_IOAPIC: {
+            acpi_madt_ioapic_t *madt_ioapic = (acpi_madt_ioapic_t *) entry->data;
+
+            printk("ACPI: [MADT] IOAPIC ID: %u, Base Address: 0x%08x, GSI Base: 0x%08x\n",
+                   madt_ioapic->ioapic_id, madt_ioapic->base_address,
+                   madt_ioapic->gsi_base);
             break;
+        }
+        case ACPI_MADT_TYPE_IRQ_SRC: {
+            acpi_madt_irq_src_t *madt_irq_src = (acpi_madt_irq_src_t *) entry->data;
+
+            printk("ACPI: [MADT] IRQ Src Override: Bus: %3s, IRQ: 0x%02x, GSI: 0x%08x, "
+                   "Polarity: %11s, Trigger: %9s\n",
+                   madt_int_bus_names[madt_irq_src->bus], madt_irq_src->irq_src,
+                   madt_irq_src->gsi, madt_int_polarity_names[madt_irq_src->polarity],
+                   madt_int_trigger_names[madt_irq_src->trigger_mode]);
+            break;
+        }
+        case ACPI_MADT_TYPE_NMI_SRC: {
+            acpi_madt_nmi_src_t *madt_nmi_src = (acpi_madt_nmi_src_t *) entry->data;
+
+            printk("ACPI: [MADT] NMI Src: GSI: 0x%08x, Polarity: %11s, Trigger: %9s\n",
+                   madt_nmi_src->gsi, madt_int_polarity_names[madt_nmi_src->polarity],
+                   madt_int_trigger_names[madt_nmi_src->trigger_mode]);
+            break;
+        }
+        case ACPI_MADT_TYPE_LAPIC_NMI: {
+            acpi_madt_lapic_nmi_t *madt_lapic_nmi = (acpi_madt_lapic_nmi_t *) entry->data;
+
+            printk("ACPI: [MADT] Local APIC NMI LINT#: CPU UID: %02x, Polarity: %11s, "
+                   "Trigger: %9s, LINT#: 0x%02x\n",
+                   madt_lapic_nmi->cpu_uid,
+                   madt_int_polarity_names[madt_lapic_nmi->polarity],
+                   madt_int_trigger_names[madt_lapic_nmi->trigger_mode],
+                   madt_lapic_nmi->lapic_lint);
+            break;
+        }
+        case ACPI_MADT_TYPE_LAPIC_ADDR: {
+            acpi_madt_lapic_addr_t *madt_lapic_addr =
+                (acpi_madt_lapic_addr_t *) entry->data;
+
+            printk("ACPI: [MADT] Local APIC Address: 0x%016lx\n",
+                   madt_lapic_addr->lapic_addr);
+            break;
+        }
+        case ACPI_MADT_TYPE_IOSAPIC: {
+            acpi_madt_iosapic_t *madt_iosapic = (acpi_madt_iosapic_t *) entry->data;
+
+            printk("ACPI: [MADT] IOSAPIC ID: %u, Base Address: %p, GSI Base: 0x%08x\n",
+                   madt_iosapic->ioapic_id, _ptr(madt_iosapic->base_address),
+                   madt_iosapic->gsi_base);
+            break;
+        }
         default:
             panic("Unknown ACPI MADT entry type: %u\n", entry->type);
         }

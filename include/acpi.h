@@ -164,8 +164,10 @@ enum acpi_madt_type {
     ACPI_MADT_TYPE_LAPIC = 0,
     ACPI_MADT_TYPE_IOAPIC = 1,
     ACPI_MADT_TYPE_IRQ_SRC = 2,
-    ACPI_MADT_TYPE_NMI = 4,
+    ACPI_MADT_TYPE_NMI_SRC = 3,
+    ACPI_MADT_TYPE_LAPIC_NMI = 4,
     ACPI_MADT_TYPE_LAPIC_ADDR = 5,
+    ACPI_MADT_TYPE_IOSAPIC = 6,
 };
 typedef enum acpi_madt_type acpi_madt_type_t;
 
@@ -175,6 +177,66 @@ struct acpi_madt_processor {
     uint32_t flags;
 } __packed;
 typedef struct acpi_madt_processor acpi_madt_processor_t;
+
+struct acpi_madt_ioapic {
+    uint8_t ioapic_id;
+    uint8_t rsvd;
+    uint32_t base_address;
+    uint32_t gsi_base;
+} __packed;
+typedef struct acpi_madt_ioapic acpi_madt_ioapic_t;
+
+struct acpi_madt_iosapic {
+    uint8_t ioapic_id;
+    uint8_t rsvd;
+    uint32_t gsi_base;
+    uint64_t base_address;
+} __packed;
+typedef struct acpi_madt_iosapic acpi_madt_iosapic_t;
+
+#define ACPI_MADT_INT_BUS_ISA 0x00
+
+#define ACPI_MADT_IRQ_TYPE_INT 0
+#define ACPI_MADT_IRQ_TYPE_NMI 1
+
+#define ACPI_MADT_IRQ_DST_UNKNOWN 0xFF
+
+#define ACPI_MADT_INT_POLARITY_BS   0x00
+#define ACPI_MADT_INT_POLARITY_AH   0x01
+#define ACPI_MADT_INT_POLARITY_RSVD 0x02
+#define ACPI_MADT_INT_POLARITY_AL   0x03
+
+#define ACPI_MADT_INT_TRIGGER_BS   0x00
+#define ACPI_MADT_INT_TRIGGER_ET   0x01
+#define ACPI_MADT_INT_TRIGGER_RSVD 0x02
+#define ACPI_MADT_INT_TRIGGER_LT   0x03
+
+struct acpi_madt_irq_src {
+    uint8_t bus; /* Constant 0x0, ISA */
+    uint8_t irq_src;
+    uint32_t gsi;
+    uint16_t polarity : 2, trigger_mode : 2, rsvd : 12;
+} __packed;
+typedef struct acpi_madt_irq_src acpi_madt_irq_src_t;
+
+struct acpi_madt_nmi_src {
+    uint16_t polarity : 2, trigger_mode : 2, rsvd : 12;
+    uint32_t gsi;
+} __packed;
+typedef struct acpi_madt_nmi_src acpi_madt_nmi_src_t;
+
+struct acpi_madt_lapic_nmi {
+    uint8_t cpu_uid;
+    uint16_t polarity : 2, trigger_mode : 2, rsvd : 12;
+    uint8_t lapic_lint;
+} __packed;
+typedef struct acpi_madt_lapic_nmi acpi_madt_lapic_nmi_t;
+
+struct acpi_madt_lapic_addr {
+    uint16_t rsvd;
+    uint64_t lapic_addr;
+} __packed;
+typedef struct acpi_madt_lapic_addr acpi_madt_lapic_addr_t;
 
 struct acpi_madt {
     acpi_table_hdr_t header;
