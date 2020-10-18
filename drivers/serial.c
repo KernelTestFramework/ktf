@@ -37,6 +37,8 @@ static struct {
     unsigned init;
 } input_state;
 
+extern io_port_t com_ports[2];
+
 static inline void set_port_mode(io_port_t port, bool stop_bit, uint8_t width) {
     lcr_t lcr = {0};
 
@@ -158,12 +160,12 @@ int serial_write(io_port_t port, const char *buf, size_t len) {
     return rc;
 }
 
-void uart_handler(io_port_t ports[2]) {
+void uart_interrupt_handler(void) {
     unsigned int i;
-    for (i = 0; i < sizeof(*ports); ++i) {
-        uint8_t status = inb(ports[i] + UART_IIR_REG_OFFSET);
+    for (i = 0; i < ARRAY_SIZE(com_ports); ++i) {
+        uint8_t status = inb(com_ports[i] + UART_IIR_REG_OFFSET);
         if ((status & UART_IIR_STATUS_MASK) == UART_IIR_RBR_READY) {
-            uint8_t input = inb(ports[i] + UART_RBR_REG_OFFSET);
+            uint8_t input = inb(com_ports[i] + UART_RBR_REG_OFFSET);
 
             input_state.buf[input_state.curr] = input;
             input_state.curr = (input_state.curr + 1) % sizeof(input_state.buf);

@@ -49,8 +49,8 @@
 #define PIC_CASCADE_PIC2_IRQ 0x02
 #define PIC_CASCADE_PIC1_IRQ 0x04
 
-#define PIC_IRQ0_OFFSET 0x20
-#define PIC_IRQ8_OFFSET 0x28
+#define PIC_IRQ0_OFFSET 0x28
+#define PIC_IRQ8_OFFSET (PIC_IRQ0_OFFSET + 8)
 
 #define PIC_IRQ_END_OFFSET 0x08 /* One beyond the max IRQ number */
 

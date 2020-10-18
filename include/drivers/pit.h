@@ -22,51 +22,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <console.h>
+#ifndef KTF_PIT_H
+#define KTF_PIT_H
+
+#include <drivers/pic.h>
 #include <ktf.h>
-#include <lib.h>
-#include <multiboot.h>
-#include <percpu.h>
-#include <sched.h>
-#include <setup.h>
 
-extern void _long_to_real(void);
+#define PIT_IRQ         0x00                        /* IRQ line */
+#define PIT_IRQ0_OFFSET (PIC_IRQ0_OFFSET + PIT_IRQ) /* IRQ relative to PIC master */
 
-extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2kern_sp,
-                             unsigned long user_stack);
+#define PIT_OUT_FREQUENCY 1193182 /* oscillator output frequency */
+#define PIT_RELOAD        1000    /* 1ms */
+#define PIT_FREQUENCY     (PIT_OUT_FREQUENCY / PIT_RELOAD)
+#define PIT_DATA_PORT_CH0 0x40
+#define PIT_COMMAND_PORT  0x43
 
-void ret2kern_handler(void) {
-    /* clang-format off */
-    asm volatile("mov %%gs:(%0), %%" STR(_ASM_SP) "\n"
-                 "POPF \n"
-                 ::"r"(offsetof(percpu_t, ret2kern_sp)));
-    /* clang-format on */
-}
+#define PIT_CHANNEL_0        (~((1 << 7) | (1 << 6)))
+#define PIT_ACCESS_MODE_LOW  (1 << 4)
+#define PIT_ACCESS_MODE_HIGH (1 << 5)
+#define PIT_ACCESS_MODE_LH   (PIT_ACCESS_MODE_LOW | PIT_ACCESS_MODE_HIGH)
 
-int usermode_call(user_func_t fn, void *fn_arg) {
-    return usermode_call_asm(fn, fn_arg, offsetof(percpu_t, ret2kern_sp),
-                             offsetof(percpu_t, user_stack));
-}
+enum pit_operational_mode {
+    PIT_OP_MODE_COUNT = 0x00,     /* interrupt on terminal count */
+    PIT_OP_MODE_ONE_SHOT = 0x01,  /* hardware re-triggerable one-shot */
+    PIT_OP_MODE_RATE = 0x02,      /* rate generator */
+    PIT_OP_MODE_WAVE = 0x03,      /* square wave generator */
+    PIT_OP_MODE_SW_STROBE = 0x04, /* software triggered strobe */
+    PIT_OP_MODE_HW_STROBE = 0x05, /* hardware triggered strobe */
+    PIT_OP_MODE_RATE_6 = 0x06,    /* rate generator */
+    PIT_OP_MODE_WAVE_7 = 0x07     /* square wave generator */
+};
+typedef enum pit_operational_mode pit_operational_mode_t;
 
-void kernel_main(void) {
-    printk("\nKTF - Kernel Test Framework!\n\n");
+#define PIT_BCD_MODE (~(1 << 0))
 
-    if (kernel_cmdline)
-        printk("Command line: %s\n", kernel_cmdline);
+extern void init_pit(void);
+extern void pit_interrupt_handler(void);
+extern void pit_sleep(uint64_t ms);
 
-    zap_boot_mappings();
-    display_memory_map();
-    display_multiboot_mmap();
-
-    if (opt_debug) {
-        _long_to_real();
-        printk("\n After long_to_real\n");
-    }
-
-    test_main();
-
-    printk("All tasks done.\n");
-
-    while (1)
-        cpu_relax();
-}
+#endif

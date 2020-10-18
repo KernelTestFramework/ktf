@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <drivers/pit.h>
 #include <drivers/serial.h>
 #include <ktf.h>
 #include <lib.h>
@@ -38,7 +39,8 @@
 #include <mm/vmm.h>
 
 extern void ret2kern_handler(void);
-extern void asm_uart_handler(void);
+extern void asm_interrupt_handler_uart(void);
+extern void asm_interrupt_handler_pit(void);
 
 static void init_tss(percpu_t *percpu) {
 #if defined(__i386__)
@@ -145,10 +147,12 @@ void init_traps(unsigned int cpu) {
     set_intr_gate(&percpu->idt[X86_RET2KERN_INT], __KERN_CS, _ul(ret2kern_handler), GATE_DPL3, GATE_PRESENT, 0);
     /* clang-format on */
 
-    set_intr_gate(&percpu->idt[COM1_IRQ0_OFFSET], __KERN_CS, _ul(asm_uart_handler),
-                  GATE_DPL0, GATE_PRESENT, 0);
-    set_intr_gate(&percpu->idt[COM2_IRQ0_OFFSET], __KERN_CS, _ul(asm_uart_handler),
-                  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[COM1_IRQ0_OFFSET], __KERN_CS,
+                  _ul(asm_interrupt_handler_uart), GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[COM2_IRQ0_OFFSET], __KERN_CS,
+                  _ul(asm_interrupt_handler_uart), GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[PIT_IRQ0_OFFSET], __KERN_CS,
+                  _ul(asm_interrupt_handler_pit), GATE_DPL0, GATE_PRESENT, 0);
 
     barrier();
     lidt(&percpu->idt_ptr);
