@@ -46,6 +46,7 @@
 #include <smp/smp.h>
 
 #include <drivers/pic.h>
+#include <drivers/pit.h>
 #include <drivers/serial.h>
 #include <slab.h>
 
@@ -221,6 +222,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* Initialize console input */
     uart_input_init(0);
+
+    /* Initialize Programmable Interrupt Timer */
+    init_pit();
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));

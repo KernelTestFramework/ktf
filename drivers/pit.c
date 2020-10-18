@@ -22,51 +22,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <console.h>
-#include <ktf.h>
+#include <atomic.h>
+#include <drivers/pic.h>
+#include <drivers/pit.h>
 #include <lib.h>
-#include <multiboot.h>
-#include <percpu.h>
-#include <sched.h>
-#include <setup.h>
+#include <time.h>
 
-extern void _long_to_real(void);
+static volatile uint64_t ticks = 0;
 
-extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2kern_sp,
-                             unsigned long user_stack);
-
-void ret2kern_handler(void) {
-    /* clang-format off */
-    asm volatile("mov %%gs:(%0), %%" STR(_ASM_SP) "\n"
-                 "POPF \n"
-                 ::"r"(offsetof(percpu_t, ret2kern_sp)));
-    /* clang-format on */
+void init_pit(void) {
+    outb(PIT_COMMAND_PORT,
+         PIT_CHANNEL_0 & PIT_ACCESS_MODE_LH & PIT_OP_MODE_RATE & PIT_BCD_MODE);
+    outb(PIT_DATA_PORT_CH0, PIT_FREQUENCY & 0xFF);          /* send low byte */
+    outb(PIT_DATA_PORT_CH0, (PIT_FREQUENCY & 0xFF00) >> 8); /* send high byte */
+    pic_enable_irq(PIC1_DEVICE_SEL, PIT_IRQ);
 }
 
-int usermode_call(user_func_t fn, void *fn_arg) {
-    return usermode_call_asm(fn, fn_arg, offsetof(percpu_t, ret2kern_sp),
-                             offsetof(percpu_t, user_stack));
-}
+void pit_interrupt_handler(void) { ++ticks; }
 
-void kernel_main(void) {
-    printk("\nKTF - Kernel Test Framework!\n\n");
-
-    if (kernel_cmdline)
-        printk("Command line: %s\n", kernel_cmdline);
-
-    zap_boot_mappings();
-    display_memory_map();
-    display_multiboot_mmap();
-
-    if (opt_debug) {
-        _long_to_real();
-        printk("\n After long_to_real\n");
-    }
-
-    test_main();
-
-    printk("All tasks done.\n");
-
-    while (1)
+void pit_sleep(uint64_t ms) {
+    uint64_t end = ticks + ms;
+    while (ticks < end) {
         cpu_relax();
+    }
 }
