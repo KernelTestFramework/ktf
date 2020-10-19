@@ -22,7 +22,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <drivers/pic.h>
+#include <apic.h>
+#include <ioapic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <setup.h>
@@ -91,14 +92,15 @@ void uart_init(io_port_t port, unsigned baud) {
     outb(port + UART_MCR_REG_OFFSET, mcr.reg);
 }
 
-void uart_input_init() {
+void uart_input_init(uint8_t dst_cpus) {
     /* Initialize input state */
     memset(&input_state, 0, sizeof(input_state));
 
     /* Enable IRQ lines */
     printk("Enabling serial input\n");
-    pic_enable_irq(PIC1_DEVICE_SEL, COM1_IRQ);
-    pic_enable_irq(PIC2_DEVICE_SEL, COM2_IRQ);
+
+    configure_isa_irq(COM1_IRQ, COM1_IRQ0_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
+    configure_isa_irq(COM2_IRQ, COM2_IRQ0_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
 }
 
 static inline int uart_port_status(io_port_t port) {
@@ -169,5 +171,6 @@ void uart_handler(io_port_t ports[2]) {
             printk("%c", input);
         }
     }
-    outb(PIC1_PORT_CMD, PIC_EOI);
+
+    apic_EOI();
 }

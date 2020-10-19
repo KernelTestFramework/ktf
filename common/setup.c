@@ -175,9 +175,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     /* Initialize Programmable Interrupt Controller */
     init_pic();
 
-    /* Initialize console input */
-    uart_input_init();
-
     /* PIC is initialized - enable local interrupts */
     sti();
 
@@ -221,6 +218,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_smp();
 
     init_ioapic();
+
+    /* Initialize console input */
+    uart_input_init(0);
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));
