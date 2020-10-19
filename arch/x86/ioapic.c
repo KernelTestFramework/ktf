@@ -36,6 +36,9 @@
 /* MP specification defines bus name as array of 6 characters filled up with blanks */
 #define IOAPIC_SYSTEM_BUS_NAME_SIZE 6
 
+static ioapic_t ioapics[MAX_IOAPICS];
+static unsigned nr_ioapics;
+
 static list_head_t bus_list = LIST_INIT(bus_list);
 
 static int __get_system_bus_name(uint8_t bus_name[IOAPIC_SYSTEM_BUS_NAME_SIZE],
@@ -164,3 +167,145 @@ irq_override_t *get_system_pci_bus_irq(uint8_t irq_type, uint32_t irq_src) {
     return __get_irq_override(bus, irq_type, irq_src);
 }
 
+void init_ioapic(void) {
+    printk("Initializing IOAPICs\n");
+
+    for (unsigned i = 0; i < nr_ioapics; i++) {
+        ioapic_t *ioapic = &ioapics[i];
+        ioapic_version_t version;
+        ioapic_id_t id;
+
+        id.reg = ioapic_read32(ioapic, IOAPIC_ID);
+        if (ioapic->id != id.apic_id) {
+            panic("IOAPIC with unexpected APIC ID detected: 0x%02x (expected: "
+                  "0x%02x)\n",
+                  id.apic_id, ioapic->id);
+        }
+
+        version.reg = ioapic_read32(ioapic, IOAPIC_VERSION);
+        ioapic->version = version.version;
+        ioapic->nr_entries = version.max_redir_entry + 1;
+
+        for (unsigned irq = 0; irq < ioapic->nr_entries; irq++)
+            set_ioapic_irq_mask(ioapic, irq, IOAPIC_INT_MASK);
+    }
+}
+
+ioapic_t *get_ioapic(uint8_t id) {
+    for (unsigned i = 0; i < nr_ioapics; i++) {
+        if (ioapics[i].id == id)
+            return &ioapics[i];
+    }
+
+    return NULL;
+}
+
+ioapic_t *add_ioapic(uint8_t id, uint8_t version, bool enabled, uint64_t base_address,
+                     uint32_t gsi_base) {
+    ioapic_t *ioapic;
+
+    ioapic = get_ioapic(id);
+    if (!ioapic) {
+        BUG_ON(nr_ioapics > MAX_IOAPICS);
+        ioapic = &ioapics[nr_ioapics++];
+    }
+
+    ioapic->id = id;
+    ioapic->version = version;
+    ioapic->enabled = enabled;
+    ioapic->base_address = base_address;
+    ioapic->gsi_base = gsi_base;
+
+    ioapic->virt_address =
+        vmap(paddr_to_virt(ioapic->base_address), paddr_to_mfn(ioapic->base_address),
+             PAGE_ORDER_4K, L1_PROT);
+    BUG_ON(!ioapic->virt_address);
+
+    return ioapic;
+}
+
+int get_ioapic_redirtbl_entry(ioapic_t *ioapic, unsigned n,
+                              ioapic_redirtbl_entry_t *entry) {
+    ASSERT(ioapic && entry);
+
+    if (n >= ioapic->nr_entries)
+        return -EINVAL;
+
+    entry->low = ioapic_read32(ioapic, IOAPIC_REDIRTBL(n));
+    entry->high = ioapic_read32(ioapic, IOAPIC_REDIRTBL(n) + 1);
+
+    return 0;
+}
+
+int set_ioapic_redirtbl_entry(ioapic_t *ioapic, unsigned n,
+                              ioapic_redirtbl_entry_t *entry) {
+    ASSERT(ioapic && entry);
+
+    if (n >= ioapic->nr_entries)
+        return -EINVAL;
+
+    ioapic_write32(ioapic, IOAPIC_REDIRTBL(n), entry->low);
+    ioapic_write32(ioapic, IOAPIC_REDIRTBL(n) + 1, entry->high);
+
+    return 0;
+}
+
+void set_ioapic_irq_mask(ioapic_t *ioapic, unsigned irq, ioapic_int_mask_t mask) {
+    ioapic_redirtbl_entry_t entry;
+
+    get_ioapic_redirtbl_entry(ioapic, irq, &entry);
+    entry.int_mask = mask;
+    set_ioapic_redirtbl_entry(ioapic, irq, &entry);
+}
+
+static inline bool is_ioapic_irq(ioapic_t *ioapic, uint32_t irq_src) {
+    return irq_src >= ioapic->gsi_base && irq_src < ioapic->gsi_base + ioapic->nr_entries;
+}
+
+static ioapic_t *find_ioapic_for_irq(uint32_t irq_src) {
+    for (unsigned i = 0; i < nr_ioapics; i++) {
+        ioapic_t *ioapic = &ioapics[i];
+
+        if (is_ioapic_irq(ioapic, irq_src))
+            return ioapic;
+    }
+
+    return NULL;
+}
+
+void configure_isa_irq(unsigned irq_src, uint8_t vector, ioapic_dest_mode_t dst_mode,
+                       uint8_t dst_ids) {
+    irq_override_t *irq_override = get_system_isa_bus_irq(IOAPIC_IRQ_TYPE_INT, irq_src);
+    ioapic_redirtbl_entry_t entry;
+    ioapic_polarity_t polarity = IOAPIC_POLARITY_AH;
+    ioapic_trigger_mode_t trigger_mode = IOAPIC_TRIGGER_MODE_EDGE;
+    ioapic_t *ioapic;
+
+    if (irq_override) {
+        irq_src = irq_override->dst;
+
+        if (irq_override->dst_id == IOAPIC_DEST_ID_UNKNOWN)
+            ioapic = find_ioapic_for_irq(irq_src);
+        else
+            ioapic = get_ioapic(irq_override->dst_id);
+
+        if (irq_override->polarity == IOAPIC_IRQ_OVR_POLARITY_AL)
+            polarity = IOAPIC_POLARITY_AL;
+
+        if (irq_override->trigger_mode == IOAPIC_IRQ_OVR_TRIGGER_LT)
+            trigger_mode = IOAPIC_TRIGGER_MODE_LEVEL;
+    }
+    else {
+        ioapic = find_ioapic_for_irq(irq_src);
+    }
+
+    get_ioapic_redirtbl_entry(ioapic, irq_src, &entry);
+    entry.vector = vector;
+    entry.deliv_mode = IOAPIC_DELIVERY_MODE_FIXED;
+    entry.dest_mode = dst_mode;
+    entry.polarity = polarity;
+    entry.trigger_mode = trigger_mode;
+    entry.destination = dst_ids;
+    entry.int_mask = IOAPIC_INT_UNMASK;
+    set_ioapic_redirtbl_entry(ioapic, irq_src, &entry);
+}

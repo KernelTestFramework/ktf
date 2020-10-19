@@ -263,6 +263,9 @@ static int process_madt_entries(void) {
         case ACPI_MADT_TYPE_IOAPIC: {
             acpi_madt_ioapic_t *madt_ioapic = (acpi_madt_ioapic_t *) entry->data;
 
+            add_ioapic(madt_ioapic->ioapic_id, 0x00, true, madt_ioapic->base_address,
+                       madt_ioapic->gsi_base);
+
             printk("ACPI: [MADT] IOAPIC ID: %u, Base Address: 0x%08x, GSI Base: 0x%08x\n",
                    madt_ioapic->ioapic_id, madt_ioapic->base_address,
                    madt_ioapic->gsi_base);
@@ -336,6 +339,9 @@ static int process_madt_entries(void) {
         }
         case ACPI_MADT_TYPE_IOSAPIC: {
             acpi_madt_iosapic_t *madt_iosapic = (acpi_madt_iosapic_t *) entry->data;
+
+            add_ioapic(madt_iosapic->ioapic_id, 0x00, true, madt_iosapic->base_address,
+                       madt_iosapic->gsi_base);
 
             printk("ACPI: [MADT] IOSAPIC ID: %u, Base Address: %p, GSI Base: 0x%08x\n",
                    madt_iosapic->ioapic_id, _ptr(madt_iosapic->base_address),

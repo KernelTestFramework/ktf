@@ -27,6 +27,7 @@
 #include <cmdline.h>
 #include <console.h>
 #include <cpuid.h>
+#include <ioapic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <multiboot.h>
@@ -218,6 +219,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_tasks();
 
     init_smp();
+
+    init_ioapic();
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));
