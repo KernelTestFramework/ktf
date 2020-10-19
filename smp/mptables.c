@@ -233,6 +233,9 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
         case MPC_IOAPIC_ENTRY: {
             mpc_ioapic_entry_t *mpc_ioapic = (mpc_ioapic_entry_t *) entry_ptr;
 
+            add_ioapic(mpc_ioapic->id, mpc_ioapic->version, mpc_ioapic->en,
+                       mpc_ioapic->base_addr, 0x0U);
+
             dump_mpc_ioapic_entry(mpc_ioapic);
             entry_ptr += sizeof(*mpc_ioapic);
             break;

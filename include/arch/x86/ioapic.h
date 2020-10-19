@@ -29,6 +29,19 @@
 #include <lib.h>
 #include <list.h>
 
+/* IOAPIC ID is 4 bits long */
+#define MAX_IOAPICS (1 << 4)
+
+/* IOAPIC register offsets */
+#define IOAPIC_ID          0x00
+#define IOAPIC_VERSION     0x01
+#define IOAPIC_ARB         0x02
+#define IOAPIC_REDIRTBL(n) (0x10 + 2 * (n))
+
+/* MMIO access registers */
+#define IOAPIC_REGSEL 0x00
+#define IOAPIC_IOWIN  0x10
+
 #define IOAPIC_DEST_ID_UNKNOWN ((uint8_t) 0xFF)
 
 #ifndef __ASSEMBLY__
@@ -67,6 +80,54 @@ struct bus {
     list_head_t irq_overrides;
 };
 typedef struct bus bus_t;
+
+struct ioapic {
+    uint8_t id;
+    uint8_t version;
+    bool enabled;
+    uint64_t base_address;
+    void *virt_address;
+    uint32_t gsi_base;
+    unsigned nr_entries;
+};
+typedef struct ioapic ioapic_t;
+
+union ioapic_id {
+    struct {
+        /* clang-format off */
+        uint32_t rsvd1   : 24,
+                 apic_id :  4,
+                 rsvd2   :  4;
+        /* clang-format on */
+    } __packed;
+    uint32_t reg;
+};
+typedef union ioapic_id ioapic_id_t;
+
+union ioapic_version {
+    struct {
+        /* clang-format off */
+        uint32_t version         : 8,
+                 rsvd1           : 8,
+                 max_redir_entry : 8,
+                 rsvd2           : 8;
+        /* clang-format on */
+    } __packed;
+    uint32_t reg;
+};
+typedef union ioapic_version ioapic_version_t;
+
+union ioapic_arb {
+    struct {
+        /* clang-format off */
+        uint32_t rsvd1   : 24,
+                 apic_id :  4,
+                 rsvd2   :  4;
+        /* clang-format on */
+    } __packed;
+    uint32_t reg;
+};
+typedef union ioapic_arb ioapic_arb_t;
 
 enum ioapic_irq_type {
     IOAPIC_IRQ_TYPE_INT = 0x00,
@@ -116,12 +177,59 @@ enum ioapic_int_mask {
 };
 typedef enum ioapic_int_mask ioapic_int_mask_t;
 
+union ioapic_redirtbl_entry {
+    struct {
+        /* clang-format off */
+        uint64_t vector       :  8,
+                 deliv_mode   :  3,
+                 dest_mode    :  1,
+                 deliv_status :  1,
+                 polarity     :  1,
+                 remote_irr   :  1,
+                 trigger_mode :  1,
+                 int_mask     :  1,
+                 rsvd         : 39,
+                 destination  :  8;
+        /* clang-format on */
+    } __packed;
+    struct {
+        uint32_t low;
+        uint32_t high;
+    } __packed;
+    uint64_t reg;
+};
+typedef union ioapic_redirtbl_entry ioapic_redirtbl_entry_t;
+
 /* External declarations */
 
 extern bus_t *add_system_bus(uint8_t id, const char *name, size_t namelen);
 extern int add_system_bus_irq_override(uint8_t bus_id, irq_override_t *irq_override);
 extern irq_override_t *get_system_isa_bus_irq(uint8_t irq_type, uint32_t irq_src);
 extern irq_override_t *get_system_pci_bus_irq(uint8_t irq_type, uint32_t irq_src);
+
+extern void init_ioapic(void);
+extern ioapic_t *get_ioapic(uint8_t id);
+extern ioapic_t *add_ioapic(uint8_t id, uint8_t version, bool enabled,
+                            uint64_t base_address, uint32_t gsi_base);
+extern int get_ioapic_redirtbl_entry(ioapic_t *ioapic, unsigned n,
+                                     ioapic_redirtbl_entry_t *entry);
+extern int set_ioapic_redirtbl_entry(ioapic_t *ioapic, unsigned n,
+                                     ioapic_redirtbl_entry_t *entry);
+extern void set_ioapic_irq_mask(ioapic_t *ioapic, unsigned irq, ioapic_int_mask_t mask);
+extern void configure_isa_irq(unsigned irq_src, uint8_t vector,
+                              ioapic_dest_mode_t dst_mode, uint8_t dst_ids);
+
+/* Static declarations */
+
+static inline uint32_t ioapic_read32(ioapic_t *ioapic, uint8_t reg) {
+    *(volatile uint8_t *) (ioapic->virt_address + IOAPIC_REGSEL) = reg;
+    return *(volatile uint32_t *) (ioapic->virt_address + IOAPIC_IOWIN);
+}
+
+static inline void ioapic_write32(ioapic_t *ioapic, uint8_t reg, uint32_t value) {
+    *(volatile uint8_t *) (ioapic->virt_address + IOAPIC_REGSEL) = reg;
+    *(volatile uint32_t *) (ioapic->virt_address + IOAPIC_IOWIN) = value;
+}
 
 #endif /* __ASSEMBLY__ */
 
