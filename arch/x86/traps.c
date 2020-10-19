@@ -23,6 +23,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <apic.h>
 #include <console.h>
 #include <drivers/keyboard.h>
 #include <drivers/pit.h>
@@ -42,6 +43,7 @@
 extern void asm_interrupt_handler_uart(void);
 extern void asm_interrupt_handler_pit(void);
 extern void asm_interrupt_handler_keyboard(void);
+extern void asm_interrupt_handler_apic_timer(void);
 
 static void ret2kern_handler(void) {
     /* clang-format off */
@@ -164,6 +166,8 @@ void init_traps(unsigned int cpu) {
                   _ul(asm_interrupt_handler_pit), GATE_DPL0, GATE_PRESENT, 0);
     set_intr_gate(&percpu->idt[KEYBOARD_PORT1_IRQ0_OFFSET], __KERN_CS,
                   _ul(asm_interrupt_handler_keyboard), GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[APIC_TIMER_IRQ_OFFSET], __KERN_CS,
+                  _ul(asm_interrupt_handler_apic_timer), GATE_DPL0, GATE_PRESENT, 0);
 
     barrier();
     lidt(&percpu->idt_ptr);
