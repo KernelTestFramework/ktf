@@ -233,8 +233,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     /* Initialize console input */
     uart_input_init(get_bsp_cpu_id());
 
-    /* Initialize Programmable Interrupt Timer */
+    /* Initialize timers */
     init_pit(get_bsp_cpu_id());
+    init_apic_timer();
 
     /* Initialize keyboard */
     init_keyboard(get_bsp_cpu_id());

@@ -25,9 +25,13 @@
 #ifndef KTF_APIC_H
 #define KTF_APIC_H
 
+#include <drivers/pic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <page.h>
+
+#define APIC_IRQ_BASE         PIC_IRQ_END_OFFSET
+#define APIC_TIMER_IRQ_OFFSET (APIC_IRQ_BASE + 0x00)
 
 #define MSR_X2APIC_REGS 0x800U
 
@@ -83,7 +87,7 @@ enum xapic_regs {
     APIC_LVT_LINT1   = 0x360, /* LVT LINT1 Register */
     APIC_LVT_ERROR   = 0x370, /* LVT Error Register */
     APIC_TMR_ICR     = 0x380, /* Timer Initial Count Register */
-    APIC_TMR_CCR     = 0x380, /* Timer Current Count Register */
+    APIC_TMR_CCR     = 0x390, /* Timer Current Count Register */
 
     APIC_TMR_DCR     = 0x3e0, /* Timer Divide Configuration Register */
 
@@ -304,12 +308,12 @@ typedef union apic_esr apic_esr_t;
 
 enum apic_timer_divide {
     APIC_TIMER_DIVIDE_BY_2 = 0x00,
-    APIC_TIMER_DIVIDE_BY_4 = 0x08,
+    APIC_TIMER_DIVIDE_BY_4 = 0x01,
     APIC_TIMER_DIVIDE_BY_8 = 0x02,
-    APIC_TIMER_DIVIDE_BY_16 = 0x0a,
-    APIC_TIMER_DIVIDE_BY_32 = 0x01,
+    APIC_TIMER_DIVIDE_BY_16 = 0x03,
+    APIC_TIMER_DIVIDE_BY_32 = 0x08,
     APIC_TIMER_DIVIDE_BY_64 = 0x09,
-    APIC_TIMER_DIVIDE_BY_128 = 0x03,
+    APIC_TIMER_DIVIDE_BY_128 = 0x0a,
     APIC_TIMER_DIVIDE_BY_1 = 0x0b,
 };
 typedef enum apic_timer_divide apic_timer_divide_t;
@@ -456,6 +460,10 @@ extern apic_mode_t apic_get_mode(void);
 extern void init_apic(unsigned int cpu, apic_mode_t mode);
 extern apic_icr_t apic_icr_read(void);
 extern void apic_icr_write(const apic_icr_t *icr);
+
+extern void init_apic_timer(void);
+extern void apic_timer_sleep(uint64_t ms);
+extern bool is_apic_timer_enabled(void);
 
 /* Static declarations */
 
