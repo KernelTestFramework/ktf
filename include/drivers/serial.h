@@ -126,7 +126,7 @@ typedef union interrupt_enable_register ier_t;
 
 extern void uart_init(io_port_t port, unsigned baud);
 extern void uart_handler(io_port_t ports[2]);
-extern void uart_input_init();
+extern void uart_input_init(uint8_t dst_cpus);
 extern int serial_putchar(io_port_t port, char c);
 extern int serial_write(io_port_t port, const char *buf, size_t len);
 
