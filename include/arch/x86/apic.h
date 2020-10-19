@@ -39,6 +39,7 @@
 /* Local APIC definitions */
 #define APIC_ID                0x020
 #define APIC_LVR               0x030
+#define APIC_EOI               0x0b0
 #define APIC_SPIV              0x0f0
 #define APIC_SPIV_APIC_ENABLED 0x00100
 
@@ -58,6 +59,8 @@
 #define SET_APIC_DEST_FIELD(x) ((x) << 24)
 
 #define GET_SIPI_VECTOR(addr) ((_ul((addr)) >> PAGE_SHIFT) & 0xFF)
+
+#define APIC_EOI_SIGNAL 0x0
 
 #ifndef __ASSEMBLY__
 
@@ -128,6 +131,8 @@ static inline void apic_wait_ready(void) {
     while (apic_read(APIC_ICR) & APIC_ICR_BUSY)
         cpu_relax();
 }
+
+static inline void apic_EOI(void) { apic_write(APIC_EOI, APIC_EOI_SIGNAL); }
 
 #endif /* __ASSEMBLY__ */
 
