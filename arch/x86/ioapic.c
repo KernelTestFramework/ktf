@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <errno.h>
 #include <ioapic.h>
 #include <ktf.h>
 #include <list.h>
@@ -108,3 +109,58 @@ bus_t *add_system_bus(uint8_t id, const char *name, size_t namelen) {
     bus = __add_system_bus(id, bus_name);
     return bus;
 }
+
+int add_system_bus_irq_override(uint8_t bus_id, irq_override_t *override) {
+    irq_override_t *new_override;
+    bus_t *bus;
+
+    bus = get_system_bus_by_id(bus_id);
+    if (!bus)
+        return -ENODEV;
+
+    new_override = ktf_alloc(sizeof(*new_override));
+    if (!new_override)
+        return -ENOMEM;
+
+    memcpy(new_override, override, sizeof(*new_override));
+    list_add_tail(&new_override->list, &bus->irq_overrides);
+    return 0;
+}
+
+static irq_override_t *__get_irq_override(bus_t *bus, uint8_t irq_type,
+                                          uint32_t irq_src) {
+    irq_override_t *override;
+
+    if (!bus)
+        return NULL;
+
+    list_for_each_entry (override, &bus->irq_overrides, list) {
+        if (override->type == irq_type && override->src == irq_src)
+            return override;
+    }
+
+    return NULL;
+}
+
+irq_override_t *get_system_isa_bus_irq(uint8_t irq_type, uint32_t irq_src) {
+    bus_t *bus;
+
+    bus = get_system_bus_by_name(IOAPIC_SYSTEM_ISA_BUS_NAME,
+                                 strlen(IOAPIC_SYSTEM_ISA_BUS_NAME));
+    if (!bus)
+        return NULL;
+
+    return __get_irq_override(bus, irq_type, irq_src);
+}
+
+irq_override_t *get_system_pci_bus_irq(uint8_t irq_type, uint32_t irq_src) {
+    bus_t *bus;
+
+    bus = get_system_bus_by_name(IOAPIC_SYSTEM_PCI_BUS_NAME,
+                                 strlen(IOAPIC_SYSTEM_PCI_BUS_NAME));
+    if (!bus)
+        return NULL;
+
+    return __get_irq_override(bus, irq_type, irq_src);
+}
+

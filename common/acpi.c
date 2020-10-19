@@ -270,6 +270,18 @@ static int process_madt_entries(void) {
         }
         case ACPI_MADT_TYPE_IRQ_SRC: {
             acpi_madt_irq_src_t *madt_irq_src = (acpi_madt_irq_src_t *) entry->data;
+            irq_override_t override;
+
+            memset(&override, 0, sizeof(override));
+            override.type = ACPI_MADT_IRQ_TYPE_INT;
+            override.src = madt_irq_src->irq_src;
+            override.dst = madt_irq_src->gsi;
+            /* Destination to be found. Each IOAPIC has GSI base and Max Redir Entry
+             * register */
+            override.dst_id = IOAPIC_DEST_ID_UNKNOWN;
+            override.polarity = madt_irq_src->polarity;
+            override.trigger_mode = madt_irq_src->trigger_mode;
+            add_system_bus_irq_override(madt_irq_src->bus, &override);
 
             printk("ACPI: [MADT] IRQ Src Override: Bus: %3s, IRQ: 0x%02x, GSI: 0x%08x, "
                    "Polarity: %11s, Trigger: %9s\n",
@@ -280,6 +292,14 @@ static int process_madt_entries(void) {
         }
         case ACPI_MADT_TYPE_NMI_SRC: {
             acpi_madt_nmi_src_t *madt_nmi_src = (acpi_madt_nmi_src_t *) entry->data;
+            irq_override_t override;
+
+            memset(&override, 0, sizeof(override));
+            override.type = ACPI_MADT_IRQ_TYPE_NMI;
+            override.src = madt_nmi_src->gsi;
+            override.polarity = madt_nmi_src->polarity;
+            override.trigger_mode = madt_nmi_src->trigger_mode;
+            add_system_bus_irq_override(ACPI_MADT_INT_BUS_ISA, &override);
 
             printk("ACPI: [MADT] NMI Src: GSI: 0x%08x, Polarity: %11s, Trigger: %9s\n",
                    madt_nmi_src->gsi, madt_int_polarity_names[madt_nmi_src->polarity],
@@ -288,6 +308,15 @@ static int process_madt_entries(void) {
         }
         case ACPI_MADT_TYPE_LAPIC_NMI: {
             acpi_madt_lapic_nmi_t *madt_lapic_nmi = (acpi_madt_lapic_nmi_t *) entry->data;
+            irq_override_t override;
+
+            memset(&override, 0, sizeof(override));
+            override.type = ACPI_MADT_IRQ_TYPE_NMI;
+            override.dst_id = madt_lapic_nmi->cpu_uid;
+            override.dst = madt_lapic_nmi->lapic_lint;
+            override.polarity = madt_lapic_nmi->polarity;
+            override.trigger_mode = madt_lapic_nmi->trigger_mode;
+            add_system_bus_irq_override(ACPI_MADT_INT_BUS_ISA, &override);
 
             printk("ACPI: [MADT] Local APIC NMI LINT#: CPU UID: %02x, Polarity: %11s, "
                    "Trigger: %9s, LINT#: 0x%02x\n",

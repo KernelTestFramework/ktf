@@ -239,6 +239,16 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
         }
         case MPC_IO_INT_ENTRY: {
             mpc_ioint_entry_t *mpc_ioint = (mpc_ioint_entry_t *) entry_ptr;
+            irq_override_t override;
+
+            memset(&override, 0, sizeof(override));
+            override.type = mpc_ioint->int_type;
+            override.src = mpc_ioint->src_bus_irq;
+            override.dst_id = mpc_ioint->dst_ioapic_id;
+            override.dst = mpc_ioint->dst_ioapic_intin;
+            override.polarity = mpc_ioint->po;
+            override.trigger_mode = mpc_ioint->el;
+            add_system_bus_irq_override(mpc_ioint->src_bus_id, &override);
 
             dump_mpc_ioint_entry(mpc_ioint);
             entry_ptr += sizeof(*mpc_ioint);
@@ -246,6 +256,16 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
         }
         case MPC_LOCAL_INT_ENTRY: {
             mpc_lint_entry_t *mpc_lint = (mpc_lint_entry_t *) entry_ptr;
+            irq_override_t override;
+
+            memset(&override, 0, sizeof(override));
+            override.type = mpc_lint->int_type;
+            override.src = mpc_lint->src_bus_irq;
+            override.dst_id = mpc_lint->dst_lapic_id;
+            override.dst = mpc_lint->dst_lapic_lintin;
+            override.polarity = mpc_lint->po;
+            override.trigger_mode = mpc_lint->el;
+            add_system_bus_irq_override(mpc_lint->src_bus_id, &override);
 
             dump_mpc_lint_entry(mpc_lint);
             entry_ptr += sizeof(*mpc_lint);

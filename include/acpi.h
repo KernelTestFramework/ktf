@@ -199,8 +199,6 @@ typedef struct acpi_madt_iosapic acpi_madt_iosapic_t;
 #define ACPI_MADT_IRQ_TYPE_INT 0
 #define ACPI_MADT_IRQ_TYPE_NMI 1
 
-#define ACPI_MADT_IRQ_DST_UNKNOWN 0xFF
-
 #define ACPI_MADT_INT_POLARITY_BS   0x00
 #define ACPI_MADT_INT_POLARITY_AH   0x01
 #define ACPI_MADT_INT_POLARITY_RSVD 0x02
