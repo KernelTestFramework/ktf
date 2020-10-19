@@ -34,6 +34,9 @@ struct list_head {
 };
 typedef struct list_head list_head_t;
 
+#define LIST_INIT(head)                                                                  \
+    { .next = &(head), .prev = &(head) }
+
 /* Static declarations */
 
 static inline void list_init(list_head_t *head) {

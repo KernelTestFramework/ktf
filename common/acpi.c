@@ -24,6 +24,7 @@
  */
 #include <acpi.h>
 #include <errno.h>
+#include <ioapic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <mm/pmm.h>
@@ -223,12 +224,18 @@ static const char *madt_int_trigger_names[] = {
 static int process_madt_entries(void) {
     acpi_madt_t *madt = (acpi_madt_t *) acpi_find_table(MADT_SIGNATURE);
     acpi_madt_entry_t *entry;
+    bus_t *isa_bus;
 
     if (!madt)
         return -ENOENT;
 
     printk("ACPI: [MADT] LAPIC Addr: %p, Flags: %08x\n", _ptr(madt->lapic_addr),
            madt->flags);
+
+    isa_bus =
+        add_system_bus(ACPI_MADT_INT_BUS_ISA, madt_int_bus_names[ACPI_MADT_INT_BUS_ISA],
+                       strlen(madt_int_bus_names[ACPI_MADT_INT_BUS_ISA]));
+    BUG_ON(!isa_bus);
 
     for (void *addr = madt->entry; addr < (_ptr(madt) + madt->header.length);
          addr += entry->len) {

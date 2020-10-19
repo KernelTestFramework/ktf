@@ -24,6 +24,7 @@
  */
 #include <console.h>
 #include <errno.h>
+#include <ioapic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <multiboot.h>
@@ -221,6 +222,9 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
         }
         case MPC_BUS_ENTRY: {
             mpc_bus_entry_t *mpc_bus = (mpc_bus_entry_t *) entry_ptr;
+
+            add_system_bus(mpc_bus->id, (const char *) mpc_bus->type_str,
+                           sizeof(mpc_bus->type_str));
 
             dump_mpc_bus_entry(mpc_bus);
             entry_ptr += sizeof(*mpc_bus);
