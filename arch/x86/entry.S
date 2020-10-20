@@ -40,6 +40,20 @@ ENTRY(entry_\sym)
 END_FUNC(entry_\sym)
 .endm
 
+.macro interrupt_handler sym func
+ENTRY(asm_interrupt_handler_\sym)
+    cld
+    SAVE_REGS
+    call \func
+    RESTORE_REGS
+#if defined(__x86_64__)
+    iretq
+#else
+    iret
+#endif
+END_FUNC(asm_interrupt_handler_\sym)
+.endm
+
 exception_handler DE  X86_EX_DE  0
 exception_handler DB  X86_EX_DB  0
 exception_handler NMI X86_EX_NMI 0
