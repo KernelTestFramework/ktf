@@ -22,33 +22,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef KTF_SETUP_H
-#define KTF_SETUP_H
+#ifndef KTF_CPUID_H
+#define KTF_CPUID_H
 
-#ifndef __ASSEMBLY__
-#include <cmdline.h>
-#include <page.h>
 #include <string.h>
 
-#include <mm/pmm.h>
+/* CPU vendor detection */
+#define CPUID_EXT_INFO_LEAF  0x80000000U
+#define CPUID_BRAND_INFO_MIN 0x80000002U
+#define CPUID_BRAND_INFO_MAX 0x80000004U
 
-extern io_port_t com_ports[2];
+static inline bool cpu_vendor_string(char *cpu_str) {
+    uint32_t leaf = CPUID_EXT_INFO_LEAF;
+    uint32_t ebx = 0, ecx = 0, edx = 0;
+    uint32_t eax = cpuid_eax(leaf);
 
-extern const char *kernel_cmdline;
-extern char cpu_identifier[49];
+    if (!(eax & leaf) || (eax < CPUID_BRAND_INFO_MAX)) {
+        dprintk("Extended Function CPUID Information not supported\n");
+        return false;
+    }
 
-static inline void get_com_ports(void) {
-    memcpy((void *) com_ports, (void *) (BDA_COM_PORTS_ENTRY), sizeof(com_ports));
+    for (leaf = CPUID_BRAND_INFO_MIN; leaf <= CPUID_BRAND_INFO_MAX;
+         leaf++, cpu_str += 16) {
+        cpuid(leaf, &eax, &ebx, &ecx, &edx);
+        memcpy(cpu_str, &eax, sizeof(eax));
+        memcpy(cpu_str + 4, &ebx, sizeof(ebx));
+        memcpy(cpu_str + 8, &ecx, sizeof(ecx));
+        memcpy(cpu_str + 12, &edx, sizeof(edx));
+    }
 
-    if (com_ports[0] == 0x0)
-        com_ports[0] = 0x3f8;
-
-    if (com_ports[1] == 0x0)
-        com_ports[1] = 0x2f8;
+    return true;
 }
 
-extern void zap_boot_mappings(void);
-
-#endif /* __ASSEMBLY__ */
-
-#endif /* KTF_SETUP_H */
+#endif /* KTF_CPUID_H */
