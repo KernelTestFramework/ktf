@@ -303,7 +303,7 @@ static inline void ud2(void) { asm volatile("ud2"); }
 #define BUG()                                                                            \
     do {                                                                                 \
         ud2();                                                                           \
-    } while (0)
+    } while (true)
 #define BUG_ON(cond)                                                                     \
     do {                                                                                 \
         if ((cond))                                                                      \
