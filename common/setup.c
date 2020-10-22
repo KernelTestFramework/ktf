@@ -170,8 +170,12 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_boot_traps();
 
     /* Print cpu vendor info */
-    if (cpu_vendor_string(&cpu_identifier[0]))
+    if (cpu_vendor_string(cpu_identifier)) {
         printk("CPU: %.48s\n", cpu_identifier);
+        unsigned long freq = get_cpu_freq(cpu_identifier);
+        if (freq > 0)
+            printk("Frequency: %lu MHz\n", freq / MHZ(1));
+    }
 
     /* Initialize Programmable Interrupt Controller */
     init_pic();

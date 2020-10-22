@@ -44,6 +44,10 @@
 #define MB(x) (_U64(x) << 20)
 #define GB(x) (_U64(x) << 30)
 
+#define KHZ(x) (_U64(x) * 1000)
+#define MHZ(x) (KHZ(x) * 1000)
+#define GHZ(x) (MHZ(x) * 1000)
+
 #ifndef __ASSEMBLY__
 #define _ptr(val) ((void *) (unsigned long) (val))
 #define _ul(val)  ((unsigned long) (val))
