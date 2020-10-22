@@ -381,6 +381,20 @@ static inline unsigned int next_power_of_two(unsigned int n) {
     return n;
 }
 
+static inline unsigned long ipow(int base, unsigned int exp) {
+    unsigned long result = 1;
+    for (;;) {
+        if (exp & 1)
+            result *= base;
+        exp >>= 1;
+        if (!exp)
+            break;
+        base *= base;
+    }
+
+    return result;
+}
+
 /* External declarations */
 
 extern void halt(void);
