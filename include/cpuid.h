@@ -32,6 +32,70 @@
 #define CPUID_BRAND_INFO_MIN 0x80000002U
 #define CPUID_BRAND_INFO_MAX 0x80000004U
 
+static uint64_t get_cpu_freq(const char *cpu_str) {
+    size_t len = strlen(cpu_str);
+    uint64_t frequency = 0;
+    char buf[16];
+    char buf2[16];
+    char *reverse = &buf[0];
+    char *freq = &buf2[0];
+
+    /* we need to reverse the vendor string for parsing the freq */
+    while (len--) {
+        if (isspace(cpu_str[len])) {
+            *reverse = '\0';
+            break;
+        }
+        *reverse++ = cpu_str[len];
+    }
+
+    if (strstr(buf, "zHM")) {
+        len = strlen(buf);
+        if (len >= 1) {
+            for (int i = (int) len - 1; i >= 0; i--)
+                if (isdigit(buf[i]))
+                    *freq++ = buf[i];
+
+            frequency = strtoul(buf2, NULL, 0) * MHZ(1);
+        }
+    }
+    else if (strstr(buf, "zHG")) {
+        uint64_t multiplier = GHZ(1);
+
+        /* Convert a floating number to
+         * n * GHz + m * MHz
+         */
+        len = strlen(buf);
+        if (len >= 1) {
+            for (int i = (int) len - 1; i >= 0; i--) {
+                if (isdigit(buf[i]))
+                    *freq++ = buf[i];
+                if (ispunct(buf[i])) {
+                    *freq = '\0';
+                    frequency = strtoul(buf2, NULL, 0) * multiplier;
+                    memset(buf2, 0, sizeof(buf2));
+                    freq = &buf2[0];
+                    multiplier = MHZ(1);
+                }
+            }
+            *freq = '\0';
+
+            /* we have to check if we hit a float and calculate
+             * the length of the MHz portion e.g. 2.80GHz or 2.8GHz
+             */
+            if (multiplier == MHZ(1)) {
+                frequency +=
+                    strtoul(buf2, NULL, 0) * (1000 / ipow(10, strlen(buf2))) * multiplier;
+            }
+            else {
+                frequency = strtoul(buf2, NULL, 0) * multiplier;
+            }
+        }
+    }
+
+    return frequency;
+}
+
 static inline bool cpu_vendor_string(char *cpu_str) {
     uint32_t leaf = CPUID_EXT_INFO_LEAF;
     uint32_t ebx = 0, ecx = 0, edx = 0;

@@ -22,23 +22,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <apic.h>
 #include <atomic.h>
 #include <drivers/pic.h>
 #include <drivers/pit.h>
+#include <ioapic.h>
 #include <lib.h>
 #include <time.h>
 
 static volatile uint64_t ticks = 0;
 
-void init_pit(void) {
+void init_pit(uint8_t dst_cpus) {
     outb(PIT_COMMAND_PORT,
          PIT_CHANNEL_0 & PIT_ACCESS_MODE_LH & PIT_OP_MODE_RATE & PIT_BCD_MODE);
     outb(PIT_DATA_PORT_CH0, PIT_FREQUENCY & 0xFF);          /* send low byte */
     outb(PIT_DATA_PORT_CH0, (PIT_FREQUENCY & 0xFF00) >> 8); /* send high byte */
-    pic_enable_irq(PIC1_DEVICE_SEL, PIT_IRQ);
+    configure_isa_irq(PIT_IRQ, PIT_IRQ0_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
 }
 
-void pit_interrupt_handler(void) { ++ticks; }
+void pit_interrupt_handler(void) {
+    ++ticks;
+    apic_EOI();
+}
 
 void pit_sleep(uint64_t ms) {
     uint64_t end = ticks + ms;

@@ -28,6 +28,7 @@
 
 #ifdef KTF_UNIT_TEST
 #include <cmdline.h>
+#include <cpuid.h>
 #include <string.h>
 
 extern char *kernel_cmdline;
@@ -50,6 +51,18 @@ bool_cmd("booleantwo", opt_booltwo);
 static char memmove_string[4];
 static char range_string[] = "123456";
 static char *src, *dst;
+
+static void cpu_freq_expect(const char *cpu_str, uint64_t expectation) {
+    uint64_t result = get_cpu_freq(cpu_str);
+    if (result != expectation) {
+        printk("Could not parse cpu frequency from string '%s'\n", cpu_str);
+        printk("Expectation vs. result: %llu vs. %llu\n", expectation, result);
+        BUG();
+    }
+
+    printk("Got CPU string '%s' and frequency '%llu'\n", cpu_str, result);
+    return;
+}
 #endif
 
 static int __user_text func(void *arg) { return 0; }
@@ -115,6 +128,17 @@ void test_main(void) {
     else {
         printk("Overlaping memmove'ing did not work: %s != %s\n", range_string, "121234");
     }
+
+    cpu_freq_expect("Intel(R) Xeon(R) CPU E3-1270 V2 @ 3.50GHz", 3500000000);
+    cpu_freq_expect("Intel(R) Celeron(R) CPU J1900 @ 1.99GHz", 1990000000);
+    cpu_freq_expect("AMD G-T48L Processor", 0);
+    cpu_freq_expect("Intel(R) Atom(TM) CPU E3815 @ 1.46GHz", 1460000000);
+    cpu_freq_expect("Intel(R) Atom(TM) CPU E620 @ 600MHz", 600000000);
+    cpu_freq_expect("VIA C7 Processor 1000MHz", 1000000000);
+    cpu_freq_expect("Intel(R) Core(TM) i7 CPU 950 @ 3.07GHz", 3070000000);
+    cpu_freq_expect("AMD Ryzen Threadripper 1950X 16-Core Processor", 0);
+    cpu_freq_expect("Prototyp Amazing Foo One @ 1GHz", 1000000000);
+    cpu_freq_expect("Prototyp Amazing Foo Two @ 1.00GHz", 1000000000);
 #endif
 
     wait_for_all_tasks();
