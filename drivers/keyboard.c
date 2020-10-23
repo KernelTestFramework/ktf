@@ -35,8 +35,96 @@ static struct {
     unsigned init;
 } keyboard_state;
 
-void init_keyboard(void) {
-    outb(PIC1_PORT_DATA, KEYBOARD_IRQ_UNMASK); /* unmask keyboard irq */
+void init_keyboard() {
+    printk("Initializing keyboard driver\n");
+
+    /* Disable devices */
+    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_0);
+    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_1);
+
+    /* Flush output buffer */
+    while (inb(KEYBOARD_PORT_DATA) & KEYBOARD_STATUS_OUT_FULL)
+        ; /* discard leftover bytes */
+
+    /* Controller configuration */
+    char current_status;
+    int dual_channel;
+
+    /* Read controller config */
+    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_READ_CONFIGURATION);
+    current_status = inb(KEYBOARD_PORT_DATA);
+
+    dual_channel = !!(current_status & (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_CLOCK_1));
+    printk("Current PS/2 status before: %x\n", current_status);
+    /* Disable IRQs and translation */
+    current_status = current_status &
+                     ~(1 << KEYBOARD_CONTROLLER_CONFIG_BIT_PORT_0_INTERRUPT) &
+                     ~(1 << KEYBOARD_CONTROLLER_CONFIG_BIT_PORT_1_INTERRUPT) &
+                     ~(1 << KEYBOARD_CONTROLLER_CONFIG_BIT_TRANSLATION);
+    /* Write controller config */
+    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
+    outb(KEYBOARD_PORT_DATA, current_status);
+
+    printk("Current PS/2 status after mods: %x\n", current_status);
+    printk("PS/2 dual channel? %d\n", dual_channel);
+
+    /* Controller self test */
+    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_SELF_TEST);
+    if (inb(KEYBOARD_PORT_DATA) != KEYBOARD_RES_SELF_TEST) {
+        printk("Self test did not succed\n");
+        return;
+    }
+
+    /* Determine whether second channel exists */
+    if (dual_channel) {
+        printk("Enabling second PS/2 port\n");
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_1);
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_READ_CONFIGURATION);
+        current_status = inb(KEYBOARD_PORT_DATA);
+        dual_channel =
+            (current_status & (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_CLOCK_1)) == 0;
+    }
+    if (dual_channel)
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_1);
+
+    /* Interface tests */
+    int port1, port2 = 0;
+    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_TEST_PORT_0);
+    port1 = inb(KEYBOARD_PORT_DATA) == 0;
+    if (dual_channel) {
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_TEST_PORT_1);
+        port2 = inb(KEYBOARD_PORT_DATA) == 0;
+    }
+
+    printk("Port1 available? %d - port2 available? %d\n", port1, port2);
+    if (!port1 && !port2) {
+        printk("No available PS/2 working ports\n");
+        return;
+    }
+
+    /* Enable devices */
+    if (port1) {
+        printk("Keyboard: enabling first channel\n");
+        current_status = current_status |
+                         (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_PORT_0_INTERRUPT) |
+                         (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_CLOCK_1) |
+                         (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_TRANSLATION);
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
+        outb(KEYBOARD_PORT_DATA, current_status);
+
+        pic_enable_irq(PIC1_DEVICE_SEL, KEYBOARD_IRQ);
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_0);
+    }
+    else {
+        printk("Keyboard: enabling second channel\n");
+        current_status =
+            current_status | (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_PORT_1_INTERRUPT);
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
+        outb(KEYBOARD_PORT_DATA, current_status);
+
+        pic_enable_irq(PIC1_DEVICE_SEL, KEYBOARD_IRQ_2);
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_1);
+    }
 
     memset(&keyboard_state, 0, sizeof(keyboard_state));
 }

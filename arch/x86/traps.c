@@ -24,9 +24,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <drivers/keyboard.h>
 #include <drivers/pit.h>
 #include <drivers/serial.h>
-#include <drivers/keyboard.h>
 #include <ktf.h>
 #include <lib.h>
 #include <percpu.h>

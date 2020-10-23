@@ -27,8 +27,8 @@
 #include <cmdline.h>
 #include <console.h>
 #include <cpuid.h>
-#include <ioapic.h>
 #include <drivers/keyboard.h>
+#include <ioapic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <multiboot.h>
