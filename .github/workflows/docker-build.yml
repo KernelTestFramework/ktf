@@ -14,4 +14,4 @@ jobs:
     - name: Build the Docker image
       run: docker build . -t "ktf:build" -f tools/docker/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) --build-arg USER=$USER
     - name: Run the Docker image
-      run: docker run -e UNITTEST=1 -v $(pwd):$(pwd) -w $(pwd) "ktf:build" bash -c "make -j clean boot.iso"
+      run: docker run -e UNITTEST=1 -v $(pwd):$(pwd) -w $(pwd) "ktf:build" bash -c "make clean && make boot.iso"
