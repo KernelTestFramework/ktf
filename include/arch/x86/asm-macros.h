@@ -141,6 +141,14 @@
 #endif
 .endm
 
+.macro IRET
+#if defined(__x86_64__)
+    iretq
+#else
+    iret
+#endif
+.endm
+
 #define GLOBAL(name) \
     .global name;    \
 name:
