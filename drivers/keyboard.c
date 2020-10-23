@@ -22,78 +22,103 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <apic.h>
 #include <drivers/keyboard.h>
 #include <drivers/pic.h>
+#include <ioapic.h>
 #include <lib.h>
 #include <string.h>
 
-static struct {
-    int shift, caps, ctrl, alt;
+/* clang-format off */
+static const unsigned char key_map[] = { /* map scan code to key */
+    0xff,        SCAN_ESC,  '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
+    '\b',        '\t',      'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']',
+    SCAN_ENTER,  SCAN_CTRL, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+    SCAN_LSHIFT, '\\',      'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
+    SCAN_RSHIFT, 0x37, SCAN_ALT, ' ', SCAN_CAPS,
+    SCAN_F1, SCAN_F2, SCAN_F3, SCAN_F4, SCAN_F5, SCAN_F6, SCAN_F7, SCAN_F8, SCAN_F9, SCAN_F10,
+    SCAN_NUMLOCK, SCAN_SCROLLLOCK, SCAN_HOME, SCAN_UP, SCAN_PAGEUP, 0x4a, SCAN_LEFT,
+    SCAN_KEYPAD5, SCAN_RIGHT, 0x4e, SCAN_END, SCAN_DOWN, SCAN_PAGEDOWN, SCAN_INS, SCAN_DEL,
+    0x54, SCAN_F11, 0x56, 0x57, SCAN_F12
+};
+
+static const unsigned char key_map_up[] = { /* map scan code to upper key */
+    0xff,        SCAN_ESC,  '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
+    '\b',        '\t',      'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}',
+    SCAN_ENTER,  SCAN_CTRL, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',
+    SCAN_LSHIFT, '|',       'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?'};
+/* clang-format on */
+
+struct keyboard_state {
+    bool shift, caps, ctrl, alt;
 
     char buf[KEY_BUF];
     unsigned curr;
     unsigned init;
-} keyboard_state;
+};
+typedef struct keyboard_state keyboard_state_t;
 
-void init_keyboard() {
+static keyboard_state_t keyboard_state;
+
+void init_keyboard(uint8_t dst_cpus) {
     printk("Initializing keyboard driver\n");
 
     /* Disable devices */
-    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_0);
     outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_1);
+    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_2);
 
     /* Flush output buffer */
     while (inb(KEYBOARD_PORT_DATA) & KEYBOARD_STATUS_OUT_FULL)
         ; /* discard leftover bytes */
 
     /* Controller configuration */
-    char current_status;
-    int dual_channel;
+    keyboard_controller_config_t current_status;
+    bool dual_channel;
 
     /* Read controller config */
     outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_READ_CONFIGURATION);
-    current_status = inb(KEYBOARD_PORT_DATA);
+    current_status.config = inb(KEYBOARD_PORT_DATA);
 
-    dual_channel = !!(current_status & (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_CLOCK_1));
-    printk("Current PS/2 status before: %x\n", current_status);
+    dual_channel = current_status.clock2 == 0 ? 1 : 0; /* second channel enabled if 0 */
+
+    printk("Current PS/2 status before: %x\n", current_status.config);
+
     /* Disable IRQs and translation */
-    current_status = current_status &
-                     ~(1 << KEYBOARD_CONTROLLER_CONFIG_BIT_PORT_0_INTERRUPT) &
-                     ~(1 << KEYBOARD_CONTROLLER_CONFIG_BIT_PORT_1_INTERRUPT) &
-                     ~(1 << KEYBOARD_CONTROLLER_CONFIG_BIT_TRANSLATION);
+    current_status.port1_int = 0;
+    current_status.port2_int = 0;
+    current_status.translation = 0;
+
     /* Write controller config */
     outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
-    outb(KEYBOARD_PORT_DATA, current_status);
+    outb(KEYBOARD_PORT_DATA, current_status.config);
 
-    printk("Current PS/2 status after mods: %x\n", current_status);
+    printk("Current PS/2 status after mods: %x\n", current_status.config);
     printk("PS/2 dual channel? %d\n", dual_channel);
 
     /* Controller self test */
     outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_SELF_TEST);
     if (inb(KEYBOARD_PORT_DATA) != KEYBOARD_RES_SELF_TEST) {
-        printk("Self test did not succed\n");
+        printk("Self test did not succeed\n");
         return;
     }
 
     /* Determine whether second channel exists */
     if (dual_channel) {
-        printk("Enabling second PS/2 port\n");
-        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_1);
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_2);
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_READ_CONFIGURATION);
-        current_status = inb(KEYBOARD_PORT_DATA);
-        dual_channel =
-            (current_status & (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_CLOCK_1)) == 0;
+        current_status.config = inb(KEYBOARD_PORT_DATA);
+        dual_channel = current_status.clock2 == 0 ? 1 : 0;
     }
     if (dual_channel)
-        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_1);
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_2);
 
     /* Interface tests */
     int port1, port2 = 0;
-    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_TEST_PORT_0);
-    port1 = inb(KEYBOARD_PORT_DATA) == 0;
+    outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_TEST_PORT_1);
+    port1 = inb(KEYBOARD_PORT_DATA) == 0 ? 1 : 0;
     if (dual_channel) {
-        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_TEST_PORT_1);
-        port2 = inb(KEYBOARD_PORT_DATA) == 0;
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_TEST_PORT_2);
+        port2 = inb(KEYBOARD_PORT_DATA) == 0 ? 1 : 0;
     }
 
     printk("Port1 available? %d - port2 available? %d\n", port1, port2);
@@ -105,25 +130,25 @@ void init_keyboard() {
     /* Enable devices */
     if (port1) {
         printk("Keyboard: enabling first channel\n");
-        current_status = current_status |
-                         (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_PORT_0_INTERRUPT) |
-                         (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_CLOCK_1) |
-                         (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_TRANSLATION);
+        current_status.port1_int = 1;
+        current_status.clock2 = 1; /* disable second port clock */
+        current_status.translation = 1;
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
-        outb(KEYBOARD_PORT_DATA, current_status);
+        outb(KEYBOARD_PORT_DATA, current_status.config);
 
-        pic_enable_irq(PIC1_DEVICE_SEL, KEYBOARD_IRQ);
-        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_0);
+        configure_isa_irq(KEYBOARD_PORT1_IRQ, KEYBOARD_PORT1_IRQ0_OFFSET,
+                          IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_1);
     }
     else {
         printk("Keyboard: enabling second channel\n");
-        current_status =
-            current_status | (1 << KEYBOARD_CONTROLLER_CONFIG_BIT_PORT_1_INTERRUPT);
+        current_status.port2_int = 1;
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
-        outb(KEYBOARD_PORT_DATA, current_status);
+        outb(KEYBOARD_PORT_DATA, current_status.config);
 
-        pic_enable_irq(PIC1_DEVICE_SEL, KEYBOARD_IRQ_2);
-        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_1);
+        configure_isa_irq(KEYBOARD_PORT2_IRQ, KEYBOARD_PORT2_IRQ0_OFFSET,
+                          IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
+        outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_2);
     }
 
     memset(&keyboard_state, 0, sizeof(keyboard_state));
@@ -164,13 +189,12 @@ unsigned int keyboard_process_keys(void) {
 
 void keyboard_interrupt_handler(void) {
     unsigned char status;
-    int released;
 
     status = inb(KEYBOARD_PORT_CMD);
     if (status & KEYBOARD_STATUS_OUT_FULL) {
         char scan = inb(KEYBOARD_PORT_DATA);
+        int released = !!(scan & SCAN_RELEASE_MASK);
 
-        released = !!(scan & SCAN_RELEASE_MASK);
         scan = scan & (SCAN_RELEASE_MASK - 1);
 
         switch (scan) {
@@ -199,5 +223,5 @@ void keyboard_interrupt_handler(void) {
         }
     }
 
-    outb(PIC1_PORT_CMD, PIC_EOI);
+    apic_EOI();
 }

@@ -162,7 +162,7 @@ void init_traps(unsigned int cpu) {
                   _ul(asm_interrupt_handler_uart), GATE_DPL0, GATE_PRESENT, 0);
     set_intr_gate(&percpu->idt[PIT_IRQ0_OFFSET], __KERN_CS,
                   _ul(asm_interrupt_handler_pit), GATE_DPL0, GATE_PRESENT, 0);
-    set_intr_gate(&percpu->idt[KEYBOARD_IRQ0_OFFSET], __KERN_CS,
+    set_intr_gate(&percpu->idt[KEYBOARD_PORT1_IRQ0_OFFSET], __KERN_CS,
                   _ul(asm_interrupt_handler_keyboard), GATE_DPL0, GATE_PRESENT, 0);
 
     barrier();

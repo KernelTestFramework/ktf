@@ -67,6 +67,5 @@ void kernel_main(void) {
 
     printk("All tasks done.\n");
 
-    while (1)
-        echo_loop();
+    echo_loop();
 }
