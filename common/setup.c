@@ -228,7 +228,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     uart_input_init(0);
 
     /* Initialize Programmable Interrupt Timer */
-    init_pit();
+    init_pit(0);
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));
