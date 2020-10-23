@@ -29,11 +29,11 @@
 #include <errno.h>
 #include <ktf.h>
 #include <lib.h>
+#include <mm/slab.h>
 #include <mm/vmm.h>
 #include <page.h>
 #include <processor.h>
 #include <sched.h>
-#include <slab.h>
 #include <smp/smp.h>
 #include <string.h>
 
@@ -117,7 +117,7 @@ static void slab_free(meta_slab_t *slab, void *ptr) {
  * Round up to nearest power of 2
  * If greater than max size or less than min size, return null
  */
-void *ktf_alloc(unsigned int size) {
+static void *ktf_alloc(unsigned int size) {
     unsigned int size_power2 = 0, temp = 0, order_index = 0;
     meta_slab_t *slab = NULL, *meta_slab = NULL;
     void *alloc = NULL, *free_page = NULL;
@@ -143,8 +143,8 @@ void *ktf_alloc(unsigned int size) {
      */
     order_index -= 4;
 
-    printk("Alloc size %u, powerof 2 size %u, order %u\n", size, size_power2,
-           order_index);
+    dprintk("Alloc size %u, powerof 2 size %u, order %u\n", size, size_power2,
+            order_index);
     /* Go through list of meta_slab_t and try to allocate a free slab */
     list_for_each_entry (slab, &meta_slab_list[order_index], list) {
         alloc = slab_alloc(slab);
@@ -198,12 +198,21 @@ void *ktf_alloc(unsigned int size) {
     return alloc;
 }
 
+void *kmalloc(size_t size) { return ktf_alloc(size); }
+
+void *kzalloc(size_t size) {
+    void *ptr = ktf_alloc(size);
+
+    memset(ptr, 0, size);
+    return ptr;
+}
+
 /*
  * Loop through all the orders and check where does this memory belong
  * Then link it back into free list. Not a O(1) of implementation but we're looking for
  * simple now
  */
-void ktf_free(void *ptr) {
+static void ktf_free(void *ptr) {
     int alloc_order;
     meta_slab_t *slab = NULL;
 
@@ -222,6 +231,8 @@ void ktf_free(void *ptr) {
     /* If we reached here, something terribly went wrong */
     UNREACHABLE();
 }
+
+void kfree(void *ptr) { ktf_free(ptr); }
 
 int init_slab(void) {
     int ret = 0;
