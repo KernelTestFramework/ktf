@@ -27,7 +27,7 @@
 #include <ioapic.h>
 #include <ktf.h>
 #include <list.h>
-#include <slab.h>
+#include <mm/slab.h>
 #include <string.h>
 
 #define IOAPIC_SYSTEM_ISA_BUS_NAME "ISA"
@@ -79,7 +79,7 @@ static bus_t *get_system_bus_by_id(uint8_t id) {
 
 static bus_t *__add_system_bus(uint8_t id,
                                uint8_t bus_name[IOAPIC_SYSTEM_BUS_NAME_SIZE]) {
-    bus_t *new_bus = ktf_alloc(sizeof(*new_bus));
+    bus_t *new_bus = kzalloc(sizeof(*new_bus));
     BUG_ON(!new_bus);
 
     new_bus->id = id;
@@ -121,7 +121,7 @@ int add_system_bus_irq_override(uint8_t bus_id, irq_override_t *override) {
     if (!bus)
         return -ENODEV;
 
-    new_override = ktf_alloc(sizeof(*new_override));
+    new_override = kzalloc(sizeof(*new_override));
     if (!new_override)
         return -ENOMEM;
 

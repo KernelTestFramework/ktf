@@ -80,7 +80,8 @@ struct meta_slab {
 typedef struct meta_slab meta_slab_t;
 
 int init_slab(void);
-extern void *ktf_alloc(unsigned int size);
-extern void ktf_free(void *ptr);
+extern void *kmalloc(size_t size);
+extern void *kzalloc(size_t size);
+extern void kfree(void *ptr);
 
 #endif /* KTF_ALLOC_SLAB_H */

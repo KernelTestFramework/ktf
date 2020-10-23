@@ -41,6 +41,7 @@
 #include <traps.h>
 
 #include <mm/pmm.h>
+#include <mm/slab.h>
 #include <mm/vmm.h>
 #include <smp/mptables.h>
 #include <smp/smp.h>
@@ -48,7 +49,6 @@
 #include <drivers/pic.h>
 #include <drivers/pit.h>
 #include <drivers/serial.h>
-#include <slab.h>
 
 bool opt_debug = false;
 bool_cmd("debug", opt_debug);

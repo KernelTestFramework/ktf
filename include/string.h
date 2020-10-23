@@ -25,7 +25,7 @@
 #ifndef KTF_STRING_H
 #define KTF_STRING_H
 #include <asm-macros.h>
-#include <slab.h>
+#include <mm/slab.h>
 
 static inline __used int isspace(int c) { return c == ' ' || c == '\t'; }
 
@@ -246,7 +246,7 @@ static inline char *strdup(const char *s1) {
         return NULL;
 
     len = strlen(s1);
-    s2 = (char *) ktf_alloc(len);
+    s2 = (char *) kmalloc(len);
 
     if (NULL == s2)
         return NULL;
