@@ -37,17 +37,8 @@
 #define APIC_BASE_ENABLE (_U64(1) << 11)
 
 /* Local APIC definitions */
-#define APIC_ID                0x020
-#define APIC_LVR               0x030
-#define APIC_EOI               0x0b0
-#define APIC_SPIV              0x0f0
 #define APIC_SPIV_APIC_ENABLED 0x00100
 
-#define APIC_ICR        0x300
-#define APIC_ICR2       0x310
-#define APIC_LVT_TIMER  0x320
-#define APIC_LVT_LINT0  0x350
-#define APIC_LVT_LINT1  0x360
 #define APIC_DM_NMI     0x00400
 #define APIC_DM_INIT    0x00500
 #define APIC_DM_STARTUP 0x00600
@@ -57,12 +48,86 @@
 
 #define GET_APIC_DEST_FIELD(x) (((x) >> 24) & 0xFF)
 #define SET_APIC_DEST_FIELD(x) ((x) << 24)
+#define MSR_X2APIC_REGS 0x800U
+
+#ifndef __ASSEMBLY__
+
+/* Local APIC register offsets definitions */
+enum xapic_regs {
+    /* clang-format off */
+    APIC_ID          = 0x020, /* Local APIC ID Register */
+    APIC_VERSION     = 0x030, /* Local APIC Version Register */
+
+    APIC_TPR         = 0x080, /* Task Priority Register */
+    APIC_APR         = 0x090, /* Arbitration Priority Register */
+    APIC_PPR         = 0x0a0, /* Processor Priority Register */
+    APIC_EOI         = 0x0b0, /* End-Of-Interrupt Register */
+    APIC_RRD         = 0x0c0, /* Remote Read Register */
+    APIC_LOGICAL_DST = 0x0d0, /* Logical Destination Register */
+    APIC_DST_FORMAT  = 0x0e0, /* Destination Format Register */
+    APIC_SPIV        = 0x0f0, /* Spurious Interrupt Vector Register */
+    APIC_ISR0        = 0x100, /* In-Service Register */
+    APIC_ISR1        = 0x110,
+    APIC_ISR2        = 0x120,
+    APIC_ISR3        = 0x130,
+    APIC_ISR4        = 0x140,
+    APIC_ISR5        = 0x150,
+    APIC_ISR6        = 0x160,
+    APIC_ISR7        = 0x170,
+    APIC_TMR0        = 0x180, /* Trigger Mode Register */
+    APIC_TMR1        = 0x190,
+    APIC_TMR2        = 0x1a0,
+    APIC_TMR3        = 0x1b0,
+    APIC_TMR4        = 0x1c0,
+    APIC_TMR5        = 0x1d0,
+    APIC_TMR6        = 0x1e0,
+    APIC_TMR7        = 0x1f0,
+    APIC_IRR0        = 0x200, /* Interrupt Request Register */
+    APIC_IRR1        = 0x210,
+    APIC_IRR2        = 0x220,
+    APIC_IRR3        = 0x230,
+    APIC_IRR4        = 0x240,
+    APIC_IRR5        = 0x250,
+    APIC_IRR6        = 0x260,
+    APIC_IRR7        = 0x270,
+    APIC_ESR         = 0x280, /* Error Status Register */
+
+    APIC_LVT_CMCI    = 0x2f0, /* LVT Corrected Machine Check Interrupt Register */
+    APIC_ICR0        = 0x300, /* Interrupt Command Register */
+    APIC_ICR1        = 0x310,
+    APIC_LVT_TIMER   = 0x320, /* LVT Timer Register */
+    APIC_LVT_TSR     = 0x330, /* LVT Thermal Sensor Register */
+    APIC_LVT_PMC     = 0x340, /* LVT Performance Monitoring Counters Register */
+    APIC_LVT_LINT0   = 0x350, /* LVT LINT0 Register */
+    APIC_LVT_LINT1   = 0x360, /* LVT LINT1 Register */
+    APIC_LVT_ERROR   = 0x370, /* LVT Error Register */
+    APIC_TMR_ICR     = 0x380, /* Timer Initial Count Register */
+    APIC_TMR_CCR     = 0x380, /* Timer Current Count Register */
+
+    APIC_TMR_DCR     = 0x3e0, /* Timer Divide Configuration Register */
+
+    XAPIC_REGS_MAX   = 0x3e0,
+    XAPIC_INVALID    = 0xfff,
+    /* clang-format on */
+};
+typedef enum xapic_regs xapic_regs_t;
+
+enum x2apic_regs {
+    /* clang-format off */
+    APIC_SELF_IPI = 0x83f,
+
+    X2APIC_REGS_MAX = 0x83f,
+    X2APIC_INVALID = 0xfff,
+    /* clang-format on */
+};
+typedef enum x2apic_regs x2apic_regs_t;
+
+#define XAPIC_REG(reg)  ((xapic_regs_t)(reg))
+#define X2APIC_REG(reg) ((x2apic_regs_t)(reg))
 
 #define GET_SIPI_VECTOR(addr) ((_ul((addr)) >> PAGE_SHIFT) & 0xFF)
 
 #define APIC_EOI_SIGNAL 0x0
-
-#ifndef __ASSEMBLY__
 
 enum apic_mode {
     APIC_MODE_UNKNOWN,
@@ -420,8 +485,8 @@ static inline void apic_mmio_write(uint32_t reg, uint32_t val) {
 }
 
 static inline void apic_mmio_icr_write(uint64_t val) {
-    apic_mmio_write(APIC_ICR2, (uint32_t)(val >> 32));
-    apic_mmio_write(APIC_ICR, (uint32_t) val);
+    apic_mmio_write(APIC_ICR1, (uint32_t)(val >> 32));
+    apic_mmio_write(APIC_ICR0, (uint32_t) val);
 }
 
 /* X2APIC Mode */
@@ -449,15 +514,15 @@ static inline uint32_t apic_read(uint32_t reg) {
 
 static inline void apic_icr_write(uint64_t val) {
     if (apic_mode == APIC_MODE_XAPIC) {
-        apic_mmio_write(APIC_ICR2, (uint32_t)(val >> 32));
-        apic_mmio_write(APIC_ICR, (uint32_t) val);
+        apic_mmio_write(APIC_ICR1, (uint32_t)(val >> 32));
+        apic_mmio_write(APIC_ICR0, (uint32_t) val);
     }
     else
-        apic_msr_write(MSR_X2APIC_REGS + (APIC_ICR >> 4), val);
+        apic_msr_write(MSR_X2APIC_REGS + (APIC_ICR0 >> 4), val);
 }
 
 static inline void apic_wait_ready(void) {
-    while (apic_read(APIC_ICR) & APIC_ICR_BUSY)
+    while (apic_read(APIC_ICR0) & APIC_ICR_BUSY)
         cpu_relax();
 }
 
