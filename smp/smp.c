@@ -94,13 +94,13 @@ static __text_init void boot_cpu(unsigned int cpu) {
 }
 
 void __text_init init_smp(void) {
-    unsigned mp_nr_cpus = mptables_get_nr_cpus();
-    unsigned acpi_nr_cpus = acpi_get_nr_cpus();
-
-    nr_cpus = acpi_nr_cpus ?: mp_nr_cpus;
+    nr_cpus = acpi_get_nr_cpus();
     if (nr_cpus == 0) {
-        nr_cpus++;
-        return;
+        nr_cpus = mptables_get_nr_cpus();
+        if (nr_cpus == 0) {
+            nr_cpus++;
+            return;
+        }
     }
 
     printk("Initializing SMP support (CPUs: %u)\n", nr_cpus);

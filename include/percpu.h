@@ -32,8 +32,14 @@
 
 struct percpu {
     list_head_t list;
-    unsigned int id : 8, apic_id : 8, enabled : 1, bsp : 1, family : 4, model : 4,
-        stepping : 4;
+
+    unsigned int cpu_id;
+    uint32_t apic_id;
+    bool enabled;
+    bool bsp;
+    uint8_t family;
+    uint8_t model;
+    uint8_t stepping;
 
     idt_entry_t *idt __aligned(16);
     idt_ptr_t idt_ptr;

@@ -55,8 +55,13 @@ bool_cmd("debug", opt_debug);
 
 io_port_t com_ports[2] = {COM1_PORT, COM2_PORT};
 
+static unsigned bsp_cpu_id = 0;
+
 const char *kernel_cmdline;
 char cpu_identifier[49];
+
+unsigned get_bsp_cpu_id(void) { return bsp_cpu_id; }
+void set_bsp_cpu_id(unsigned cpu_id) { bsp_cpu_id = cpu_id; }
 
 static __text_init int parse_bool(const char *s) {
     if (!strcmp("no", s) || !strcmp("off", s) || !strcmp("false", s) ||
@@ -208,11 +213,11 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     init_percpu();
 
-    init_traps(0);
+    init_traps(get_bsp_cpu_id());
 
     init_slab();
 
-    if (init_acpi() < 0 && init_mptables() < 0) {
+    if (init_acpi(get_bsp_cpu_id()) < 0 && init_mptables() < 0) {
         BUG();
     }
 
@@ -225,10 +230,10 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_ioapic();
 
     /* Initialize console input */
-    uart_input_init(0);
+    uart_input_init(get_bsp_cpu_id());
 
     /* Initialize Programmable Interrupt Timer */
-    init_pit(0);
+    init_pit(get_bsp_cpu_id());
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));
