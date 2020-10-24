@@ -42,7 +42,7 @@ percpu_t *get_percpu_page(unsigned int cpu) {
     percpu_t *percpu;
 
     list_for_each_entry (percpu, &percpu_frames, list) {
-        if (percpu->id == cpu)
+        if (percpu->cpu_id == cpu)
             return percpu;
     }
 
@@ -52,7 +52,7 @@ percpu_t *get_percpu_page(unsigned int cpu) {
     percpu = get_free_page(GFP_IDENT | GFP_KERNEL);
     BUG_ON(!percpu);
 
-    percpu->id = cpu;
+    percpu->cpu_id = cpu;
     percpu->user_stack = get_free_page_top(GFP_USER);
 
     list_add(&percpu->list, &percpu_frames);

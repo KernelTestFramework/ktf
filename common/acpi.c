@@ -221,7 +221,7 @@ static const char *madt_int_trigger_names[] = {
     [ACPI_MADT_INT_TRIGGER_LT] = "Level",
 };
 
-static int process_madt_entries(void) {
+static int process_madt_entries(unsigned bsp_cpu_id) {
     acpi_madt_t *madt = (acpi_madt_t *) acpi_find_table(MADT_SIGNATURE);
     acpi_madt_entry_t *entry;
     bus_t *isa_bus;
@@ -246,11 +246,10 @@ static int process_madt_entries(void) {
             acpi_madt_processor_t *madt_cpu = (acpi_madt_processor_t *) entry->data;
             percpu_t *percpu = get_percpu_page(madt_cpu->apic_proc_id);
 
-            percpu->id = madt_cpu->apic_proc_id;
+            percpu->cpu_id = madt_cpu->apic_proc_id;
             percpu->apic_id = madt_cpu->apic_id;
-            percpu->enabled = madt_cpu->flags & 0x1;
-            if (madt_cpu->apic_proc_id == 0)
-                percpu->bsp = true;
+            percpu->bsp = !!(madt_cpu->apic_proc_id == bsp_cpu_id);
+            percpu->enabled = !!(madt_cpu->flags & 0x1);
 
             if (!percpu->enabled)
                 continue;
@@ -367,7 +366,7 @@ acpi_table_t *acpi_find_table(uint32_t signature) {
     return NULL;
 }
 
-int init_acpi(void) {
+int init_acpi(unsigned bsp_cpu_id) {
     unsigned acpi_nr_tables;
     rsdt_t *rsdt = NULL;
     xsdt_t *xsdt = NULL;
@@ -415,5 +414,5 @@ int init_acpi(void) {
     }
 
     acpi_dump_tables();
-    return process_madt_entries();
+    return process_madt_entries(bsp_cpu_id);
 }

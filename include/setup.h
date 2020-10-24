@@ -40,6 +40,8 @@ extern io_port_t com_ports[2];
 extern const char *kernel_cmdline;
 extern char cpu_identifier[49];
 
+/* Static declarations */
+
 static inline void get_com_ports(void) {
     memcpy((void *) com_ports, (void *) (BDA_COM_PORTS_ENTRY), sizeof(com_ports));
 
@@ -49,6 +51,11 @@ static inline void get_com_ports(void) {
     if (com_ports[1] == 0x0)
         com_ports[1] = COM2_PORT;
 }
+
+/* External declarations */
+
+extern unsigned get_bsp_cpu_id(void);
+extern void set_bsp_cpu_id(unsigned cpu_id);
 
 extern void zap_boot_mappings(void);
 
