@@ -31,13 +31,13 @@ jobs:
         fetch-depth: 0
 
     # one-line-cr-bot.sh will get infer and cppcheck, if not available
-    - name: Install CppCheck Package
+    - name: Install Required Packages
       env:
         # This is needed in addition to -yq to prevent apt-get from asking for user input
         DEBIAN_FRONTEND: noninteractive
-      # [ACTION REQUIRED] Add your build dependencies here, drop cppcheck to get latest cppcheck
+      # [ACTION REQUIRED] Add your build dependencies here
       run: |
-        sudo apt-get install -y cppcheck
+        sudo apt-get install -y python3-github
 
     # Get the compare remote
     - name: Setup Compare Remote
@@ -48,7 +48,7 @@ jobs:
 
     # Get one-line-scan, the tool we will use for analysis
     - name: Get OneLineScan
-      run:  git clone -b one-line-cr-bot https://github.com/nmanthey/one-line-scan.git ../one-line-scan
+      run:  git clone -b comment-prs https://github.com/nmanthey/one-line-scan.git ../one-line-scan
 
     # Check how repository is setup
     - name: Be Verbose about Git Setup
@@ -71,9 +71,11 @@ jobs:
         # Additional Infer parameters, do not use e.g. --pulse
         INFER_ANALYSIS_EXTRA_ARGS: "--bufferoverrun"
         # These settings are more preferences, and not directly related to your project
-        # Set INSTALL_MISSING to false, if ALL targetted tools are already present
+        # Set INSTALL_MISSING to false, if ALL targeted tools are already present
+        IGNORE_ERRORS: false
         INSTALL_MISSING: true
         OVERRIDE_ANALYSIS_ERROR: true
+        POST_TO_GITHUB_PR: true
         REPORT_NEW_ONLY: true
         VERBOSE: 0 # >0 shows all currently present defects as well
       # Be explicit about the tools to be used
