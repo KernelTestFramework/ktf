@@ -167,7 +167,7 @@ irq_override_t *get_system_pci_bus_irq(uint8_t irq_type, uint32_t irq_src) {
     return __get_irq_override(bus, irq_type, irq_src);
 }
 
-void init_ioapic(void) {
+void __text_init init_ioapic(void) {
     printk("Initializing IOAPICs\n");
 
     for (unsigned i = 0; i < nr_ioapics; i++) {
