@@ -36,8 +36,8 @@ extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2ker
                              unsigned long user_stack);
 
 int usermode_call(user_func_t fn, void *fn_arg) {
-    return usermode_call_asm(fn, fn_arg, offsetof(percpu_t, ret2kern_sp),
-                             offsetof(percpu_t, user_stack));
+    return usermode_call_asm(fn, fn_arg, PERCPU_OFFSET(ret2kern_sp),
+                             PERCPU_OFFSET(user_stack));
 }
 
 void kernel_main(void) {

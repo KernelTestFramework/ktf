@@ -43,9 +43,9 @@ extern void asm_interrupt_handler_pit(void);
 
 static void ret2kern_handler(void) {
     /* clang-format off */
-    asm volatile("mov %%gs:(%0), %%" STR(_ASM_SP) "\n"
+    asm volatile("mov %%gs:%[sp], %%" STR(_ASM_SP) "\n"
                  "POPF \n"
-                 ::"r"(offsetof(percpu_t, ret2kern_sp)));
+                 :: [ sp ] "m"(ACCESS_ONCE(PERCPU_VAR(ret2kern_sp))));
     /* clang-format on */
 }
 
