@@ -66,7 +66,7 @@ static __text_init void boot_cpu(unsigned int cpu) {
     percpu_t *percpu = get_percpu_page(cpu);
     uint64_t icr;
 
-    if (percpu->bsp)
+    if (PERCPU_GET(bsp))
         return;
 
     ap_cpuid = cpu;

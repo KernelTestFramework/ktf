@@ -49,6 +49,7 @@
 #define GHZ(x) (MHZ(x) * 1000)
 
 #ifndef __ASSEMBLY__
+typedef uint64_t off_t;
 #define _ptr(val) ((void *) (unsigned long) (val))
 #define _ul(val)  ((unsigned long) (val))
 #define _int(val) ((int) (val))
@@ -91,8 +92,9 @@
 #define likely(x)   __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
 
+#define memberof(type, member) (((type *) 0)->member)
 #ifndef offsetof
-#define offsetof(type, member) ((off_t) & ((type *) 0)->member)
+#define offsetof(type, member) ((off_t) &memberof((type), member))
 #endif
 
 #define BUILD_BUG_ON(cond) ({ _Static_assert(!(cond), "!(" STR(cond) ")"); })
@@ -104,7 +106,7 @@
 #define container_of(ptr, type, member)                                                  \
     ({                                                                                   \
         void *_ptr = (void *) (ptr);                                                     \
-        BUILD_BUG_ON(!__same_type(*(ptr), ((type *) 0)->member) &&                       \
+        BUILD_BUG_ON(!__same_type(*(ptr), memberof(type, member)) &&                     \
                      !__same_type(*(ptr), void));                                        \
         ((type *) (_ptr - offsetof(type, member)));                                      \
     })
