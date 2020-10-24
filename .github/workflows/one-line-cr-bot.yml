@@ -48,7 +48,7 @@ jobs:
 
     # Get one-line-scan, the tool we will use for analysis
     - name: Get OneLineScan
-      run:  git clone -b one-line-cr-bot https://github.com/nmanthey/one-line-scan.git ../one-line-scan
+      run:  git clone -b one-line-cr-bot https://github.com/awslabs/one-line-scan.git ../one-line-scan
 
     # Check how repository is setup
     - name: Be Verbose about Git Setup
