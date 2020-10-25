@@ -462,10 +462,9 @@ typedef union apic_self_ipi apic_self_ipi_t;
 
 /* External declarations */
 
-extern apic_mode_t apic_mode;
-
 extern uint64_t apic_read(unsigned int reg);
 extern void apic_write(unsigned int reg, uint64_t val);
+extern apic_mode_t apic_get_mode(void);
 extern void apic_icr_write(uint64_t val);
 extern void init_apic(unsigned int cpu, apic_mode_t mode);
 

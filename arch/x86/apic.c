@@ -29,7 +29,7 @@
 #include <percpu.h>
 #include <processor.h>
 
-apic_mode_t apic_mode = APIC_MODE_UNKNOWN;
+static apic_mode_t apic_mode = APIC_MODE_UNKNOWN;
 
 static const char *apic_mode_names[] = {
     /* clang-format off */
@@ -87,6 +87,7 @@ void apic_icr_write(uint64_t val) {
         apic_msr_write(MSR_X2APIC_REGS + (APIC_ICR0 >> 4), val);
 }
 
+apic_mode_t apic_get_mode(void) { return apic_mode; }
 
 void init_apic(unsigned int cpu, apic_mode_t mode) {
     percpu_t *percpu = get_percpu_page(cpu);
