@@ -78,13 +78,26 @@ void apic_write(unsigned int reg, uint64_t val) {
         BUG();
 }
 
-void apic_icr_write(uint64_t val) {
+apic_icr_t apic_icr_read(void) {
+    apic_icr_t icr;
+
     if (apic_mode == APIC_MODE_XAPIC) {
-        apic_mmio_write(APIC_ICR1, (uint32_t)(val >> 32));
-        apic_mmio_write(APIC_ICR0, (uint32_t) val);
+        icr.icr0 = apic_read(APIC_ICR0);
+        icr.icr1 = apic_read(APIC_ICR1);
+    }
+    else if (apic_mode == APIC_MODE_X2APIC)
+        icr.reg = apic_read(APIC_ICR0);
+
+    return icr;
+}
+
+void apic_icr_write(const apic_icr_t *icr) {
+    if (apic_mode == APIC_MODE_XAPIC) {
+        apic_mmio_write(XAPIC_REG(APIC_ICR1), icr->icr0);
+        apic_mmio_write(XAPIC_REG(APIC_ICR0), icr->icr1);
     }
     else
-        apic_msr_write(MSR_X2APIC_REGS + (APIC_ICR0 >> 4), val);
+        apic_msr_write(X2APIC_REG(APIC_ICR0), icr->reg);
 }
 
 apic_mode_t apic_get_mode(void) { return apic_mode; }

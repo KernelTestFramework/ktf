@@ -32,15 +32,6 @@
 /* Local APIC definitions */
 #define APIC_SPIV_APIC_ENABLED 0x00100
 
-#define APIC_DM_NMI     0x00400
-#define APIC_DM_INIT    0x00500
-#define APIC_DM_STARTUP 0x00600
-#define APIC_ICR_BUSY   0x01000
-#define APIC_DISABLE    0x10000
-#define APIC_DEST_SELF  0x40000
-
-#define GET_APIC_DEST_FIELD(x) (((x) >> 24) & 0xFF)
-#define SET_APIC_DEST_FIELD(x) ((x) << 24)
 #define MSR_X2APIC_REGS        0x800U
 
 #ifndef __ASSEMBLY__
@@ -465,8 +456,9 @@ typedef union apic_self_ipi apic_self_ipi_t;
 extern uint64_t apic_read(unsigned int reg);
 extern void apic_write(unsigned int reg, uint64_t val);
 extern apic_mode_t apic_get_mode(void);
-extern void apic_icr_write(uint64_t val);
 extern void init_apic(unsigned int cpu, apic_mode_t mode);
+extern apic_icr_t apic_icr_read(void);
+extern void apic_icr_write(const apic_icr_t *icr);
 
 /* Static declarations */
 
@@ -487,8 +479,23 @@ static inline void *apic_get_base(apic_base_t apic_base) {
 }
 
 static inline void apic_wait_ready(void) {
-    while (apic_read(APIC_ICR0) & APIC_ICR_BUSY)
+    apic_icr_t icr;
+
+    do {
+        icr = apic_icr_read();
+        if (icr.deliv_status == APIC_DELIV_STATUS_IDLE)
+            return;
         cpu_relax();
+    } while (true);
+}
+
+static inline void apic_icr_set_dest(apic_icr_t *icr, uint32_t dest) {
+    apic_mode_t mode = apic_get_mode();
+
+    if (mode == APIC_MODE_XAPIC)
+        icr->xapic_dest = dest;
+    else if (mode == APIC_MODE_X2APIC)
+        icr->x2apic_dest = dest;
 }
 
 static inline void apic_EOI(void) { apic_write(APIC_EOI, APIC_EOI_SIGNAL); }
