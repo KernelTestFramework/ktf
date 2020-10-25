@@ -29,10 +29,7 @@
 #include <lib.h>
 #include <page.h>
 
-/* Local APIC definitions */
-#define APIC_SPIV_APIC_ENABLED 0x00100
-
-#define MSR_X2APIC_REGS        0x800U
+#define MSR_X2APIC_REGS 0x800U
 
 #ifndef __ASSEMBLY__
 

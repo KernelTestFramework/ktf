@@ -105,6 +105,7 @@ apic_mode_t apic_get_mode(void) { return apic_mode; }
 void init_apic(unsigned int cpu, apic_mode_t mode) {
     percpu_t *percpu = get_percpu_page(cpu);
     apic_base_t apic_base;
+    apic_spiv_t spiv;
 
     BUG_ON(mode < APIC_MODE_DISABLED);
 
@@ -149,5 +150,8 @@ void init_apic(unsigned int cpu, apic_mode_t mode) {
     if (apic_mode == APIC_MODE_XAPIC)
         vmap(apic_get_base(apic_base), apic_base.base, PAGE_ORDER_4K, L1_PROT);
 
-    apic_write(APIC_SPIV, APIC_SPIV_APIC_ENABLED | 0xff);
+    spiv.reg = apic_read(APIC_SPIV);
+    spiv.vector = 0xFF;
+    spiv.apic_enable = 1;
+    apic_write(APIC_SPIV, spiv.reg);
 }
