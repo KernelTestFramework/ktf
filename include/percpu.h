@@ -25,6 +25,7 @@
 #ifndef KTF_PERCPU_H
 #define KTF_PERCPU_H
 
+#include <apic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <list.h>
@@ -35,6 +36,7 @@ struct percpu {
 
     unsigned int cpu_id;
     uint32_t apic_id;
+    apic_base_t apic_base;
     bool enabled;
     bool bsp;
     uint8_t family;

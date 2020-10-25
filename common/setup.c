@@ -221,7 +221,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
         BUG();
     }
 
-    init_apic(APIC_MODE_XAPIC);
+    init_apic(get_bsp_cpu_id(), APIC_MODE_XAPIC);
 
     init_tasks();
 

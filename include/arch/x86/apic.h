@@ -1,6 +1,5 @@
 /*
  * Copyright © 2020 Amazon.com, Inc. or its affiliates.
- * Copyright © 2014,2015 Citrix Systems Ltd.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +27,7 @@
 
 #include <ktf.h>
 #include <lib.h>
-#include <processor.h>
-
-#define DEFAULT_APIC_BASE _U32(0xfee00000)
-
-#define APIC_BASE_BSP    (_U64(1) << 8)
-#define APIC_BASE_EXTD   (_U64(1) << 10)
-#define APIC_BASE_ENABLE (_U64(1) << 11)
+#include <page.h>
 
 /* Local APIC definitions */
 #define APIC_SPIV_APIC_ENABLED 0x00100
@@ -48,7 +41,7 @@
 
 #define GET_APIC_DEST_FIELD(x) (((x) >> 24) & 0xFF)
 #define SET_APIC_DEST_FIELD(x) ((x) << 24)
-#define MSR_X2APIC_REGS 0x800U
+#define MSR_X2APIC_REGS        0x800U
 
 #ifndef __ASSEMBLY__
 
@@ -471,54 +464,27 @@ typedef union apic_self_ipi apic_self_ipi_t;
 
 extern apic_mode_t apic_mode;
 
-extern int init_apic(enum apic_mode mode);
+extern uint64_t apic_read(unsigned int reg);
+extern void apic_write(unsigned int reg, uint64_t val);
+extern void apic_icr_write(uint64_t val);
+extern void init_apic(unsigned int cpu, apic_mode_t mode);
 
 /* Static declarations */
 
-/* XAPIC Mode */
-static inline uint32_t apic_mmio_read(uint32_t reg) {
-    return *(volatile uint32_t *) (_ptr(DEFAULT_APIC_BASE) + reg);
+static inline xapic_regs_t xapic_reg(x2apic_regs_t reg) {
+    if (reg > X2APIC_REG(XAPIC_REGS_MAX))
+        return XAPIC_INVALID;
+    return (reg & ~MSR_X2APIC_REGS) << 4;
 }
 
-static inline void apic_mmio_write(uint32_t reg, uint32_t val) {
-    *(volatile uint32_t *) (_ptr(DEFAULT_APIC_BASE) + reg) = val;
+static inline x2apic_regs_t x2apic_reg(xapic_regs_t reg) {
+    if (reg > XAPIC_REG(X2APIC_REGS_MAX))
+        return X2APIC_INVALID;
+    return MSR_X2APIC_REGS | (reg >> 4);
 }
 
-static inline void apic_mmio_icr_write(uint64_t val) {
-    apic_mmio_write(APIC_ICR1, (uint32_t)(val >> 32));
-    apic_mmio_write(APIC_ICR0, (uint32_t) val);
-}
-
-/* X2APIC Mode */
-static inline uint32_t apic_msr_read(uint32_t reg) {
-    return (uint32_t) rdmsr(MSR_X2APIC_REGS + (reg >> 4));
-}
-
-static inline void apic_msr_write(uint32_t reg, uint32_t val) {
-    wrmsr(MSR_X2APIC_REGS + (reg >> 4), _ul(val));
-}
-
-static inline void apic_write(uint32_t reg, uint32_t val) {
-    if (apic_mode == APIC_MODE_XAPIC)
-        apic_mmio_write(reg, val);
-    else
-        apic_msr_write(reg, val);
-}
-
-static inline uint32_t apic_read(uint32_t reg) {
-    if (apic_mode == APIC_MODE_XAPIC)
-        return apic_mmio_read(reg);
-
-    return apic_msr_read(reg);
-}
-
-static inline void apic_icr_write(uint64_t val) {
-    if (apic_mode == APIC_MODE_XAPIC) {
-        apic_mmio_write(APIC_ICR1, (uint32_t)(val >> 32));
-        apic_mmio_write(APIC_ICR0, (uint32_t) val);
-    }
-    else
-        apic_msr_write(MSR_X2APIC_REGS + (APIC_ICR0 >> 4), val);
+static inline void *apic_get_base(apic_base_t apic_base) {
+    return _ptr((uint64_t) apic_base.base << PAGE_SHIFT);
 }
 
 static inline void apic_wait_ready(void) {
