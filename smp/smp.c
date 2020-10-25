@@ -50,6 +50,7 @@ void __noreturn ap_startup(void) {
     write_sp(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
 
     init_traps(ap_cpuid);
+    init_apic(ap_cpuid, apic_get_mode());
 
     ap_callin = true;
     smp_wmb();
