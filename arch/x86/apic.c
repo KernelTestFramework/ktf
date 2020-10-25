@@ -1,6 +1,5 @@
 /*
  * Copyright © 2020 Amazon.com, Inc. or its affiliates.
- * Copyright © 2014,2015 Citrix Systems Ltd.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,74 +22,118 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <apic.h>
 #include <console.h>
 #include <ktf.h>
 #include <lib.h>
-#include <page.h>
+#include <percpu.h>
 #include <processor.h>
-
-#include <apic.h>
 
 apic_mode_t apic_mode = APIC_MODE_UNKNOWN;
 
 static const char *apic_mode_names[] = {
-    [APIC_MODE_UNKNOWN] = "Unknown",   [APIC_MODE_NONE] = "None",
-    [APIC_MODE_DISABLED] = "Disabled", [APIC_MODE_XAPIC] = "XAPIC",
-    [APIC_MODE_X2APIC] = "X2APIC",
+    /* clang-format off */
+    [APIC_MODE_UNKNOWN]  = "Unknown",
+    [APIC_MODE_NONE]     = "None",
+    [APIC_MODE_DISABLED] = "Disabled",
+    [APIC_MODE_XAPIC]    = "XAPIC",
+    [APIC_MODE_X2APIC]   = "X2APIC",
+    /* clang-format on */
 };
 
-int init_apic(enum apic_mode mode) {
-    uint64_t apic_base = rdmsr(MSR_APIC_BASE);
+/* XAPIC Mode */
+static inline uint32_t apic_mmio_read(xapic_regs_t reg) {
+    return *(volatile uint32_t *) (apic_get_base(PERCPU_GET(apic_base)) + reg);
+}
 
-    ASSERT(mode > APIC_MODE_NONE && mode <= APIC_MODE_X2APIC);
+static inline void apic_mmio_write(xapic_regs_t reg, uint32_t val) {
+    *(volatile uint32_t *) (apic_get_base(PERCPU_GET(apic_base)) + reg) = val;
+}
 
-    if ((apic_base & PAGE_MASK) != DEFAULT_APIC_BASE) {
-        printk("%s: unsupported APIC base: %lx\n", __func__, apic_base);
-        return -1;
+/* X2APIC Mode */
+static inline uint64_t apic_msr_read(x2apic_regs_t reg) {
+    return rdmsr(MSR_X2APIC_REGS + (reg >> 4));
+}
+
+static inline void apic_msr_write(x2apic_regs_t reg, uint64_t val) {
+    wrmsr(MSR_X2APIC_REGS + (reg >> 4), val);
+}
+
+uint64_t apic_read(unsigned int reg) {
+    if (apic_mode == APIC_MODE_XAPIC)
+        return apic_mmio_read(reg);
+    else if (apic_mode == APIC_MODE_X2APIC)
+        return apic_msr_read(reg);
+    else
+        BUG();
+    UNREACHABLE();
+}
+
+void apic_write(unsigned int reg, uint64_t val) {
+    if (apic_mode == APIC_MODE_XAPIC)
+        apic_mmio_write(XAPIC_REG(reg), (uint32_t) val);
+    else if (apic_mode == APIC_MODE_X2APIC)
+        apic_msr_write(X2APIC_REG(reg), val);
+    else
+        BUG();
+}
+
+void apic_icr_write(uint64_t val) {
+    if (apic_mode == APIC_MODE_XAPIC) {
+        apic_mmio_write(APIC_ICR1, (uint32_t)(val >> 32));
+        apic_mmio_write(APIC_ICR0, (uint32_t) val);
     }
+    else
+        apic_msr_write(MSR_X2APIC_REGS + (APIC_ICR0 >> 4), val);
+}
+
+
+void init_apic(unsigned int cpu, apic_mode_t mode) {
+    percpu_t *percpu = get_percpu_page(cpu);
+    apic_base_t apic_base;
+
+    BUG_ON(mode < APIC_MODE_DISABLED);
+
+    apic_base.reg = rdmsr(MSR_APIC_BASE);
 
     /* Boot up initialization */
     if (apic_mode == APIC_MODE_UNKNOWN) {
-        switch (apic_base & (APIC_BASE_EXTD | APIC_BASE_ENABLE)) {
-        case 0:
-            apic_mode = APIC_MODE_DISABLED;
-            break;
-
-        case APIC_BASE_ENABLE:
-            apic_mode = APIC_MODE_XAPIC;
-            break;
-
-        case APIC_BASE_EXTD | APIC_BASE_ENABLE:
+        if (apic_base.en && apic_base.extd)
             apic_mode = APIC_MODE_X2APIC;
-            break;
-
-        default:
+        else if (apic_base.en && !apic_base.extd)
+            apic_mode = APIC_MODE_XAPIC;
+        else if (!apic_base.en && !apic_base.extd)
+            apic_mode = APIC_MODE_DISABLED;
+        else
             BUG();
-        }
     }
 
-    printk("Initializing APIC mode: %s -> %s\n", apic_mode_names[apic_mode],
+    printk("CPU%u: Initializing APIC mode: %s -> %s\n", cpu, apic_mode_names[apic_mode],
            apic_mode_names[mode]);
 
     /* Disable APIC */
-    apic_base &= ~(APIC_BASE_EXTD | APIC_BASE_ENABLE);
-    wrmsr(MSR_APIC_BASE, apic_base);
+    apic_base.en = apic_base.extd = 0;
+    wrmsr(MSR_APIC_BASE, apic_base.reg);
 
-    if (mode >= APIC_MODE_XAPIC)
-        wrmsr(MSR_APIC_BASE, apic_base | APIC_BASE_ENABLE);
+    if (mode >= APIC_MODE_XAPIC) {
+        apic_base.en = 1;
+        wrmsr(MSR_APIC_BASE, apic_base.reg);
+    }
 
-    if (mode == APIC_MODE_X2APIC)
-        wrmsr(MSR_APIC_BASE, apic_base | APIC_BASE_EXTD | APIC_BASE_ENABLE);
+    if (mode == APIC_MODE_X2APIC) {
+        apic_base.extd = 1;
+        wrmsr(MSR_APIC_BASE, apic_base.reg);
+    }
 
     apic_mode = mode;
+    percpu->apic_base = apic_base;
+    PERCPU_SET(bsp, apic_base.bsp);
 
     /* XAPIC requires MMIO accesses, thus the APIC_BASE page needs to be mapped.
      * X2APIC uses MSRs for accesses, so no mapping needed.
      */
     if (apic_mode == APIC_MODE_XAPIC)
-        vmap(_ptr(DEFAULT_APIC_BASE), paddr_to_mfn(DEFAULT_APIC_BASE), PAGE_ORDER_4K,
-             L1_PROT);
+        vmap(apic_get_base(apic_base), apic_base.base, PAGE_ORDER_4K, L1_PROT);
 
     apic_write(APIC_SPIV, APIC_SPIV_APIC_ENABLED | 0xff);
-    return 0;
 }
