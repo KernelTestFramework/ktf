@@ -38,9 +38,16 @@
 
 #include <mm/vmm.h>
 
-extern void ret2kern_handler(void);
 extern void asm_interrupt_handler_uart(void);
 extern void asm_interrupt_handler_pit(void);
+
+static void ret2kern_handler(void) {
+    /* clang-format off */
+    asm volatile("mov %%gs:(%0), %%" STR(_ASM_SP) "\n"
+                 "POPF \n"
+                 ::"r"(offsetof(percpu_t, ret2kern_sp)));
+    /* clang-format on */
+}
 
 static void init_tss(percpu_t *percpu) {
 #if defined(__i386__)
