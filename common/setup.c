@@ -35,6 +35,7 @@
 #include <page.h>
 #include <pagetable.h>
 #include <percpu.h>
+#include <real_mode.h>
 #include <sched.h>
 #include <segment.h>
 #include <setup.h>
@@ -67,7 +68,7 @@ bool_cmd("apic_timer", opt_apic_timer);
 bool opt_hpet = false;
 bool_cmd("hpet", opt_hpet);
 
-io_port_t com_ports[2] = {COM1_PORT, COM2_PORT};
+io_port_t __data_rmode com_ports[2] = {COM1_PORT, COM2_PORT};
 
 static unsigned bsp_cpu_id = 0;
 
@@ -187,6 +188,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_console();
 
     init_boot_traps();
+
+    init_real_mode();
 
     /* Print cpu vendor info */
     if (cpu_vendor_string(cpu_identifier)) {

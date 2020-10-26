@@ -25,6 +25,7 @@
 #include <console.h>
 #include <ktf.h>
 #include <lib.h>
+#include <traps.h>
 
 extern void _long_to_real(void);
 
@@ -34,3 +35,5 @@ void long_to_real(void) {
     _long_to_real();
     dprintk("%s: After call\n", __func__);
 }
+
+void init_real_mode(void) { init_rmode_traps(); }

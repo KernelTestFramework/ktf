@@ -28,6 +28,7 @@
 #ifndef __ASSEMBLY__
 
 extern void long_to_real(void);
+extern void init_real_mode(void);
 
 #endif /* __ASSEMBLY__ */
 
