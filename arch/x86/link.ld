@@ -52,6 +52,34 @@ SECTIONS
         *(.multiboot)
     } :init
 
+    .text.rmode BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_text_rmode = .;
+            *(.text.rmode)
+        . = ALIGN(4K);
+        __end_text_rmode = .;
+    } :init
+
+    .bss.rmode BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_bss_rmode = .;
+            *(.bss.rmode)
+            *(COMMON.rmode)
+        . = ALIGN(4K);
+        __end_bss_rmode = .;
+    } :init
+
+    .data.rmode BLOCK(4K) : ALIGN(4K)
+    {
+        . = ALIGN(4K);
+        __start_data_rmode = .;
+            *(.data.rmode)
+        . = ALIGN(4K);
+        __end_data_rmode = .;
+    } :init
+
     .note :
     {
         . = ALIGN(4K);
