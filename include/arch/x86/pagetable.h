@@ -27,9 +27,8 @@
 
 #include <compiler.h>
 #include <lib.h>
-#include <page.h>
-
 #include <mm/pmm.h>
+#include <page.h>
 
 #ifndef __ASSEMBLY__
 
