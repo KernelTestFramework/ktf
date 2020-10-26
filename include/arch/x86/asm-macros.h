@@ -56,6 +56,15 @@
   outb %al, %dx;
 .endm
 
+.macro puts addr len
+    movw (com_ports), %dx
+    mov $\addr, %si
+    mov $\len, %cx
+
+    cld
+    rep outsb
+.endm
+
 .macro SAVE_REGS
     push %_ASM_AX
     push %_ASM_BX
