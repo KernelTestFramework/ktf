@@ -146,12 +146,16 @@ void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
     mfn_t l1t_mfn, l2t_mfn, l3t_mfn;
     pgentry_t *tab, *entry;
 
+    /* test code analysis
     if (!va || _ul(va) & ~PAGE_MASK)
         return NULL;
+    */
 
     dprintk("%s: va: %p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
 
+    /* test code analysis
     spin_lock(&lock);
+    */
 
 #if defined(__x86_64__)
     l3t_mfn = get_pgentry_mfn(get_cr3_mfn(&cr3), l4_table_index(va), L4_PROT_USER);
