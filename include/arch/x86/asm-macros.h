@@ -51,7 +51,7 @@
 
 /* clang-format off */
 .macro putc val
-  movw $0x3f8, %dx;
+  movw (com_ports), %dx;
   movb $\val, %al;
   outb %al, %dx;
 .endm
