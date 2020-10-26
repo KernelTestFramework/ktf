@@ -127,13 +127,20 @@ name:
 #define SIZE(name) \
     .size name, (. - name);
 
-#define END_OBJECT(name) \
-    .type name, STT_OBJECT;   \
+#define END_OBJECT(name)    \
+    .type name, STT_OBJECT; \
     SIZE(name)
 
-#define END_FUNC(name) \
-    .type name, STT_FUNC;   \
+#define END_FUNC(name)     \
+    .type name, STT_FUNC;  \
     SIZE(name)
+
+#define STRING(name, text) \
+name:;                     \
+    .asciz #text;          \
+name ## _end:
+
+#define STRING_LEN(name) (name ## _end - name)
 
 #define ELF_NOTE(name, type, size, addr) \
     .section .note.name, "a";            \
