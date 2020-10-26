@@ -26,13 +26,11 @@
 #include <asm-macros.h>
 #include <page.h>
 
-#define _PADDR(table, shift) (((. - (table)) / PTE_SIZE) << (shift))
-
 /* Initial identity map page tables */
 SECTION(.data.init, "aw", PAGE_SIZE)
 GLOBAL(l1_pt_entries)
     .rept L1_PT_ENTRIES
-    .long _PADDR(l1_pt_entries, L1_PT_SHIFT) + L1_PROT, 0
+    .long PT_PADDR(l1_pt_entries, L1_PT_SHIFT) + L1_PROT, 0
     .endr
 END_OBJECT(l1_pt_entries)
 

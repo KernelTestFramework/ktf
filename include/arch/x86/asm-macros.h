@@ -45,6 +45,8 @@
 #define _ASM_IP    _ASM_REG(ip)
 #define _ASM_FLAGS _ASM_REG(flags)
 
+#define PT_PADDR(table, shift) (((.- (table)) / PTE_SIZE) << (shift))
+
 #ifdef __ASSEMBLY__
 
 /* clang-format off */
