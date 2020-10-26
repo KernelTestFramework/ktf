@@ -47,6 +47,9 @@
 #define GDT_TSS    0x7
 #define GDT_TSS_DF 0x8
 
+#define GDT_RMODE_TSS    0x6
+#define GDT_RMODE_TSS_DF 0x7
+
 #define GDT_PERCPU 0x9
 
 #define NR_BOOT_GDT_ENTRIES  6

@@ -56,6 +56,11 @@ idt_ptr_t boot_idt_ptr __data_init = {
     .addr = _ul(&boot_idt),
 };
 
+extern uint8_t *rmode_stack_ist_top;
+extern uint8_t *rmode_stack_df_top;
+
+x86_tss_t __data_rmode rmode_tss __aligned(16);
+x86_tss_t __data_rmode rmode_tss_df __aligned(16);
 
 gdt_desc_t __data_rmode rmode_gdt[NR_RMODE_GDT_ENTRIES] __aligned(16) = {
     /* clang-format off */
@@ -151,6 +156,41 @@ void __text_init init_boot_traps(void) {
     init_boot_tss();
 }
 
+static void __text_init init_rmode_tss(void) {
+#if defined(__i386__)
+    rmode_tss_df.iopb = sizeof(rmode_tss_df);
+    rmode_tss_df.esp0 = _ul(rmode_stack_df_top);
+    rmode_tss_df.ss = __KERN_DS;
+    rmode_tss_df.ds = __KERN_DS;
+    rmode_tss_df.es = __KERN_DS;
+    rmode_tss_df.fs = __KERN_DS;
+    rmode_tss_df.gs = __KERN_DS;
+    rmode_tss_df.eip = _ul(entry_DF);
+    rmode_tss_df.cs = __KERN_CS;
+    rmode_tss_df.cr3 = read_cr3();
+
+    /* Assign identity mapping of the tss_df, because GDT has only 32-bit base. */
+    rmode_gdt[GDT_RMODE_TSS_DF].desc = GDT_ENTRY(
+        DESC_FLAGS(SZ, P, CODE, A), _ul(&rmode_tss_df), sizeof(rmode_tss_df) - 1);
+
+    /* FIXME */
+    rmode_tss.esp0 = _ul(rmode_stack_ist_top);
+    rmode_tss.ss0 = __KERN_DS;
+    rmode_tss.cr3 = read_cr3();
+#elif defined(__x86_64__)
+    rmode_tss.rsp0 = _ul(rmode_stack_ist_top);
+    rmode_tss.ist[0] = _ul(rmode_stack_df_top);
+#endif
+    rmode_tss.iopb = sizeof(rmode_tss);
+
+    /* Assign identity mapping of the tss, because GDT has only 32-bit base. */
+    rmode_gdt[GDT_RMODE_TSS].desc =
+        GDT_ENTRY(DESC_FLAGS(SZ, P, CODE, A), _ul(&rmode_tss), sizeof(rmode_tss) - 1);
+#if defined(__x86_64__)
+    rmode_gdt[GDT_RMODE_TSS + 1].desc = GDT_ENTRY(0x0, 0x0, 0x0);
+#endif
+}
+
 void __text_init init_rmode_traps(void) {
     /* clang-format off */
     set_intr_gate(&rmode_idt[X86_EX_DE],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
@@ -178,4 +218,5 @@ void __text_init init_rmode_traps(void) {
 #endif
     /* clang-format on */
 
+    init_rmode_tss();
 }
