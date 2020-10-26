@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <asm-macros.h>
+#include <page.h>
 #include <processor.h>
 #include <segment.h>
 
@@ -95,15 +96,17 @@ GLOBAL(_start)
 
     ud2
 
-SECTION(.bss.init, "aw", 16)
+SECTION(.bss.init, "aw", PAGE_SIZE)
 _boot_stack:
     .skip BOOT_STACK_SIZE
 GLOBAL(_boot_stack_top)
 
+.align PAGE_SIZE
 _boot_stack_ist:
     .skip BOOT_STACK_SIZE
 GLOBAL(_boot_stack_ist_top)
 
+.align PAGE_SIZE
 _boot_stack_df:
     .skip BOOT_STACK_SIZE
 GLOBAL(_boot_stack_df_top)
