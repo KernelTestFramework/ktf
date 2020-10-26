@@ -69,6 +69,9 @@ addr_range_t addr_ranges[] = {
     IDENT_RANGE( ".bss.init",   L1_PROT,         __start_bss_init,      __end_bss_init  ),
 
     IDENT_RANGE( ".rmode",      L1_PROT,         __start_rmode,         __end_rmode     ),
+    IDENT_RANGE( ".text.rmode", L1_PROT_RO,      __start_text_rmode,    __end_text_rmode),
+    IDENT_RANGE( ".data.rmode", L1_PROT,         __start_data_rmode,    __end_data_rmode),
+    IDENT_RANGE( ".bss.rmode",  L1_PROT,         __start_bss_rmode,     __end_bss_rmode ),
 
     USER_RANGE( ".text.user",   L1_PROT_USER_RO, __start_text_user,     __end_text_user ),
     USER_RANGE( ".data.user",   L1_PROT_USER,    __start_data_user,     __end_data_user ),
