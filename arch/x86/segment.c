@@ -73,6 +73,13 @@ gdt_ptr_t __data_rmode rmode_gdt_ptr = {
     .addr = _ul(&rmode_gdt),
 };
 
+idt_entry_t __data_rmode rmode_idt[256];
+
+idt_ptr_t rmode_idt_ptr __data_rmode = {
+    .size = sizeof(rmode_idt) - 1,
+    .addr = _ul(&rmode_idt),
+};
+
 static void __text_init init_boot_tss(void) {
 #if defined(__i386__)
     boot_tss_df.iopb = sizeof(boot_tss_df);
@@ -142,4 +149,33 @@ void __text_init init_boot_traps(void) {
     lidt(&boot_idt_ptr);
 
     init_boot_tss();
+}
+
+void __text_init init_rmode_traps(void) {
+    /* clang-format off */
+    set_intr_gate(&rmode_idt[X86_EX_DE],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_DB],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_NMI], __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_BP],  __KERN_CS, _ul(rmode_exception),  GATE_DPL3, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_OF],  __KERN_CS, _ul(rmode_exception),  GATE_DPL3, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_BR],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_UD],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_NM],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_CS],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_TS],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_NP],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_SS],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_GP],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_PF],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_MF],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_AC],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_MC],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_XM],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_VE],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_SE],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+#if defined(__x86_64__)
+    set_intr_gate(&rmode_idt[X86_EX_DF],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 1);
+#endif
+    /* clang-format on */
+
 }

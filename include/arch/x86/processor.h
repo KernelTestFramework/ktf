@@ -209,6 +209,8 @@ extern void entry_XM(void);
 extern void entry_VE(void);
 extern void entry_SE(void);
 
+extern void rmode_exception(void);
+
 #if defined(__x86_64__)
 typedef uint64_t x86_reg_t;
 #elif defined(__i386__)

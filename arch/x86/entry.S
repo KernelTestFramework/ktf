@@ -133,3 +133,17 @@ ENTRY(usermode_stub)
 
     int $X86_RET2KERN_INT
 END_FUNC(usermode_stub)
+
+SECTION(.data.rmode, "aw", 16)
+STRING(rmode_exception_str, Exception happened during real mode call! This is not supported.\n)
+
+SECTION(.text.rmode, "ax", 16)
+.code16
+ENTRY(rmode_exception)
+    puts rmode_exception_str STRING_LEN(rmode_exception_str)
+
+    cli
+.Lhalt_loop:
+    hlt
+    jmp .Lhalt_loop
+END_FUNC(rmode_exception)
