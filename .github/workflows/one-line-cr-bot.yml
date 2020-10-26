@@ -78,5 +78,7 @@ jobs:
         POST_TO_GITHUB_PR: true
         REPORT_NEW_ONLY: true
         VERBOSE: 0 # >0 shows all currently present defects as well
+        # We need access to the github token to be able to comment on the PR
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       # Be explicit about the tools to be used
       run: ../one-line-scan/one-line-cr-bot.sh -E infer -E cppcheck
