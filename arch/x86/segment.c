@@ -56,6 +56,23 @@ idt_ptr_t boot_idt_ptr __data_init = {
     .addr = _ul(&boot_idt),
 };
 
+
+gdt_desc_t __data_rmode rmode_gdt[NR_RMODE_GDT_ENTRIES] __aligned(16) = {
+    /* clang-format off */
+    [GDT_NULL].desc      = GDT_ENTRY(0x0, 0x0, 0x0),
+    [GDT_KERN_CS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, CODE, R, A), 0x0, 0xfffff),
+    [GDT_KERN_DS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
+    [GDT_KERN_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, CODE, R, A), 0x0, 0x00000),
+    [GDT_RMODE_CS16].desc = GDT_ENTRY(DESC_FLAGS(P, DPL0, S, CODE, R, A), 0x0, 0xfffff),
+    [GDT_RMODE_DS16].desc = GDT_ENTRY(DESC_FLAGS(P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
+    /* clang-format on */
+};
+
+gdt_ptr_t __data_rmode rmode_gdt_ptr = {
+    .size = sizeof(rmode_gdt) - 1,
+    .addr = _ul(&rmode_gdt),
+};
+
 static void __text_init init_boot_tss(void) {
 #if defined(__i386__)
     boot_tss_df.iopb = sizeof(boot_tss_df);
