@@ -51,7 +51,6 @@ extern unsigned long __start_text_init[], __end_text_init[];
 extern unsigned long __start_data_init[], __end_data_init[];
 extern unsigned long __start_bss_init[], __end_bss_init[];
 
-extern unsigned long __start_rmode[], __end_rmode[];
 extern unsigned long __start_text_rmode[], __end_text_rmode[];
 extern unsigned long __start_data_rmode[], __end_data_rmode[];
 extern unsigned long __start_bss_rmode[], __end_bss_rmode[];

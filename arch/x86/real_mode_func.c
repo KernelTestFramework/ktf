@@ -25,14 +25,18 @@
 #include <console.h>
 #include <ktf.h>
 #include <lib.h>
+#include <percpu.h>
+#include <smp/smp.h>
 #include <traps.h>
 
-extern void _long_to_real(void);
+extern void _long_to_real(const void *gdt_ptr, const void *idt_ptr);
 
 /* FIXME: add real mode calling functionality */
 void long_to_real(void) {
+    percpu_t *percpu = get_percpu_page(smp_processor_id());
+
     dprintk("%s: Before call\n", __func__);
-    _long_to_real();
+    _long_to_real(&percpu->gdt_ptr, &percpu->idt_ptr);
     dprintk("%s: After call\n", __func__);
 }
 
