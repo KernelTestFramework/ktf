@@ -11,7 +11,7 @@
 name: One Line CR Bot
 
 on:
-  pull_request:
+  pull_request_target:
     # [ACTION REQUIRED] Set the branch you want to analyze PRs for
     branches: [ mainline ]
 
