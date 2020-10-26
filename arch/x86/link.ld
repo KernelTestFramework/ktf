@@ -89,16 +89,6 @@ SECTIONS
         __end_note = .;
     } :init :note
 
-    .rmode BLOCK(4K) : ALIGN(4K)
-    {
-	. = ALIGN(4K);
-	__start_rmode = .;
-	*(.real_prot_tramp)
-	*(.rlm_save_area)
-	. = ALIGN(4K);
-	__end_rmode = .;
-    } :init
-
     .text.init BLOCK(4K) : ALIGN(4K)
     {
         . = ALIGN(4K);
