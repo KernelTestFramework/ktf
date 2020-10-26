@@ -149,6 +149,35 @@ This has to be done only once.
 make style
 ```
 
+### Running the one-line-scan workflow locally
+
+#### Build the `ktf-one-line-scan` container
+
+* first, download the `one-line-scan` base image
+```bash
+docker build -t one-line-scan \
+    https://raw.githubusercontent.com/awslabs/one-line-scan/master/tools/Dockerfile
+```
+
+* create the KTF specific one-line-scan image, including necessary tools for building
+```
+ docker build -t ktf-one-line-scan \
+    --build-arg USER_ID=$(id -u) \
+    --build-arg GROUP_ID=$(id -g) \
+    --build-arg USER=$USER \
+    --file tools/docker/OnelineScanDockerfile .
+```
+
+This has to be done only once.
+
+#### Scan your current working directory
+
+* per default, one-line-scan scans against the diff between `HEAD` and `origin/mainline` commit
+
+```bash
+make onelinescan
+```
+
 ## Credits and Attributions
 
 * Parts of the KTF project are inspired by and based on XTF project [1] developed by Andrew Cooper of Citrix.

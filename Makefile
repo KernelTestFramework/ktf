@@ -201,3 +201,13 @@ dockerimage:
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
 	@ docker run -it -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
+
+.PHONY: onelinescan
+onelinescan:
+	@echo "scanning current working directory with one-line-scan"
+	@ docker run -it -e BASE_COMMIT=origin/mainline \
+		-e REPORT_NEW_ONLY=true -e OVERRIDE_ANALYSIS_ERROR=true \
+		-e INFER_ANALYSIS_EXTRA_ARGS="--bufferoverrun" \
+		-e CPPCHECK_EXTRA_ARG=" --enable=style --enable=performance --enable=information --enable=portability" \
+		-e VERBOSE=0 -e BUILD_COMMAND="make -B all" \
+		-v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) ktf-one-line-scan
