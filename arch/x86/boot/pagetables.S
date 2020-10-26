@@ -29,7 +29,7 @@
 #define _PADDR(table, shift) (((. - (table)) / PTE_SIZE) << (shift))
 
 /* Initial identity map page tables */
-SECTION(.data.init, "aw", 0x1000)
+SECTION(.data.init, "aw", PAGE_SIZE)
 GLOBAL(l1_pt_entries)
     .rept L1_PT_ENTRIES
     .long _PADDR(l1_pt_entries, L1_PT_SHIFT) + L1_PROT, 0
@@ -42,7 +42,7 @@ GLOBAL(l2_pt_entries)
 END_OBJECT(l2_pt_entries)
 
 #if defined(__i386__)
-.align 0x1000
+.align PAGE_SIZE
 #endif
 GLOBAL(l3_pt_entries)
     .long l2_pt_entries + L3_PROT, 0
@@ -55,7 +55,7 @@ GLOBAL(l3_pt_entries)
 END_OBJECT(l3_pt_entries)
 
 #if defined(__x86_64__)
-.align 0x1000
+.align PAGE_SIZE
 GLOBAL(l4_pt_entries)
     .long l3_pt_entries + L4_PROT, 0
 
