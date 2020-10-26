@@ -24,6 +24,7 @@
  */
 #include <console.h>
 #include <ktf.h>
+#include <real_mode.h>
 #include <sched.h>
 
 #ifdef KTF_UNIT_TEST
@@ -135,6 +136,9 @@ static int ktf_unit_tests(void) {
     cpu_freq_expect("AMD Ryzen Threadripper 1950X 16-Core Processor", 0);
     cpu_freq_expect("Prototyp Amazing Foo One @ 1GHz", 1000000000);
     cpu_freq_expect("Prototyp Amazing Foo Two @ 1.00GHz", 1000000000);
+
+    printk("Long mode to real mode transition:\n");
+    long_to_real();
 
     return 0;
 }
