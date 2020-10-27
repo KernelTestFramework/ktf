@@ -53,7 +53,7 @@
 bool opt_debug = false;
 bool_cmd("debug", opt_debug);
 
-io_port_t com_ports[2];
+io_port_t com_ports[2] = {COM1_PORT, COM2_PORT};
 
 const char *kernel_cmdline;
 char cpu_identifier[49];
@@ -129,7 +129,7 @@ void __text_init cmdline_parse(const char *cmdline) {
     }
 }
 
-static void init_console(void) {
+static void __text_init init_console(void) {
     get_com_ports();
 
     uart_init(com_ports[0], DEFAULT_BAUD_SPEED);
