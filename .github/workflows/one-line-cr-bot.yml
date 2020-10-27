@@ -13,7 +13,8 @@ name: One Line CR Bot
 on:
   pull_request_target:
     # [ACTION REQUIRED] Set the branch you want to analyze PRs for
-    branches: [ mainline ]
+    branches:
+      - '**'
 
   # [ACTION REQUIRED] Use this, if you want analysis for push to repository as well
   push:
