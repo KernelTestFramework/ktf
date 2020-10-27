@@ -27,6 +27,9 @@
 #include <segment.h>
 #include <page.h>
 
+#define RETURN_TO_PROT_MODE 0x01
+#define RETURN_TO_LONG_MODE 0x02
+
 .code64
 SECTION(.text.rmode, "ax", 16)
 ENTRY(_long_to_real)
@@ -79,23 +82,74 @@ ENTRY(_long_to_real)
     /* Save stack pointer */
     mov   %rsp, _saved_sp
 
+    movb  $RETURN_TO_LONG_MODE, return_mode
+
     push  $__KERN_CS32
-    push  $.Lprot_mode
+    push  $.Lfrom_long_mode
     lretq
 END_FUNC(_long_to_real)
 
 .code32
-.align 16
-.Lprot_mode:
-    /* Load real mode accessible GDT and IDT */
-    lgdt  rmode_gdt_ptr
-    lidt  rmode_idt_ptr
+ENTRY(_prot_to_real)
+    /* Save current GDT and IDT in low memory area */
+    mov   4(%esp), %eax
+    mov   %eax, _saved_idt_ptr
+    mov   8(%esp), %eax
+    mov   %eax, _saved_gdt_ptr
 
+    /* Save current flags register */
+    pushfl
+
+    /* Disable interrupts. If we get NMI or MC, hope we get back here */
+    cli
+
+    /* Save control registers context */
+    mov   %cr0, %eax
+    mov   %eax, _saved_cr0
+
+    mov   %cr3, %eax
+    mov   %eax, _saved_cr3
+
+    mov   %cr4, %eax
+    mov   %eax, _saved_cr4
+
+    /* Save segment selector registers */
+    movw  %ds, %ax
+    movw  %ax, _saved_ds
+
+    movw  %es, %ax
+    movw  %ax, _saved_es
+
+    movw  %gs, %ax
+    movw  %ax, _saved_gs
+
+    movw  %fs, %ax
+    movw  %ax, _saved_fs
+
+    movw  %ss, %ax
+    movw  %ax, _saved_ss
+
+    /* Save stack pointer */
+    mov   %esp, _saved_sp
+
+    movb  $RETURN_TO_PROT_MODE, return_mode
+
+    jmp   .Lfrom_prot_mode
+END_FUNC(_prot_to_real)
+
+.align 16
+.Lfrom_long_mode:
     /* Disable LME in EFER */
     movl  $MSR_EFER, %ecx
     rdmsr
     and   $~EFER_LME, %eax
     wrmsr
+
+.align 16
+.Lfrom_prot_mode:
+    /* Load real mode accessible GDT and IDT */
+    lgdt  rmode_gdt_ptr
+    lidt  rmode_idt_ptr
 
     /* Disable paging to enter protected mode */
     mov   %cr0, %eax
@@ -168,11 +222,17 @@ END_FUNC(_long_to_real)
     mov   %eax, %fs
     mov   %eax, %ss
 
+    /* Find correct mode to return to */
+    cmpb  $RETURN_TO_LONG_MODE, return_mode
+    movb  $0x00, return_mode
+    jne   .Lprot_to_prot
+    ljmp  $__KERN_CS32, $.Lret_to_long_mode_prot
+.Lprot_to_prot:
     ljmp  $__KERN_CS32, $.Lret_to_prot_mode
 
 .code32
 .align 16
-.Lret_to_prot_mode:
+.Lret_to_long_mode_prot:
     mov   %cr4, %eax
     or    $(X86_CR4_PAE | X86_CR4_PSE), %eax
     mov   %eax, %cr4
@@ -194,11 +254,54 @@ END_FUNC(_long_to_real)
     or    $(X86_CR0_PG | X86_CR0_WP), %eax
     mov   %eax, %cr0
 
-    ljmp  $__KERN_CS64, $.Lret_to_long_mode
+    ljmp  $__KERN_CS64, $.Lret_to_long_mode_long
+
+.align 16
+.Lret_to_prot_mode:
+    /* Restore GDT and IDT descriptors */
+    mov   _saved_gdt_ptr, %eax
+    lgdt  (%eax)
+    mov   _saved_idt_ptr, %eax
+    lidt  (%eax)
+
+    /* Restore control registers */
+    mov   _saved_cr0, %eax
+    mov   %eax, %cr0
+
+    /* Restore original page tables */
+    mov   _saved_cr3, %eax
+    mov   %eax, %cr3
+
+    mov   _saved_cr4, %eax
+    mov   %eax, %cr4
+
+    /* Restore segment selector registers */
+    mov   _saved_ds, %eax
+    mov   %eax, %ds
+
+    mov   _saved_es, %eax
+    mov   %eax, %es
+
+    mov   _saved_fs, %eax
+    mov   %eax, %fs
+
+    mov   _saved_gs, %eax
+    mov   %eax, %gs
+
+    mov   _saved_ss, %eax
+    mov   %eax, %ss
+
+    /* Restore stack pointer */
+    mov   _saved_sp, %esp
+
+    /* Restore flags register */
+    popfl
+
+    ret
 
 .code64
 .align 16
-.Lret_to_long_mode:
+.Lret_to_long_mode_long:
     /* Restore control registers */
     mov   _saved_cr0, %rax
     mov   %rax, %cr0
@@ -243,6 +346,9 @@ END_FUNC(_long_to_real)
 /* Data section allocations */
 
 SECTION(.bss.rmode, "aw", 16)
+GLOBAL(return_mode)
+    .byte 0x0
+
 GLOBAL(_saved_cr0)
     .quad 0x0
 
