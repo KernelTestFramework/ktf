@@ -13,7 +13,8 @@ name: One Line CR Bot
 on:
   pull_request_target:
     # [ACTION REQUIRED] Set the branch you want to analyze PRs for
-    branches: [ mainline ]
+    branches:
+      - '**'
 
   # [ACTION REQUIRED] Use this, if you want analysis for push to repository as well
   push:
@@ -77,7 +78,7 @@ jobs:
         IGNORE_ERRORS: false
         INSTALL_MISSING: true
         OVERRIDE_ANALYSIS_ERROR: true
-        POST_TO_GITHUB_PR: true
+        POST_TO_GITHUB_PR_ONLY: true
         REPORT_NEW_ONLY: true
         VERBOSE: 0 # >0 shows all currently present defects as well
         # We need access to the github token to be able to comment on the PR
