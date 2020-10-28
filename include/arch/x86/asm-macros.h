@@ -65,6 +65,26 @@
     rep outsb
 .endm
 
+.macro SAVE_REGS_32
+    push %eax
+    push %ebx
+    push %ecx
+    push %edx
+    push %esi
+    push %edi
+    push %ebp
+.endm
+
+.macro RESTORE_REGS_32
+    pop %ebp
+    pop %edi
+    pop %esi
+    pop %edx
+    pop %ecx
+    pop %ebx
+    pop %eax
+.endm
+
 .macro SAVE_REGS
     push %_ASM_AX
     push %_ASM_BX
