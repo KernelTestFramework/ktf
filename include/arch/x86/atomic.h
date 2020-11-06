@@ -28,9 +28,23 @@
 #include <ktf.h>
 #include <lib.h>
 
+typedef struct {
+    int32_t counter;
+} atomic_t;
+
+typedef struct {
+    int64_t counter;
+} atomic64_t;
+
+#define ATOMIC_INIT(i)                                                                   \
+    { (i) }
+
+#define atomic_set(v, i) (ACCESS_ONCE((v)->counter) = (i))
+#define atomic_read(v)   (ACCESS_ONCE((v)->counter))
+
 /* Static declarations */
 
-static inline bool test_bit(unsigned int bit, volatile void *addr) {
+static inline bool atomic_test_bit(unsigned int bit, volatile void *addr) {
     bool status;
 
     asm volatile("bt %[bit], %[addr];"
@@ -42,7 +56,7 @@ static inline bool test_bit(unsigned int bit, volatile void *addr) {
     return status;
 }
 
-static inline bool test_and_set_bit(unsigned int bit, volatile void *addr) {
+static inline bool atomic_test_and_set_bit(unsigned int bit, volatile void *addr) {
     bool status;
 
     asm volatile("lock bts %[bit], %[addr];"
@@ -54,7 +68,7 @@ static inline bool test_and_set_bit(unsigned int bit, volatile void *addr) {
     return status;
 }
 
-static inline bool test_and_reset_bit(unsigned int bit, volatile void *addr) {
+static inline bool atomic_test_and_reset_bit(unsigned int bit, volatile void *addr) {
     bool status;
 
     asm volatile("lock btr %[bit], %[addr];"
@@ -66,7 +80,7 @@ static inline bool test_and_reset_bit(unsigned int bit, volatile void *addr) {
     return status;
 }
 
-static inline bool test_and_complement_bit(unsigned int bit, volatile void *addr) {
+static inline bool atomic_test_and_complement_bit(unsigned int bit, volatile void *addr) {
     bool status;
 
     asm volatile("lock btc %[bit], %[addr];"
@@ -76,6 +90,108 @@ static inline bool test_and_complement_bit(unsigned int bit, volatile void *addr
                  : "cc", "memory");
 
     return status;
+}
+
+static inline void atomic_inc(atomic_t *v) {
+    asm volatile("lock incl %[addr];" : : [ addr ] "m"(v->counter) : "memory");
+}
+
+static inline void atomic64_inc(atomic64_t *v) {
+    asm volatile("lock incq %[addr];" : : [ addr ] "m"(v->counter) : "memory");
+}
+
+static inline int32_t atomic_add_return(atomic_t *v, int32_t n) {
+    int32_t val = n;
+    asm volatile("lock xaddl %[n], %[addr];"
+                 : [ n ] "+r"(val), [ addr ] "+m"(v->counter)
+                 :
+                 : "memory");
+    return val;
+}
+
+static inline int64_t atomic64_add_return(atomic64_t *v, int64_t n) {
+    int64_t val = n;
+    asm volatile("lock xaddq %[n], %[addr];"
+                 : [ n ] "+r"(val), [ addr ] "+m"(v->counter)
+                 :
+                 : "memory");
+    return val;
+}
+
+static inline int32_t atomic_inc_return(atomic_t *v) { return atomic_add_return(v, 1); }
+
+static inline int64_t atomic64_inc_return(atomic64_t *v) {
+    return atomic64_add_return(v, 1);
+}
+
+static inline int atomic_inc_and_test(atomic_t *v) {
+    uint8_t c;
+    asm volatile("lock incl %[addr]; sete %[c]"
+                 : [ addr ] "=m"(v->counter), [ c ] "=r"(c)
+                 :
+                 : "memory");
+    return c != 0;
+}
+
+static inline int atomic64_inc_and_test(atomic64_t *v) {
+    uint8_t c;
+    asm volatile("lock incq %[addr]; sete %[c]"
+                 : [ addr ] "=m"(v->counter), [ c ] "=r"(c)
+                 :
+                 : "memory");
+    return c != 0;
+}
+
+static inline void atomic_dec(atomic_t *v) {
+    asm volatile("lock decl %[addr];" : : [ addr ] "m"(v->counter) : "memory");
+}
+
+static inline void atomic64_dec(atomic64_t *v) {
+    asm volatile("lock decq %[addr];" : : [ addr ] "m"(v->counter) : "memory");
+}
+
+static inline int32_t atomic_sub_return(atomic_t *v, int32_t n) {
+    int32_t val = n;
+    asm volatile("lock xsubl %[n], %[addr];"
+                 : [ n ] "+r"(val), [ addr ] "+m"(v->counter)
+                 :
+                 : "memory");
+    return val;
+}
+
+static inline int64_t atomic64_sub_return(atomic64_t *v, int64_t n) {
+    int64_t val = n;
+    asm volatile("lock xsubq %[n], %[addr];"
+                 : [ n ] "+r"(val), [ addr ] "+m"(v->counter)
+                 :
+                 : "memory");
+    return val;
+}
+
+static inline int32_t atomic_dec_return(atomic_t *v, int32_t n) {
+    return atomic_sub_return(v, 1);
+}
+
+static inline int64_t atomic64_dec_return(atomic64_t *v, int64_t n) {
+    return atomic64_sub_return(v, 1);
+}
+
+static inline int atomic_dec_and_test(atomic_t *v) {
+    uint8_t c;
+    asm volatile("lock decl %[addr]; sete %[c]"
+                 : [ addr ] "=m"(v->counter), [ c ] "=r"(c)
+                 :
+                 : "memory");
+    return c != 0;
+}
+
+static inline int atomic64_dec_and_test(atomic64_t *v) {
+    uint8_t c;
+    asm volatile("lock decq %[addr]; sete %[c]"
+                 : [ addr ] "=m"(v->counter), [ c ] "=r"(c)
+                 :
+                 : "memory");
+    return c != 0;
 }
 
 /* External declarations */

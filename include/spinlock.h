@@ -39,13 +39,13 @@ typedef volatile unsigned int spinlock_t;
 
 static inline void spin_lock(spinlock_t *lock) {
     ASSERT(lock);
-    while (test_and_set_bit(LOCK_BIT, lock))
+    while (atomic_test_and_set_bit(LOCK_BIT, lock))
         cpu_relax();
 }
 
 static inline void spin_unlock(spinlock_t *lock) {
     ASSERT(lock);
-    test_and_reset_bit(LOCK_BIT, lock);
+    atomic_test_and_reset_bit(LOCK_BIT, lock);
 }
 
 /* External declarations */
