@@ -30,6 +30,7 @@
 #define MAX_ROWS VGA_ROWS
 #define MAX_COLS (2 * VGA_COLS)
 
+static unsigned scroll_screen = 0;
 
 static uint8_t vga_buffer[VGA_SCREENS][MAX_ROWS][MAX_COLS];
 
@@ -37,6 +38,16 @@ static inline void write_vga_buffer(int cur_screen) {
     void *vga_memory = paddr_to_virt_kern(VGA_START_ADDR);
 
     memcpy(vga_memory, vga_buffer[cur_screen], sizeof(vga_buffer[cur_screen]));
+}
+
+void vga_scroll_down(void) {
+    if (scroll_screen < (VGA_SCREENS - 1))
+        write_vga_buffer(++scroll_screen);
+}
+
+void vga_scroll_up(void) {
+    if (scroll_screen > 0)
+        write_vga_buffer(--scroll_screen);
 }
 
 void vga_write(const char *buf, size_t len, vga_color_t color) {
@@ -65,5 +76,6 @@ void vga_write(const char *buf, size_t len, vga_color_t color) {
         vga_buffer[screen][row][col++] = color;
     }
 
+    scroll_screen = screen;
     write_vga_buffer(screen);
 }
