@@ -53,6 +53,7 @@ typedef enum vga_color vga_color_t;
 #define VGA_END_ADDR   0xBFFFF
 #define VGA_ROWS       25
 #define VGA_COLS       80
+#define VGA_SCREENS    10
 
 extern void vga_write(const char *buf, size_t len, vga_color_t color);
 #endif /* KTF_DRV_VGA_H */
