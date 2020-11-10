@@ -25,6 +25,7 @@
 #include <apic.h>
 #include <drivers/keyboard.h>
 #include <drivers/pic.h>
+#include <drivers/vga.h>
 #include <ioapic.h>
 #include <lib.h>
 #include <string.h>
@@ -178,8 +179,20 @@ unsigned int keyboard_process_keys(void) {
 
         key = keyboard_scan_to_key(scan);
 
-        if (isprint(key))
-            printk("%c", key);
+        switch (key) {
+        case SCAN_PAGEUP:
+            if (keyboard_state.shift)
+                vga_scroll_up();
+            break;
+        case SCAN_PAGEDOWN:
+            if (keyboard_state.shift)
+                vga_scroll_down();
+            break;
+        default:
+            if (isprint(key))
+                printk("%c", key);
+            break;
+        }
 
         keyboard_state.init = (keyboard_state.init + 1) % KEY_BUF;
         ++n;
