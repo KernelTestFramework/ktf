@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <drivers/keyboard.h>
 #include <drivers/pit.h>
 #include <drivers/serial.h>
 #include <ktf.h>
@@ -38,9 +39,17 @@
 
 #include <mm/vmm.h>
 
-extern void ret2kern_handler(void);
 extern void asm_interrupt_handler_uart(void);
 extern void asm_interrupt_handler_pit(void);
+extern void asm_interrupt_handler_keyboard(void);
+
+static void ret2kern_handler(void) {
+    /* clang-format off */
+    asm volatile("mov %%gs:%[sp], %%" STR(_ASM_SP) "\n"
+                 "POPF \n"
+                 :: [ sp ] "m"(ACCESS_ONCE(PERCPU_VAR(ret2kern_sp))));
+    /* clang-format on */
+}
 
 static void init_tss(percpu_t *percpu) {
 #if defined(__i386__)
@@ -153,6 +162,8 @@ void init_traps(unsigned int cpu) {
                   _ul(asm_interrupt_handler_uart), GATE_DPL0, GATE_PRESENT, 0);
     set_intr_gate(&percpu->idt[PIT_IRQ0_OFFSET], __KERN_CS,
                   _ul(asm_interrupt_handler_pit), GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[KEYBOARD_PORT1_IRQ0_OFFSET], __KERN_CS,
+                  _ul(asm_interrupt_handler_keyboard), GATE_DPL0, GATE_PRESENT, 0);
 
     barrier();
     lidt(&percpu->idt_ptr);

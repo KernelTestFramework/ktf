@@ -27,6 +27,7 @@
 #include <cmdline.h>
 #include <console.h>
 #include <cpuid.h>
+#include <drivers/keyboard.h>
 #include <ioapic.h>
 #include <ktf.h>
 #include <lib.h>
@@ -221,7 +222,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
         BUG();
     }
 
-    init_apic(APIC_MODE_XAPIC);
+    init_apic(get_bsp_cpu_id(), APIC_MODE_XAPIC);
 
     init_tasks();
 
@@ -234,6 +235,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* Initialize Programmable Interrupt Timer */
     init_pit(get_bsp_cpu_id());
+
+    /* Initialize keyboard */
+    init_keyboard(get_bsp_cpu_id());
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));

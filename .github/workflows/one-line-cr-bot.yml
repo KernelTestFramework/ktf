@@ -25,8 +25,12 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # Get the code, fetch the full history to make sure we have the compare commit as well
     steps:
+    # This is to address CVE-2020-15228 proactively. We do not rely on stdout.
+    - name: Disable workflow commands
+      run: echo "::stop-commands::`echo -n ${{ github.token }} | sha256sum | head -c 64`"
+
+    # Get the code, fetch the full history to make sure we have the compare commit as well
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -52,13 +56,6 @@ jobs:
     # Get one-line-scan, the tool we will use for analysis
     - name: Get OneLineScan
       run:  git clone -b comment-prs https://github.com/nmanthey/one-line-scan.git ../one-line-scan
-
-    # Check how repository is setup
-    - name: Be Verbose about Git Setup
-      run: |
-        git remote -v
-        git branch -a
-        git log --pretty=oneline --decorate --graph | head -n 10
 
     # Run the analysis, parameterized for this package
     - name: one-line-cr-analysis

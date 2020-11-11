@@ -88,15 +88,15 @@ ENTRY(handle_exception)
 
 #if defined(__x86_64__)
     add $8, %_ASM_SP
-    iretq
 #else
     add $4, %_ASM_SP
-    iret
 #endif
+    IRET
 END_FUNC(handle_exception)
 
 interrupt_handler pit pit_interrupt_handler
 interrupt_handler uart uart_interrupt_handler
+interrupt_handler keyboard keyboard_interrupt_handler
 
 ENTRY(usermode_call_asm)
     /* FIXME: Add 32-bit support */
@@ -119,11 +119,7 @@ ENTRY(usermode_call_asm)
     pushq $__USER_CS
     push $usermode_stub
 
-#if defined(__x86_64__)
-    iretq
-#else
-    iret
-#endif
+    IRET
 END_FUNC(usermode_call_asm)
 
 SECTION(.text.user, "ax", 16)

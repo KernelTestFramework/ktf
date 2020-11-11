@@ -50,6 +50,7 @@ void __noreturn ap_startup(void) {
     write_sp(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
 
     init_traps(ap_cpuid);
+    init_apic(ap_cpuid, apic_get_mode());
 
     ap_callin = true;
     smp_wmb();
@@ -63,10 +64,9 @@ void __noreturn ap_startup(void) {
 }
 
 static __text_init void boot_cpu(unsigned int cpu) {
-    percpu_t *percpu = get_percpu_page(cpu);
-    uint64_t icr;
+    apic_icr_t icr;
 
-    if (percpu->bsp)
+    if (PERCPU_GET(bsp))
         return;
 
     ap_cpuid = cpu;
@@ -75,16 +75,22 @@ static __text_init void boot_cpu(unsigned int cpu) {
 
     dprintk("Starting AP: %u\n", cpu);
 
-    /* Set ICR2 part */
-    icr = (_ul(SET_APIC_DEST_FIELD(percpu->apic_id)) << 32);
+    icr = apic_icr_read();
+    apic_icr_set_dest(&icr, PERCPU_GET(apic_id));
 
     /* Wake up the secondary processor: INIT-SIPI-SIPI... */
+    icr.deliv_mode = APIC_DELIV_MODE_INIT;
     apic_wait_ready();
-    apic_icr_write(icr | APIC_DM_INIT);
+    apic_icr_write(&icr);
+
+    icr.deliv_mode = APIC_DELIV_MODE_SIPI;
+    icr.vector = GET_SIPI_VECTOR(ap_start);
     apic_wait_ready();
-    apic_icr_write(icr | (APIC_DM_STARTUP | GET_SIPI_VECTOR(ap_start)));
+    apic_icr_write(&icr);
+
     apic_wait_ready();
-    apic_icr_write(icr | (APIC_DM_STARTUP | GET_SIPI_VECTOR(ap_start)));
+    apic_icr_write(&icr);
+
     apic_wait_ready();
 
     while (!ap_callin)

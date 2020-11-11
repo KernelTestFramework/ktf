@@ -47,6 +47,8 @@ static inline int isupper(int c) { return c >= 'A' && c <= 'Z'; }
 
 static inline int isalpha(int c) { return islower(c) || isupper(c); }
 
+static inline int isprint(char c) { return c >= 0x20 && c <= 0x7e; }
+
 static inline size_t strlen(const char *str) {
     size_t len = 0;
 

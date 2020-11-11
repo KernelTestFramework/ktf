@@ -25,6 +25,7 @@
 #ifndef KTF_PERCPU_H
 #define KTF_PERCPU_H
 
+#include <apic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <list.h>
@@ -35,6 +36,7 @@ struct percpu {
 
     unsigned int cpu_id;
     uint32_t apic_id;
+    apic_base_t apic_base;
     bool enabled;
     bool bsp;
     uint8_t family;
@@ -56,6 +58,68 @@ struct percpu {
     void *user_stack;
 } __aligned(PAGE_SIZE);
 typedef struct percpu percpu_t;
+
+#define PERCPU_VAR(variable)    memberof(percpu_t, variable)
+#define PERCPU_OFFSET(variable) ((off_t) &PERCPU_VAR(variable))
+#define PERCPU_TYPE(variable)   typeof(PERCPU_VAR(variable))
+
+#define PERCPU_GET(variable)                                                             \
+    ({                                                                                   \
+        PERCPU_TYPE(variable) __local_var;                                               \
+        asm volatile("mov %%gs:%[percpu_var], %[local_var]"                              \
+                     : [ local_var ] "=r"(__local_var)                                   \
+                     : [ percpu_var ] "m"(ACCESS_ONCE(PERCPU_VAR(variable))));           \
+        __local_var;                                                                     \
+    })
+
+#define PERCPU_SET_BYTE(variable, value)                                                 \
+    ({                                                                                   \
+        asm volatile("movb %[val], %%gs:%[percpu_var]"                                   \
+                     : [ percpu_var ] "=m"(ACCESS_ONCE(PERCPU_VAR(variable)))            \
+                     : [ val ] "r"((uint8_t) value));                                    \
+    })
+
+#define PERCPU_SET_WORD(variable, value)                                                 \
+    ({                                                                                   \
+        asm volatile("movw %[val], %%gs:%[percpu_var]"                                   \
+                     : [ percpu_var ] "=m"(ACCESS_ONCE(PERCPU_VAR(variable)))            \
+                     : [ val ] "r"((uint16_t) value));                                   \
+    })
+
+#define PERCPU_SET_DWORD(variable, value)                                                \
+    ({                                                                                   \
+        asm volatile("movl %[val], %%gs:%[percpu_var]"                                   \
+                     : [ percpu_var ] "=m"(ACCESS_ONCE(PERCPU_VAR(variable)))            \
+                     : [ val ] "r"((uint32_t) value));                                   \
+    })
+
+#if defined(__x86_64__)
+#define PERCPU_SET_QWORD(variable, value)                                                \
+    ({                                                                                   \
+        asm volatile("movq %[val], %%gs:%[percpu_var]"                                   \
+                     : [ percpu_var ] "=m"(ACCESS_ONCE(PERCPU_VAR(variable)))            \
+                     : [ val ] "r"((uint64_t) value));                                   \
+    })
+#endif
+
+#if defined(__x86_64__)
+#define PERCPU_SET_MAX_SIZE sizeof(uint64_t)
+#else
+#define PERCPU_SET_MAX_SIZE sizeof(uint32_t)
+#endif
+
+/* clang-format off */
+#define PERCPU_SET(variable, value)                                                      \
+    ({                                                                                   \
+        BUILD_BUG_ON(sizeof(PERCPU_TYPE(variable)) > PERCPU_SET_MAX_SIZE);               \
+        size_t __var_size = sizeof(PERCPU_TYPE(variable));                               \
+        if (__var_size == sizeof(uint8_t))       PERCPU_SET_BYTE(variable, value);       \
+        else if (__var_size == sizeof(uint16_t)) PERCPU_SET_WORD(variable, value);       \
+        else if (__var_size == sizeof(uint32_t)) PERCPU_SET_DWORD(variable, value);      \
+        else if (__var_size == sizeof(uint64_t)) PERCPU_SET_QWORD(variable, value);      \
+        else BUG();                                                                      \
+    })
+/* clang-format on */
 
 /* External declarations */
 

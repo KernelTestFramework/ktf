@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <drivers/keyboard.h>
 #include <ktf.h>
 #include <lib.h>
 #include <multiboot.h>
@@ -35,17 +36,16 @@ extern void _long_to_real(void);
 extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2kern_sp,
                              unsigned long user_stack);
 
-void ret2kern_handler(void) {
-    /* clang-format off */
-    asm volatile("mov %%gs:(%0), %%" STR(_ASM_SP) "\n"
-                 "POPF \n"
-                 ::"r"(offsetof(percpu_t, ret2kern_sp)));
-    /* clang-format on */
+int usermode_call(user_func_t fn, void *fn_arg) {
+    return usermode_call_asm(fn, fn_arg, PERCPU_OFFSET(ret2kern_sp),
+                             PERCPU_OFFSET(user_stack));
 }
 
-int usermode_call(user_func_t fn, void *fn_arg) {
-    return usermode_call_asm(fn, fn_arg, offsetof(percpu_t, ret2kern_sp),
-                             offsetof(percpu_t, user_stack));
+static void echo_loop(void) {
+    while (1) {
+        io_delay();
+        keyboard_process_keys();
+    }
 }
 
 void kernel_main(void) {
@@ -67,6 +67,5 @@ void kernel_main(void) {
 
     printk("All tasks done.\n");
 
-    while (1)
-        cpu_relax();
+    echo_loop();
 }
