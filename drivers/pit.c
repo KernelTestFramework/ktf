@@ -51,3 +51,5 @@ void pit_sleep(uint64_t ms) {
         cpu_relax();
     }
 }
+
+void pit_disable(void) { pic_disable_irq(PIC1_DEVICE_SEL, PIT_IRQ); }

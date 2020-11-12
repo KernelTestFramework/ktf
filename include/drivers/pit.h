@@ -59,5 +59,6 @@ typedef enum pit_operational_mode pit_operational_mode_t;
 extern void init_pit(uint8_t dst_cpus);
 extern void pit_interrupt_handler(void);
 extern void pit_sleep(uint64_t ms);
+extern void pit_disable(void);
 
 #endif
