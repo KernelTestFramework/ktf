@@ -135,7 +135,7 @@ struct acpi_gas {
     uint8_t bit_offset;
     uint8_t access_size;
     uint64_t address;
-};
+} __packed;
 typedef struct acpi_gas acpi_gas_t;
 
 struct acpi_fadt_rev2 {
