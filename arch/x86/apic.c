@@ -26,10 +26,10 @@
 #include <console.h>
 #include <drivers/pit.h>
 #include <ktf.h>
-#include <time.h>
 #include <lib.h>
 #include <percpu.h>
 #include <processor.h>
+#include <time.h>
 #include <traps.h>
 
 static apic_mode_t apic_mode = APIC_MODE_UNKNOWN;

@@ -47,6 +47,7 @@
 #include <smp/mptables.h>
 #include <smp/smp.h>
 
+#include <drivers/hpet.h>
 #include <drivers/pic.h>
 #include <drivers/pit.h>
 #include <drivers/serial.h>
@@ -62,6 +63,9 @@ bool_cmd("pit", opt_pit);
 
 bool opt_apic_timer = false;
 bool_cmd("apic_timer", opt_apic_timer);
+
+bool opt_hpet = false;
+bool_cmd("hpet", opt_hpet);
 
 io_port_t com_ports[2] = {COM1_PORT, COM2_PORT};
 
@@ -240,7 +244,10 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     uart_input_init(get_bsp_cpu_id());
 
     /* Initialize timers */
-    if (opt_pit)
+    bool hpet_initialized = false;
+    if (opt_hpet)
+        hpet_initialized = init_hpet(get_bsp_cpu_id());
+    if (!hpet_initialized && opt_pit)
         init_pit(get_bsp_cpu_id());
     if (opt_apic_timer)
         init_apic_timer();

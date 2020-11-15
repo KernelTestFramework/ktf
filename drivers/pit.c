@@ -27,10 +27,11 @@
 #include <drivers/pic.h>
 #include <drivers/pit.h>
 #include <ioapic.h>
-#include <time.h>
 #include <lib.h>
+#include <time.h>
 
 void init_pit(uint8_t dst_cpus) {
+    printk("Initializing PIT\n");
     outb(PIT_COMMAND_PORT,
          PIT_CHANNEL_0 & PIT_ACCESS_MODE_LH & PIT_OP_MODE_RATE & PIT_BCD_MODE);
     outb(PIT_DATA_PORT_CH0, PIT_FREQUENCY & 0xFF);          /* send low byte */
