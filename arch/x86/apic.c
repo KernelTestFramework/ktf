@@ -26,14 +26,13 @@
 #include <console.h>
 #include <drivers/pit.h>
 #include <ktf.h>
+#include <time.h>
 #include <lib.h>
 #include <percpu.h>
 #include <processor.h>
 #include <traps.h>
 
 static apic_mode_t apic_mode = APIC_MODE_UNKNOWN;
-static volatile uint64_t ticks = 0;
-static bool apic_timer_enabled;
 
 static const char *apic_mode_names[] = {
     /* clang-format off */
@@ -183,7 +182,7 @@ void init_apic_timer(void) {
         apic_write(APIC_LVT_TIMER, timer.reg);
 
         /* Sleep for 20ms to calibrate, count the ticks */
-        pit_sleep(CAL_SLEEP_TIME);
+        sleep(CAL_SLEEP_TIME);
 
         /* Calibrate */
         uint32_t elapsed_ticks = (_U32(-1) - apic_read(APIC_TMR_CCR)) / CAL_SLEEP_TIME;
@@ -199,21 +198,5 @@ void init_apic_timer(void) {
     timer.timer_mode = APIC_LVT_TIMER_PERIODIC;
     apic_write(APIC_LVT_TIMER, timer.reg);
 
-    apic_timer_enabled = true;
     pit_disable();
-}
-
-bool is_apic_timer_enabled(void) { return apic_timer_enabled; }
-
-void apic_timer_interrupt_handler(void) {
-    ++ticks;
-    apic_EOI();
-}
-
-void apic_timer_sleep(uint64_t ms) {
-    BUG_ON(!is_apic_timer_enabled());
-    uint64_t end = ticks + ms;
-    while (ticks < end) {
-        cpu_relax();
-    }
 }

@@ -462,8 +462,6 @@ extern apic_icr_t apic_icr_read(void);
 extern void apic_icr_write(const apic_icr_t *icr);
 
 extern void init_apic_timer(void);
-extern void apic_timer_sleep(uint64_t ms);
-extern bool is_apic_timer_enabled(void);
 
 /* Static declarations */
 
