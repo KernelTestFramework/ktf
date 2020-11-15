@@ -23,19 +23,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <apic.h>
-#include <atomic.h>
-#include <drivers/pic.h>
-#include <drivers/pit.h>
-#include <ioapic.h>
 #include <time.h>
-#include <lib.h>
 
-void init_pit(uint8_t dst_cpus) {
-    outb(PIT_COMMAND_PORT,
-         PIT_CHANNEL_0 & PIT_ACCESS_MODE_LH & PIT_OP_MODE_RATE & PIT_BCD_MODE);
-    outb(PIT_DATA_PORT_CH0, PIT_FREQUENCY & 0xFF);          /* send low byte */
-    outb(PIT_DATA_PORT_CH0, (PIT_FREQUENCY & 0xFF00) >> 8); /* send high byte */
-    configure_isa_irq(PIT_IRQ, PIT_IRQ0_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
+static volatile time_t ticks = 0;
+
+void timer_interrupt_handler(void) {
+    ++ticks;
+    apic_EOI();
 }
 
-void pit_disable(void) { pic_disable_irq(PIC1_DEVICE_SEL, PIT_IRQ); }
+void sleep(time_t ms) {
+    time_t end = ticks + ms;
+    while (ticks < end) {
+        cpu_relax();
+    }
+}

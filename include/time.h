@@ -25,19 +25,8 @@
 #ifndef KTF_TIME_H
 #define KTF_TIME_H
 
-#include <apic.h>
-#include <drivers/pit.h>
-#include <ktf.h>
-
 typedef uint64_t time_t;
 
-static inline void sleep(time_t ms) {
-    if (is_apic_timer_enabled()) {
-        apic_timer_sleep(ms);
-    }
-    else {
-        pit_sleep(ms);
-    }
-}
+extern void sleep(time_t ms);
 
 #endif
