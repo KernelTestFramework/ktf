@@ -30,16 +30,28 @@
 #define MAX_ROWS VGA_ROWS
 #define MAX_COLS (2 * VGA_COLS)
 
-static uint8_t vga_buffer[MAX_ROWS][MAX_COLS];
+static unsigned scroll_screen = 0;
 
-static inline void write_vga_buffer(void) {
+static uint8_t vga_buffer[VGA_SCREENS][MAX_ROWS][MAX_COLS];
+
+static inline void write_vga_buffer(int cur_screen) {
     void *vga_memory = paddr_to_virt_kern(VGA_START_ADDR);
 
-    memcpy(vga_memory, vga_buffer, sizeof(vga_buffer));
+    memcpy(vga_memory, vga_buffer[cur_screen], sizeof(vga_buffer[cur_screen]));
+}
+
+void vga_scroll_down(void) {
+    if (scroll_screen < (VGA_SCREENS - 1))
+        write_vga_buffer(++scroll_screen);
+}
+
+void vga_scroll_up(void) {
+    if (scroll_screen > 0)
+        write_vga_buffer(--scroll_screen);
 }
 
 void vga_write(const char *buf, size_t len, vga_color_t color) {
-    static int row = 0, col = 0;
+    static int screen = 0, row = 0, col = 0;
 
     for (unsigned int i = 0; i < len; i++) {
         char c = buf[i];
@@ -50,21 +62,20 @@ void vga_write(const char *buf, size_t len, vga_color_t color) {
             row++;
         }
 
-        /* Scroll up one row when hit end of VGA area */
+        /* Go to the next screen when hit end of VGA area */
         if (row == (MAX_ROWS - 1)) {
-            memmove(vga_buffer[0], vga_buffer[1],
-                    sizeof(vga_buffer) - sizeof(vga_buffer[0]));
-            memset(vga_buffer[MAX_ROWS - 1], 0x00, MAX_COLS);
-            col = 0;
-            row--;
+            screen = (screen + 1) % VGA_SCREENS;
+            memset(vga_buffer[screen], 0x00, sizeof(vga_buffer[screen]));
+            row = col = 0;
         }
 
         if (c == '\n')
             continue;
 
-        vga_buffer[row][col++] = buf[i];
-        vga_buffer[row][col++] = color;
+        vga_buffer[screen][row][col++] = buf[i];
+        vga_buffer[screen][row][col++] = color;
     }
 
-    write_vga_buffer();
+    scroll_screen = screen;
+    write_vga_buffer(screen);
 }
