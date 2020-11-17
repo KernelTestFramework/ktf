@@ -203,7 +203,8 @@ void *kmalloc(size_t size) { return ktf_alloc(size); }
 void *kzalloc(size_t size) {
     void *ptr = ktf_alloc(size);
 
-    memset(ptr, 0, size);
+    if (ptr)
+        memset(ptr, 0, size);
     return ptr;
 }
 

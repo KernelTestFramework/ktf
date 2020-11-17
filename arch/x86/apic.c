@@ -65,9 +65,9 @@ static inline void apic_msr_write(x2apic_regs_t reg, uint64_t val) {
 
 uint64_t apic_read(unsigned int reg) {
     if (apic_mode == APIC_MODE_XAPIC)
-        return apic_mmio_read(reg);
+        return apic_mmio_read((xapic_regs_t) reg);
     else if (apic_mode == APIC_MODE_X2APIC)
-        return apic_msr_read(reg);
+        return apic_msr_read((x2apic_regs_t) reg);
     else
         BUG();
     UNREACHABLE();
