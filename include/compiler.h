@@ -138,4 +138,6 @@ typedef uint64_t off_t;
 
 #define TOKEN_OR(t, ...) COUNT_MACRO_ARGS(TOKEN_OR, t, ##__VA_ARGS__)
 
+#define __always_inline __inline __attribute__((always_inline))
+
 #endif /* KTF_COMPILER_H */
