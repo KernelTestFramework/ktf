@@ -46,6 +46,10 @@ CFLAGS  += -mcmodel=kernel -fno-pic -fno-asynchronous-unwind-tables -fno-unwind-
 CFLAGS  += -Wno-unused-parameter -Wno-address-of-packed-member
 CFLAGS  += -Werror
 
+ifneq ($(V), 1)
+VERBOSE=@
+endif
+
 -include Makeconf.local
 
 SOURCES     := $(shell find . -name \*.c)
@@ -74,39 +78,39 @@ all: docker$(TARGET)
 endif
 
 $(PREP_LINK_SCRIPT) : $(LINK_SCRIPT)
-	@ $(CC) $(AFLAGS) -E -P -C -x c $< -o $@
+	$(VERBOSE) $(CC) $(AFLAGS) -E -P -C -x c $< -o $@
 
 $(TARGET): $(OBJS) $(PREP_LINK_SCRIPT)
 	@echo "LD " $@
-	@ $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $^
+	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $^
 	@echo "GEN " $(SYMBOLS_NAME).S
-	@ $(NM) -p --format=posix $(TARGET) | $(PYTHON) $(SYMBOLS_DIR)/$(SYMBOLS_TOOL)
+	$(VERBOSE) $(NM) -p --format=posix $(TARGET) | $(PYTHON) $(SYMBOLS_DIR)/$(SYMBOLS_TOOL)
 	@echo "CC " $(SYMBOLS_NAME).S
-	@ $(CC) -c -o $(SYMBOLS_NAME).o $(AFLAGS) $(SYMBOLS_NAME).S
-	@ rm -rf $(SYMBOLS_NAME).S
+	$(VERBOSE) $(CC) -c -o $(SYMBOLS_NAME).o $(AFLAGS) $(SYMBOLS_NAME).S
+	$(VERBOSE) rm -rf $(SYMBOLS_NAME).S
 	@echo "LD " $(TARGET) $(SYMBOLS_NAME).o
-	@ $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(SYMBOLS_NAME).o
+	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(SYMBOLS_NAME).o
 
 %.o: %.S
 	@echo "AS " $@
-	@ $(CC) -c -o $@ $(AFLAGS) $<
+	$(VERBOSE) $(CC) -c -o $@ $(AFLAGS) $<
 
 %.o: %.c
 	@echo "CC " $@
-	@ $(CC) -c -o $@ $(CFLAGS) $<
+	$(VERBOSE) $(CC) -c -o $@ $(CFLAGS) $<
 
 DEPFILES := $(OBJS:.o=.d)
 -include $(wildcard $(DEPFILES))
 
 clean:
 	@echo "CLEAN"
-	@ find $(ROOT) -name \*.d -delete
-	@ find $(ROOT) -name \*.o -delete
-	@ find $(ROOT) -name \*.lds -delete
-	@ find $(ROOT) -name \*.bin -delete
-	@ find $(ROOT) -name \*.iso -delete
-	@ find $(ROOT) -name \*.img -delete
-	@ find $(ROOT) -name cscope.\* -delete
+	$(VERBOSE) find $(ROOT) -name \*.d -delete
+	$(VERBOSE) find $(ROOT) -name \*.o -delete
+	$(VERBOSE) find $(ROOT) -name \*.lds -delete
+	$(VERBOSE) find $(ROOT) -name \*.bin -delete
+	$(VERBOSE) find $(ROOT) -name \*.iso -delete
+	$(VERBOSE) find $(ROOT) -name \*.img -delete
+	$(VERBOSE) find $(ROOT) -name cscope.\* -delete
 
 ifeq ($(SYSTEM),LINUX)
 QEMU_PARAMS := -cpu host
@@ -137,16 +141,16 @@ $(ISO_FILE): dockerboot.iso
 else
 $(ISO_FILE): $(TARGET)
 	@echo "GEN ISO" $(ISO_FILE)
-	@ $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
-	@ cp $(TARGET) grub/boot/
-	@ $(GRUB_MKIMAGE) --format i386-pc-eltorito -c $(GRUB_CONFIG) -p /boot/grub -o grub/boot.img $(GRUB_MODULES)
-	@ $(XORRISO) -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
+	$(VERBOSE) $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
+	$(VERBOSE) cp $(TARGET) grub/boot/
+	$(VERBOSE) $(GRUB_MKIMAGE) --format i386-pc-eltorito -c $(GRUB_CONFIG) -p /boot/grub -o grub/boot.img $(GRUB_MODULES)
+	$(VERBOSE) $(XORRISO) -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
 endif
 
 .PHONY: boot
 boot: $(ISO_FILE)
 	@echo "QEMU START"
-	@$(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS)
+	$(VERBOSE)$(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS)
 
 .PHONY: boot_debug
 boot_debug: $(ISO_FILE)
@@ -172,13 +176,13 @@ endef
 .PHONY: cscope
 cscope:
 	@echo "CSCOPE"
-	@ $(all_sources) > cscope.files
-	@ cscope -b -q -k
+	$(VERBOSE) $(all_sources) > cscope.files
+	$(VERBOSE) cscope -b -q -k
 
 .PHONY: style
 style:
 	@echo "STYLE"
-	@ docker run --rm --workdir /src -v $(PWD):/src clang-format-lint --clang-format-executable /clang-format/clang-format10 \
+	$(VERBOSE) docker run --rm --workdir /src -v $(PWD):/src clang-format-lint --clang-format-executable /clang-format/clang-format10 \
           -r $(SOURCES) $(HEADERS) | grep -v -E '^Processing [0-9]* files:' | patch -s -p1 ||:
 
 DOCKERFILE  := $(shell find $(ROOT) -type f -name Dockerfile)
@@ -194,18 +198,18 @@ endif
 .PHONY: dockerimage
 dockerimage:
 	@echo "Creating docker image"
-	@ docker build -t $(DOCKERIMAGE) -f $(DOCKERFILE) \
+	$(VERBOSE) docker build -t $(DOCKERIMAGE) -f $(DOCKERFILE) \
 		$(DOCKER_BUILD_ARGS) .
 
 .PHONY: docker%
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
-	@ docker run -it -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
+	$(VERBOSE) docker run -it -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
 
 .PHONY: onelinescan
 onelinescan:
 	@echo "scanning current working directory with one-line-scan"
-	@ docker run -it -e BASE_COMMIT=origin/mainline \
+	$(VERBOSE) docker run -it -e BASE_COMMIT=origin/mainline \
 		-e REPORT_NEW_ONLY=true -e OVERRIDE_ANALYSIS_ERROR=true \
 		-e INFER_ANALYSIS_EXTRA_ARGS="--bufferoverrun" \
 		-e CPPCHECK_EXTRA_ARG=" --enable=style --enable=performance --enable=information --enable=portability" \
