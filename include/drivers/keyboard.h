@@ -38,7 +38,7 @@
 
 #define KEYBOARD_STATUS_OUT_FULL 0x01 /* bit set when the keyboard buffer is full */
 
-enum {
+typedef enum {
     KEYBOARD_CMD_WRITE_CONFIGURATION = 0x60, /* Write configuration byte */
     KEYBOARD_CMD_READ_CONFIGURATION = 0x20,  /* Read configuration byte */
     KEYBOARD_CMD_SELF_TEST = 0xAA,
@@ -48,8 +48,7 @@ enum {
     KEYBOARD_CMD_DISABLE_PORT_2 = 0xA7,
     KEYBOARD_CMD_ENABLE_PORT_1 = 0xAE,
     KEYBOARD_CMD_ENABLE_PORT_2 = 0xA8,
-} keyboard_cmd;
-typedef enum keyboard_cmd keyboard_cmd_t;
+} keyboard_cmd_t;
 
 #define KEYBOARD_RES_SELF_TEST 0x55
 
