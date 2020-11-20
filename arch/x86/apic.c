@@ -91,6 +91,8 @@ apic_icr_t apic_icr_read(void) {
     }
     else if (apic_mode == APIC_MODE_X2APIC)
         icr.reg = apic_read(APIC_ICR0);
+    else
+        BUG();
 
     return icr;
 }
