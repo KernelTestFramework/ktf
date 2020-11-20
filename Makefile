@@ -39,7 +39,8 @@ COMMON_FLAGS += -DKTF_UNIT_TEST
 endif
 
 AFLAGS  := $(COMMON_FLAGS) -D__ASSEMBLY__ -nostdlib -nostdinc
-CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O3 -g -Wall -Wextra -ffreestanding
+CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O3 -g -Wall -Wextra -ffreestanding -nostdlib -nostdinc
+CFLAGS  += -Iinclude
 CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse2
 CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin
 CFLAGS  += -mcmodel=kernel -fno-pic -fno-asynchronous-unwind-tables -fno-unwind-tables
