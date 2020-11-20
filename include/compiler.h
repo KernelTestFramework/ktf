@@ -94,7 +94,7 @@ typedef uint64_t off_t;
 
 #define memberof(type, member) (((type *) 0)->member)
 #ifndef offsetof
-#define offsetof(type, member) ((off_t) &memberof((type), member))
+#define offsetof(type, member) ((off_t) &memberof(type, member))
 #endif
 
 #define BUILD_BUG_ON(cond) ({ _Static_assert(!(cond), "!(" STR(cond) ")"); })
