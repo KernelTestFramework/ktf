@@ -185,7 +185,7 @@ cscope:
 .PHONY: style
 style:
 	@echo "STYLE"
-	$(VERBOSE) docker run --rm --workdir /src -v $(PWD):/src clang-format-lint --clang-format-executable /clang-format/clang-format10 \
+	$(VERBOSE) docker run --rm --workdir /src -v $(PWD):/src$(DOCKER_MOUNT_OPTS) clang-format-lint --clang-format-executable /clang-format/clang-format10 \
           -r $(SOURCES) $(HEADERS) | grep -v -E '^Processing [0-9]* files:' | patch -s -p1 ||:
 
 DOCKERFILE  := $(shell find $(ROOT) -type f -name Dockerfile)
