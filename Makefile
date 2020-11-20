@@ -15,7 +15,9 @@ SYSTEM := MACOS
 endif
 endif
 
+ifeq ($(CC),cc) # overwrite on default, otherwise use whatever is in the CC env variable
 CC := gcc
+endif
 LD := ld
 
 NM := nm
