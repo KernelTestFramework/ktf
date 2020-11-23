@@ -151,28 +151,16 @@ static inline void atomic64_dec(atomic64_t *v) {
 }
 
 static inline int32_t atomic_sub_return(atomic_t *v, int32_t n) {
-    int32_t val = n;
-    asm volatile("lock xsubl %[n], %[addr];"
-                 : [ n ] "+r"(val), [ addr ] "+m"(v->counter)
-                 :
-                 : "memory");
-    return val;
+    return atomic_add_return(v, -n);
 }
 
 static inline int64_t atomic64_sub_return(atomic64_t *v, int64_t n) {
-    int64_t val = n;
-    asm volatile("lock xsubq %[n], %[addr];"
-                 : [ n ] "+r"(val), [ addr ] "+m"(v->counter)
-                 :
-                 : "memory");
-    return val;
+    return atomic64_add_return(v, -n);
 }
 
-static inline int32_t atomic_dec_return(atomic_t *v, int32_t n) {
-    return atomic_sub_return(v, 1);
-}
+static inline int32_t atomic_dec_return(atomic_t *v) { return atomic_sub_return(v, 1); }
 
-static inline int64_t atomic64_dec_return(atomic64_t *v, int64_t n) {
+static inline int64_t atomic64_dec_return(atomic64_t *v) {
     return atomic64_sub_return(v, 1);
 }
 
