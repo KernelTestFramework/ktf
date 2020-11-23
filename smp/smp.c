@@ -64,9 +64,10 @@ void __noreturn ap_startup(void) {
 }
 
 static __text_init void boot_cpu(unsigned int cpu) {
+    percpu_t *percpu = get_percpu_page(cpu);
     apic_icr_t icr;
 
-    if (PERCPU_GET(bsp))
+    if (percpu->bsp)
         return;
 
     ap_cpuid = cpu;
@@ -75,8 +76,8 @@ static __text_init void boot_cpu(unsigned int cpu) {
 
     dprintk("Starting AP: %u\n", cpu);
 
-    icr = apic_icr_read();
-    apic_icr_set_dest(&icr, PERCPU_GET(apic_id));
+    memset(&icr, 0, sizeof(icr));
+    apic_icr_set_dest(&icr, percpu->apic_id);
 
     /* Wake up the secondary processor: INIT-SIPI-SIPI... */
     icr.deliv_mode = APIC_DELIV_MODE_INIT;
