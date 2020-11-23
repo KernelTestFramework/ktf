@@ -99,8 +99,8 @@ apic_icr_t apic_icr_read(void) {
 
 void apic_icr_write(const apic_icr_t *icr) {
     if (apic_mode == APIC_MODE_XAPIC) {
-        apic_mmio_write(XAPIC_REG(APIC_ICR1), icr->icr0);
-        apic_mmio_write(XAPIC_REG(APIC_ICR0), icr->icr1);
+        apic_mmio_write(XAPIC_REG(APIC_ICR1), icr->icr1);
+        apic_mmio_write(XAPIC_REG(APIC_ICR0), icr->icr0);
     }
     else
         apic_msr_write(X2APIC_REG(APIC_ICR0), icr->reg);
