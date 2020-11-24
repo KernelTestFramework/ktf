@@ -1,0 +1,23 @@
+name: Docker Run Test
+
+on:
+  push:
+    branches: [ mainline ]
+  pull_request:
+    branches: [ mainline ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Required Packages
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y qemu qemu-user
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: ./tools/ci/build-docker.sh
+    - name: Run the Docker image
+      run: ./tools/ci/launch-test.sh
