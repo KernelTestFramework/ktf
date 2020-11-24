@@ -115,8 +115,13 @@ static void *init_map_mfn(mfn_t mfn) {
 }
 
 static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
-    if (mfn_invalid(cr3_entry->mfn))
+    void *cr3_mapped = NULL;
+
+    if (mfn_invalid(cr3_entry->mfn)) {
         cr3_entry->mfn = get_free_frame();
+        cr3_mapped = init_map_mfn(cr3_entry->mfn);
+        memset(cr3_mapped, 0, PAGE_SIZE);
+    }
 
     return cr3_entry->mfn;
 }

@@ -63,23 +63,23 @@ static size_t frames_count[MAX_PAGE_ORDER + 1];
 
 addr_range_t addr_ranges[] = {
     /* clang-format off */
-    IDENT_RANGE( "Low memory",  L1_PROT_RO,      0x0,               MB(1)           ),
-    IDENT_RANGE( ".text.init",  L1_PROT_RO,      __start_text_init, __end_text_init ),
-    IDENT_RANGE( ".data.init",  L1_PROT,         __start_data_init, __end_data_init ),
-    IDENT_RANGE( ".bss.init",   L1_PROT,         __start_bss_init,  __end_bss_init  ),
+    IDENT_RANGE( "Low memory",  L1_PROT_RO,      0x0,                   MB(1)           ),
+    IDENT_RANGE( ".text.init",  L1_PROT_RO,      __start_text_init,     __end_text_init ),
+    IDENT_RANGE( ".data.init",  L1_PROT,         __start_data_init,     __end_data_init ),
+    IDENT_RANGE( ".bss.init",   L1_PROT,         __start_bss_init,      __end_bss_init  ),
 
-    IDENT_RANGE( ".rmode",      L1_PROT,         __start_rmode,     __end_rmode     ),
+    IDENT_RANGE( ".rmode",      L1_PROT,         __start_rmode,         __end_rmode     ),
 
-    USER_RANGE( ".text.user",   L1_PROT_USER_RO, __start_text_user, __end_text_user ),
-    USER_RANGE( ".data.user",   L1_PROT_USER,    __start_data_user, __end_data_user ),
-    USER_RANGE( ".bss.user",    L1_PROT_USER,    __start_bss_user,  __end_bss_user  ),
+    USER_RANGE( ".text.user",   L1_PROT_USER_RO, __start_text_user,     __end_text_user ),
+    USER_RANGE( ".data.user",   L1_PROT_USER,    __start_data_user,     __end_data_user ),
+    USER_RANGE( ".bss.user",    L1_PROT_USER,    __start_bss_user,      __end_bss_user  ),
 
-    KERNEL_RANGE( "Low memory", L1_PROT,         0x0,               MB(1)           ),
-    KERNEL_RANGE( ".text",      L1_PROT_RO,      __start_text,      __end_text      ),
-    KERNEL_RANGE( ".data",      L1_PROT,         __start_data,      __end_data      ),
-    KERNEL_RANGE( ".bss",       L1_PROT,         __start_bss,       __end_bss       ),
-    KERNEL_RANGE( ".rodata",    L1_PROT_RO,      __start_rodata,    __end_rodata    ),
-    KERNEL_RANGE( ".symbols",   L1_PROT_RO,      __start_symbols,   __end_symbols   ),
+    KERNEL_RANGE( "Low memory", L1_PROT,         0x0 + VIRT_KERNEL_BASE, MB(1) + VIRT_KERNEL_BASE),
+    KERNEL_RANGE( ".text",      L1_PROT_RO,      __start_text,           __end_text      ),
+    KERNEL_RANGE( ".data",      L1_PROT,         __start_data,           __end_data      ),
+    KERNEL_RANGE( ".bss",       L1_PROT,         __start_bss,            __end_bss       ),
+    KERNEL_RANGE( ".rodata",    L1_PROT_RO,      __start_rodata,         __end_rodata    ),
+    KERNEL_RANGE( ".symbols",   L1_PROT_RO,      __start_symbols,        __end_symbols   ),
     /* clang-format on */
 
     {0x0} /* NULL array terminator */
