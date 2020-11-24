@@ -188,7 +188,7 @@ static xsdt_t *acpi_find_xsdt(const rsdp_rev2_t *rsdp) {
     if (XSDT_SIGNATURE != xsdt->header.signature)
         goto error;
 
-    if (get_checksum(xsdt, tab_len) != 0x0)
+    if (get_checksum(xsdt, xsdt->header.length) != 0x0)
         goto error;
 
     acpi_dump_table(xsdt, &xsdt->header);
