@@ -162,6 +162,8 @@ void init_apic(unsigned int cpu, apic_mode_t mode) {
     apic_write(APIC_SPIV, spiv.reg);
 }
 
+#define CAL_SLEEP_TIME 20
+#define CAL_ITERATIONS 10
 void init_apic_timer(void) {
     ASSERT(apic_get_mode() >= APIC_MODE_XAPIC);
     uint32_t min_ticks = _U32(-1);
@@ -170,21 +172,21 @@ void init_apic_timer(void) {
     apic_lvt_timer_t timer;
     printk("Initializing local APIC timer\n");
 
-    /* Spend 1s calibrating the timer, 10 iterations of 100ms each */
-    for (i = 0; i < 10; ++i) {
+    /* Spend 200ms calibrating the timer, 10 iterations of 20ms each */
+    for (i = 0; i < CAL_ITERATIONS; ++i) {
         /* Set the counter to the max value (0xFFFFFFFF) */
         apic_write(APIC_TMR_DCR, APIC_TIMER_DIVIDE_BY_16);
         apic_write(APIC_TMR_ICR, _U32(-1));
 
-        /* One shot mode to see how many ticks over 100ms */
+        /* One shot mode to see how many ticks over 20ms */
         timer.timer_mode = APIC_LVT_TIMER_ONE_SHOT;
         apic_write(APIC_LVT_TIMER, timer.reg);
 
-        /* Sleep for 100ms to calibrate, count the ticks */
-        pit_sleep(100);
+        /* Sleep for 20ms to calibrate, count the ticks */
+        pit_sleep(CAL_SLEEP_TIME);
 
         /* Calibrate */
-        uint32_t elapsed_ticks = (_U32(-1) - apic_read(APIC_TMR_CCR)) / 100;
+        uint32_t elapsed_ticks = (_U32(-1) - apic_read(APIC_TMR_CCR)) / CAL_SLEEP_TIME;
         min_ticks = min(min_ticks, elapsed_ticks);
     }
 
