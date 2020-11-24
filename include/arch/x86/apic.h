@@ -484,7 +484,11 @@ static inline void *apic_get_base(apic_base_t apic_base) {
 }
 
 static inline void apic_wait_ready(void) {
+    apic_mode_t mode = apic_get_mode();
     apic_icr_t icr;
+
+    if (mode == APIC_MODE_X2APIC)
+        return;
 
     do {
         icr = apic_icr_read();
