@@ -23,6 +23,24 @@ KTF is a small and simple OS kernel, that enables writing low-level software tes
 
 Some more features are in the making. Check out the issues.
 
+## Getting Started
+
+The quick start is to run the following commands. The content of the file tests/test.c
+will be executed. Note, the last command will block.
+
+Build a boot.iso from scratch, in the docker container.
+
+```
+make clean
+make docker:boot.iso
+```
+
+Boot the resulting image:
+
+```
+make boot
+```
+
 ### Build instructions
 
 #### Requirements
