@@ -28,27 +28,63 @@
 
 /* Initial identity map page tables */
 SECTION(.data.init, "aw", PAGE_SIZE)
-GLOBAL(l1_pt_entries)
-    .rept L1_PT_ENTRIES
-    .long PT_PADDR(l1_pt_entries, L1_PT_SHIFT) + L1_PROT, 0
-    .endr
-END_OBJECT(l1_pt_entries)
 
+/* Each single l1_pt_entry covers a 4K of virtual addr range */
+
+/* First 2M range 0-2M */
+GLOBAL(l1_pt_entries1)
+    .rept L1_PT_ENTRIES
+    .long PT_PADDR(l1_pt_entries1, L1_PT_SHIFT) + L1_PROT, 0
+    .endr
+END_OBJECT(l1_pt_entries1)
+
+/* Second 2M range 2M-4M */
+GLOBAL(l1_pt_entries2)
+    .rept L1_PT_ENTRIES
+    .long PT_PADDR(l1_pt_entries1, L1_PT_SHIFT) + L1_PROT, 0
+    .endr
+END_OBJECT(l1_pt_entries2)
+
+/* Third 2M range 4M-6M */
+GLOBAL(l1_pt_entries3)
+    .rept L1_PT_ENTRIES
+    .long PT_PADDR(l1_pt_entries1, L1_PT_SHIFT) + L1_PROT, 0
+    .endr
+END_OBJECT(l1_pt_entries3)
+
+/* 
+ * Each single l2_pt_entry points to l1_pt_entry table and 
+ * thus a single l2_pt_entry covers a 2M of virtual addr range 
+ */
 GLOBAL(l2_pt_entries)
-    .long l1_pt_entries + L2_PROT, 0
-    .fill (L2_PT_ENTRIES - 1), PTE_SIZE, 0
+    .long l1_pt_entries1 + L2_PROT, 0           /* Covers 0-2M */
+    .long l1_pt_entries2 + L2_PROT, 0           /* Covers 2M-4M */
+    .long l1_pt_entries3 + L2_PROT, 0           /* Covers 4M-6M */
+    .fill (L2_PT_ENTRIES - 3), PTE_SIZE, 0      /* 3 entries used, rests all are zeroed */
 END_OBJECT(l2_pt_entries)
 
+/* 
+ * Each single l3_pt_entry points to a l2_pt_entry table and 
+ * thus a single l3_pt_entry covers a 1G of virtual addr range 
+ */
 #if defined(__i386__)
 .align PAGE_SIZE
 #endif
 GLOBAL(l3_pt_entries)
+    /* Should cover identity and user addresses */
     .long l2_pt_entries + L3_PROT, 0
 
     .fill (L3_PT_ENTRIES - 3), PTE_SIZE, 0
 
+    /* 
+    * Kernel range starts at 0xffffffff80000000. 
+    * That makes l3 index = 0x1fe.
+    */
     .long l2_pt_entries + L3_PROT, 0
 
+    /* 
+    * Don't expect to spill over 0x1fe at boot time. So 1ff is zeroed
+    */
     .quad 0
 END_OBJECT(l3_pt_entries)
 
