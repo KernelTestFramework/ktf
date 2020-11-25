@@ -116,24 +116,27 @@ clean:
 	$(VERBOSE) find $(ROOT) -name \*.img -delete
 	$(VERBOSE) find $(ROOT) -name cscope.\* -delete
 
+# Check whether we can use kvm for qemu
 ifeq ($(SYSTEM),LINUX)
+ifneq ($(USE_KVM), false) # you can hard-disable KVM use with the USE_KVM environment variable
+HAVE_KVM=$(shell lsmod | awk '/^kvm / {print $$1}')
+endif # USE_KVM
+endif # SYSTEM == LINUX
+
+# Set qemu parameters
+ifeq ($(SYSTEM)$(HAVE_KVM),LINUXkvm)
 QEMU_PARAMS := -cpu host
 else
 QEMU_PARAMS := -cpu max
 endif
+ifeq ($(HAVE_KVM), kvm)
+QEMU_PARAMS += -enable-kvm
+endif # HAVE_KVM
 QEMU_PARAMS += -m 8192
 QEMU_PARAMS += -display none -vga none -vnc none
 QEMU_PARAMS += -serial stdio
 QEMU_PARAMS += -no-reboot -no-shutdown
 QEMU_PARAMS += -smp cpus=2
-ifeq ($(SYSTEM),LINUX)
-ifneq ($(USE_KVM), false) # you can hard-disable KVM use with the USE_KVM environment variable
-HAVE_KVM=$(shell lsmod | awk '/^kvm / {print $$1}')
-ifeq ($(HAVE_KVM), kvm)
-QEMU_PARAMS += -enable-kvm
-endif # HAVE_KVM
-endif # USE_KVM
-endif # SYSTEM == LINUX
 
 QEMU_PARAMS_KERNEL := -append "param1 param2 param3"
 QEMU_PARAMS_DEBUG := -s &
