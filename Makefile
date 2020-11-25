@@ -22,6 +22,7 @@ LD := ld
 
 NM := nm
 PYTHON := python
+SHELL := bash
 
 GRUB_FILE := grub-file
 GRUB_MKIMAGE := grub-mkimage
