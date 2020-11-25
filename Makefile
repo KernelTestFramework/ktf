@@ -191,12 +191,10 @@ style:
 
 DOCKERFILE  := $(shell find $(ROOT) -type f -name Dockerfile)
 DOCKERIMAGE := "ktf:build"
+DOCKERUSERFLAGS := --user $(shell id -u):$(shell id -g) $(shell printf -- "--group-add=%q " $(shell id -G))
+
 ifeq ($(SYSTEM), LINUX)
-	DOCKER_BUILD_ARGS=--build-arg USER_ID=$$(id -u) --build-arg GROUP_ID=$$(id -g) --build-arg USER=$$USER
-else
-	# On Docker for Mac I ran into issues because Mac user IDs are huge and Ubuntu did not like creating
-	# UIDs with such huge numbers. Hence, use fixed UID/GID here. Confirmed we still get our image built.
-	DOCKER_BUILD_ARGS=--build-arg USER_ID=1024 --build-arg GROUP_ID=1024 --build-arg USER=$$USER
+	DOCKER_BUILD_ARGS=--network=host
 endif
 
 .PHONY: dockerimage
@@ -208,7 +206,7 @@ dockerimage:
 .PHONY: docker%
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
-	$(VERBOSE) docker run -t -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
+	$(VERBOSE) docker run -t $(DOCKERUSERFLAGS) -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
 
 .PHONY: onelinescan
 onelinescan:
