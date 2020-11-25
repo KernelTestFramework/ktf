@@ -125,7 +125,7 @@ QEMU_PARAMS += -m 8192
 QEMU_PARAMS += -display none -vga none -vnc none
 QEMU_PARAMS += -serial stdio
 QEMU_PARAMS += -no-reboot -no-shutdown
-QEMU_PARAMS += -smp cpus=4
+QEMU_PARAMS += -smp cpus=2
 ifeq ($(SYSTEM),LINUX)
 ifneq ($(USE_KVM), false) # you can hard-disable KVM use with the USE_KVM environment variable
 HAVE_KVM=$(shell lsmod | awk '/^kvm / {print $$1}')
