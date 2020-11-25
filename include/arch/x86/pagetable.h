@@ -245,7 +245,9 @@ static inline void set_pgentry(pgentry_t *e, mfn_t mfn, unsigned long flags) {
 
 /* External declarations */
 
-extern pte_t l1_pt_entries[L1_PT_ENTRIES];
+extern pte_t l1_pt_entries1[L1_PT_ENTRIES];
+extern pte_t l1_pt_entries2[L1_PT_ENTRIES];
+extern pte_t l1_pt_entries3[L1_PT_ENTRIES];
 extern pde_t l2_pt_entries[L2_PT_ENTRIES];
 extern pdpe_t l3_pt_entries[L3_PT_ENTRIES];
 #if defined(__x86_64__)
