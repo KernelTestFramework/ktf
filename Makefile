@@ -36,7 +36,7 @@ XORRISO := xorriso
 QEMU_BIN := qemu-system-x86_64
 GDB := gdb
 
-COMMON_FLAGS := -I$(ROOT)/include -I$(ROOT)/include/arch/x86 -pipe -MP -MMD -m64 -D__x86_64__
+COMMON_FLAGS := -I$(ROOT)/include -I$(ROOT)/include/arch/x86 -I$(ROOT)/third-party/libpfm/include -pipe -MP -MMD -m64 -D__x86_64__
 ifneq ($(UNITTEST),)
 COMMON_FLAGS += -DKTF_UNIT_TEST
 endif
