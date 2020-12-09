@@ -63,16 +63,12 @@ static void cpu_freq_expect(const char *cpu_str, uint64_t expectation) {
     printk("Got CPU string '%s' and frequency '%llu'\n", cpu_str, result);
     return;
 }
-#endif
 
 static int __user_text func(void *arg) { return 0; }
 
-void test_main(void) {
-    printk("\nTest:\n");
-
+static int ktf_unit_tests(void) {
     usermode_call(func, NULL);
 
-#ifdef KTF_UNIT_TEST
     printk("\nLet the UNITTESTs begin\n");
     printk("Commandline parsing: %s\n", kernel_cmdline);
 
@@ -139,7 +135,17 @@ void test_main(void) {
     cpu_freq_expect("AMD Ryzen Threadripper 1950X 16-Core Processor", 0);
     cpu_freq_expect("Prototyp Amazing Foo One @ 1GHz", 1000000000);
     cpu_freq_expect("Prototyp Amazing Foo Two @ 1.00GHz", 1000000000);
+
+    return 0;
+}
+#else
+static int ktf_unit_tests(void) { return 0; }
 #endif
+
+void test_main(void) {
+    printk("\nTest:\n");
+
+    ktf_unit_tests();
 
     wait_for_all_tasks();
 
