@@ -1,6 +1,8 @@
 ROOT := $(abspath $(CURDIR))
 export ROOT
 
+THIRD_PARTY := third-party
+
 ifeq ($(OS),Windows_NT)
 SYSTEM := WIN
 else
@@ -56,14 +58,15 @@ endif
 
 -include Makeconf.local
 
-SOURCES     := $(shell find . -name \*.c)
-HEADERS     := $(shell find . -name \*.h)
-ASM_SOURCES := $(shell find . -name \*.S)
-LINK_SCRIPT := $(shell find . -name \*.ld)
+SOURCES     := $(shell find . -name \*.c -not -path ./$(THIRD_PARTY)/\*)
+HEADERS     := $(shell find . -name \*.h -not -path ./$(THIRD_PARTY)/\*)
+ASM_SOURCES := $(shell find . -name \*.S -not -path ./$(THIRD_PARTY)/\*)
+LINK_SCRIPT := $(shell find . -name \*.ld -not -path ./$(THIRD_PARTY)/\*)
 
 SYMBOLS_NAME := symbols
 SYMBOLS_TOOL := symbols.py
 SYMBOLS_DIR  := tools/symbols
+TOOLS_DIR    := tools
 
 PREP_LINK_SCRIPT := $(LINK_SCRIPT:%.ld=%.lds)
 
@@ -71,6 +74,23 @@ OBJS := $(SOURCES:%.c=%.o)
 OBJS += $(ASM_SOURCES:%.S=%.o)
 
 TARGET := kernel64.bin
+
+# Ideally we would've liked to have rule based compilation of libpfm and integration into KTF
+# However my efforts of shoving static archive into KTF binary were futile. 
+# I attempted at conditional rule based compile of project to collect object files later but
+# make doesn't allow appending or creating env vars in recipie. So we're doing conditional compile via 
+# a bash script present in tools/libpfm folder
+#
+# This is conditional env vars and conditional compiler of libpfm
+# Clean up however is unconditional and not dependent on config
+ifeq ($(CONFIG_LIBPFM), y)
+PFMLIB_NAME := libpfm
+PFMLIB_TOOLS := $(ROOT)/$(TOOLS_DIR)/$(PFMLIB_NAME)
+PFMLIB_BUILDSCRIPT := ./build_libpfm.sh
+DUMMY_RETCODE := $(shell cd $(PFMLIB_TOOLS) && $(PFMLIB_BUILDSCRIPT))
+OBJS += $(shell find $(THIRD_PARTY)/$(PFMLIB_NAME) -name \*.o)
+endif
+
 
 # On Linux systems, we build directly. On non-Linux, we rely on the 'docker%'
 # rule below to create an Ubuntu container and perform the Linux-specific build
@@ -115,6 +135,7 @@ clean:
 	$(VERBOSE) find $(ROOT) -name \*.iso -delete
 	$(VERBOSE) find $(ROOT) -name \*.img -delete
 	$(VERBOSE) find $(ROOT) -name cscope.\* -delete
+	$(VERBOSE) $(shell cd $(ROOT)/tools/libpfm && ./clean_libpfm.sh)
 
 # Check whether we can use kvm for qemu
 ifeq ($(SYSTEM),LINUX)
@@ -209,7 +230,7 @@ dockerimage:
 .PHONY: docker%
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
-	$(VERBOSE) docker run -t $(DOCKERUSERFLAGS) -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
+	$(VERBOSE) docker run -t $(DOCKERUSERFLAGS) -e UNITTEST=$(UNITTEST) -e CONFIG_LIBPFM=$(CONFIG_LIBPFM) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
 
 .PHONY: onelinescan
 onelinescan:
