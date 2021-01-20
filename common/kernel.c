@@ -30,6 +30,9 @@
 #include <percpu.h>
 #include <sched.h>
 #include <setup.h>
+#ifdef KTF_PMU
+#include <perfmon/pfmlib.h>
+#endif
 
 extern void _long_to_real(void);
 
@@ -63,6 +66,9 @@ void kernel_main(void) {
         printk("\n After long_to_real\n");
     }
 
+#ifdef KTF_PMU
+    pfm_initialize();
+#endif
     test_main();
 
     printk("All tasks done.\n");
