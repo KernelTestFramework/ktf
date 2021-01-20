@@ -1,5 +1,9 @@
-ROOT := $(abspath $(CURDIR))
-export ROOT
+KTF_ROOT := $(abspath $(CURDIR))
+export KTF_ROOT
+
+THIRD_PARTY := third-party
+PATCH := patch
+TOOLS_DIR := tools
 
 ifeq ($(OS),Windows_NT)
 SYSTEM := WIN
@@ -13,6 +17,31 @@ endif
 ifeq ($(UNAME),Darwin)
 SYSTEM := MACOS
 endif
+endif
+
+PFMLIB_ARCHIVE :=
+PFMLIB_LINKER_FLAGS :=
+PFMLIB_INCLUDE :=
+ifeq ($(CONFIG_LIBPFM),y)
+KTF_PFMLIB_COMPILE := 1
+export KTF_PFMLIB_COMPILE
+TAR_CMD := tar --exclude=.git --exclude=.gitignore --strip-components=1 -xvf
+PFMLIB_VER := 4.10.1
+PFMLIB_NAME := libpfm
+PFMLIB_DIR := $(KTF_ROOT)/$(THIRD_PARTY)/$(PFMLIB_NAME)
+PFMLIB_TOOLS_DIR := $(KTF_ROOT)/$(TOOLS_DIR)/$(PFMLIB_NAME)
+PFMLIB_ARCHIVE := $(PFMLIB_DIR)/$(PFMLIB_NAME).a
+PFMLIB_TARBALL := $(PFMLIB_DIR)/$(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz
+PFMLIB_UNTAR_FILES := $(PFMLIB_NAME)-$(PFMLIB_VER)/lib
+PFMLIB_UNTAR_FILES += $(PFMLIB_NAME)-$(PFMLIB_VER)/include
+PFMLIB_UNTAR_FILES += $(PFMLIB_NAME)-$(PFMLIB_VER)/rules.mk
+PFMLIB_UNTAR_FILES += $(PFMLIB_NAME)-$(PFMLIB_VER)/config.mk
+PFMLIB_UNTAR_FILES += $(PFMLIB_NAME)-$(PFMLIB_VER)/Makefile
+PFMLIB_UNTAR_FILES += $(PFMLIB_NAME)-$(PFMLIB_VER)/README
+PFMLIB_UNTAR_FILES += $(PFMLIB_NAME)-$(PFMLIB_VER)/COPYING
+PFMLIB_PATCH_FILE := $(PFMLIB_TOOLS_DIR)/libpfm_diff.patch
+PFMLIB_LINKER_FLAGS += -L$(PFMLIB_DIR) -lpfm
+PFMLIB_INCLUDE += $(PFMLIB_DIR)/include
 endif
 
 ifeq ($(CC),cc) # overwrite on default, otherwise use whatever is in the CC env variable
@@ -36,9 +65,18 @@ XORRISO := xorriso
 QEMU_BIN := qemu-system-x86_64
 GDB := gdb
 
-COMMON_FLAGS := -I$(ROOT)/include -I$(ROOT)/include/arch/x86 -pipe -MP -MMD -m64 -D__x86_64__
+COMMON_INCLUDES := -I$(KTF_ROOT)/include -I$(KTF_ROOT)/include/arch/x86
+ifeq ($(CONFIG_LIBPFM),y)
+COMMON_INCLUDES += -I$(PFMLIB_INCLUDE)
+endif
+
+COMMON_FLAGS := $(COMMON_INCLUDES) -pipe -MP -MMD -m64 -D__x86_64__
 ifneq ($(UNITTEST),)
 COMMON_FLAGS += -DKTF_UNIT_TEST
+endif
+
+ifeq ($(CONFIG_LIBPFM),y)
+COMMON_FLAGS += -DKTF_PMU
 endif
 
 AFLAGS  := $(COMMON_FLAGS) -D__ASSEMBLY__ -nostdlib -nostdinc
@@ -84,16 +122,28 @@ endif
 $(PREP_LINK_SCRIPT) : $(LINK_SCRIPT)
 	$(VERBOSE) $(CC) $(AFLAGS) -E -P -C -x c $< -o $@
 
-$(TARGET): $(OBJS) $(PREP_LINK_SCRIPT)
+$(TARGET): $(PFMLIB_ARCHIVE) $(OBJS) $(PREP_LINK_SCRIPT)
 	@echo "LD " $@
-	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $^
+	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(PFMLIB_LINKER_FLAGS)
 	@echo "GEN " $(SYMBOLS_NAME).S
 	$(VERBOSE) $(NM) -p --format=posix $(TARGET) | $(PYTHON) $(SYMBOLS_DIR)/$(SYMBOLS_TOOL)
 	@echo "CC " $(SYMBOLS_NAME).S
 	$(VERBOSE) $(CC) -c -o $(SYMBOLS_NAME).o $(AFLAGS) $(SYMBOLS_NAME).S
 	$(VERBOSE) rm -rf $(SYMBOLS_NAME).S
 	@echo "LD " $(TARGET) $(SYMBOLS_NAME).o
-	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(SYMBOLS_NAME).o
+	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(PFMLIB_LINKER_FLAGS) $(SYMBOLS_NAME).o
+
+$(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
+	@echo "UNTAR pfmlib"
+	# untar tarball and apply the patch 
+	cd $(PFMLIB_DIR) &&\
+	$(TAR_CMD) $(PFMLIB_TARBALL) $(PFMLIB_UNTAR_FILES) -C ./ &&\
+	$(PATCH) -p1 < $(PFMLIB_PATCH_FILE) &&\
+	cd -
+	# invoke libpfm build
+	$(MAKE) -C $(PFMLIB_DIR) lib &&\
+	cp $(PFMLIB_DIR)/lib/$(PFMLIB_NAME).a $(PFMLIB_DIR)/
+	find $(PFMLIB_DIR) -name \*.c -delete
 
 %.o: %.S
 	@echo "AS " $@
@@ -108,13 +158,17 @@ DEPFILES := $(OBJS:.o=.d)
 
 clean:
 	@echo "CLEAN"
-	$(VERBOSE) find $(ROOT) -name \*.d -delete
-	$(VERBOSE) find $(ROOT) -name \*.o -delete
-	$(VERBOSE) find $(ROOT) -name \*.lds -delete
-	$(VERBOSE) find $(ROOT) -name \*.bin -delete
-	$(VERBOSE) find $(ROOT) -name \*.iso -delete
-	$(VERBOSE) find $(ROOT) -name \*.img -delete
-	$(VERBOSE) find $(ROOT) -name cscope.\* -delete
+	$(VERBOSE) find $(KTF_ROOT) -name \*.d -delete
+	$(VERBOSE) find $(KTF_ROOT) -name \*.o -delete
+	$(VERBOSE) find $(KTF_ROOT) -name \*.lds -delete
+	$(VERBOSE) find $(KTF_ROOT) -name \*.bin -delete
+	$(VERBOSE) find $(KTF_ROOT) -name \*.iso -delete
+	$(VERBOSE) find $(KTF_ROOT) -name \*.img -delete
+	$(VERBOSE) find $(KTF_ROOT) -name cscope.\* -delete
+ifeq ($(CONFIG_LIBPFM),y)
+	$(MAKE) -C $(PFMLIB_DIR) cleanlib
+	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
+endif
 
 # Check whether we can use kvm for qemu
 ifeq ($(SYSTEM),LINUX)
@@ -177,7 +231,7 @@ gdb: debug
 	killall -9 $(QEMU_BIN)
 
 define all_sources
-	find $(ROOT) -name "*.[hcsS]"
+	find $(KTF_ROOT) -name "*.[hcsS]"
 endef
 
 .PHONY: cscope
@@ -192,7 +246,7 @@ style:
 	$(VERBOSE) docker run --rm --workdir /src -v $(PWD):/src$(DOCKER_MOUNT_OPTS) clang-format-lint --clang-format-executable /clang-format/clang-format10 \
           -r $(SOURCES) $(HEADERS) | grep -v -E '^Processing [0-9]* files:' | patch -s -p1 ||:
 
-DOCKERFILE  := $(shell find $(ROOT) -type f -name Dockerfile)
+DOCKERFILE  := $(shell find $(KTF_ROOT) -type f -name Dockerfile)
 DOCKERIMAGE := "ktf:build"
 DOCKERUSERFLAGS := --user $(shell id -u):$(shell id -g) $(shell printf -- "--group-add=%q " $(shell id -G))
 
@@ -209,7 +263,7 @@ dockerimage:
 .PHONY: docker%
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
-	$(VERBOSE) docker run -t $(DOCKERUSERFLAGS) -e UNITTEST=$(UNITTEST) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
+	$(VERBOSE) docker run -t $(DOCKERUSERFLAGS) -e UNITTEST=$(UNITTEST) -e CONFIG_LIBPFM=$(CONFIG_LIBPFM) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
 
 .PHONY: onelinescan
 onelinescan:
