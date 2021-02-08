@@ -51,7 +51,7 @@ static void echo_loop(void) {
     }
 }
 
-void kernel_main(void) {
+void __naked kernel_main(void) {
     printk("\nKTF - Kernel Test Framework!\n\n");
 
     if (kernel_cmdline)
