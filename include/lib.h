@@ -28,6 +28,7 @@
 #include <asm-macros.h>
 #include <console.h>
 #include <ktf.h>
+#include <processor.h>
 #include <segment.h>
 
 #define min(a, b)                                                                        \
@@ -232,6 +233,10 @@ static inline unsigned long read_cr0(void) {
     return cr0;
 }
 
+static inline void write_cr0(unsigned long cr0) {
+    asm volatile("mov %0, %%cr0" ::"r"(cr0));
+}
+
 static inline unsigned long read_cr2(void) {
     unsigned long cr2;
 
@@ -393,6 +398,11 @@ static inline unsigned long ipow(int base, unsigned int exp) {
     }
 
     return result;
+}
+
+static inline void enable_sse(void) {
+    write_cr0((read_cr0() & ~X86_CR0_EM) | X86_CR0_MP);
+    write_cr4(read_cr4() | X86_CR4_OSFXSR | X86_CR4_OSXMMEXCPT);
 }
 
 /* External declarations */
