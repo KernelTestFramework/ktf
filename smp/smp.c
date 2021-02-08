@@ -42,12 +42,13 @@ extern void ap_start(void);
 
 static unsigned nr_cpus;
 
-static unsigned ap_cpuid;
-static bool ap_callin;
+static __data_init unsigned ap_cpuid;
+static __data_init bool ap_callin;
+static __data_init void *ap_new_sp;
 cr3_t __data_init ap_cr3;
 
 void __noreturn __naked ap_startup(void) {
-    write_sp(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
+    WRITE_SP(ap_new_sp);
 
     init_traps(ap_cpuid);
     init_apic(ap_cpuid, apic_get_mode());
@@ -69,6 +70,7 @@ static __text_init void boot_cpu(percpu_t *percpu) {
     if (percpu->bsp)
         return;
 
+    ap_new_sp = get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL);
     ap_cpuid = percpu->cpu_id;
     ap_callin = false;
     smp_wmb();

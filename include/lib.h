@@ -277,9 +277,10 @@ static inline unsigned long read_cr8(void) {
     return cr8;
 }
 
-static inline void write_sp(void *sp) {
-    asm volatile("mov %0, %%" STR(_ASM_SP)::"r"(sp) : "memory");
-}
+#define WRITE_SP(sp)                                                                     \
+    do {                                                                                 \
+        asm volatile("mov %0, %%" STR(_ASM_SP)::"r"((sp)) : "memory");                   \
+    } while (0)
 
 static inline void lgdt(const gdt_ptr_t *gdt_ptr) {
     asm volatile("lgdt %0" ::"m"(*gdt_ptr));
