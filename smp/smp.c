@@ -63,18 +63,17 @@ void __noreturn ap_startup(void) {
     UNREACHABLE();
 }
 
-static __text_init void boot_cpu(unsigned int cpu) {
-    percpu_t *percpu = get_percpu_page(cpu);
+static __text_init void boot_cpu(percpu_t *percpu) {
     apic_icr_t icr;
 
     if (percpu->bsp)
         return;
 
-    ap_cpuid = cpu;
+    ap_cpuid = percpu->cpu_id;
     ap_callin = false;
     smp_wmb();
 
-    dprintk("Starting AP: %u\n", cpu);
+    dprintk("Starting AP: %u\n", percpu->cpu_id);
 
     memset(&icr, 0, sizeof(icr));
     apic_icr_set_dest(&icr, percpu->apic_id);
@@ -97,7 +96,7 @@ static __text_init void boot_cpu(unsigned int cpu) {
     while (!ap_callin)
         cpu_relax();
 
-    dprintk("AP: %u Done \n", cpu);
+    dprintk("AP: %u Done \n", percpu->cpu_id);
 }
 
 void __text_init init_smp(void) {
@@ -113,8 +112,7 @@ void __text_init init_smp(void) {
     printk("Initializing SMP support (CPUs: %u)\n", nr_cpus);
     ap_cr3 = cr3;
 
-    for (unsigned int i = 0; i < nr_cpus; i++)
-        boot_cpu(i);
+    for_each_percpu(boot_cpu);
 }
 
 unsigned get_nr_cpus(void) { return nr_cpus; }

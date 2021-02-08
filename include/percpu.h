@@ -125,5 +125,6 @@ typedef struct percpu percpu_t;
 
 extern void init_percpu(void);
 extern percpu_t *get_percpu_page(unsigned int cpu);
+extern void for_each_percpu(void (*func)(percpu_t *percpu));
 
 #endif /* KTF_PERCPU_H */
