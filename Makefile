@@ -83,7 +83,7 @@ AFLAGS  := $(COMMON_FLAGS) -D__ASSEMBLY__ -nostdlib -nostdinc
 CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O3 -g -Wall -Wextra -ffreestanding -nostdlib -nostdinc
 CFLAGS  += -Iinclude
 CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse2
-CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin
+CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin -fomit-frame-pointer -fcf-protection="none"
 CFLAGS  += -mcmodel=kernel -fno-pic -fno-asynchronous-unwind-tables -fno-unwind-tables
 CFLAGS  += -Wno-unused-parameter -Wno-address-of-packed-member
 CFLAGS  += -Werror
@@ -135,7 +135,7 @@ $(TARGET): $(PFMLIB_ARCHIVE) $(OBJS) $(PREP_LINK_SCRIPT)
 
 $(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
 	@echo "UNTAR pfmlib"
-	# untar tarball and apply the patch 
+	# untar tarball and apply the patch
 	cd $(PFMLIB_DIR) &&\
 	$(TAR_CMD) $(PFMLIB_TARBALL) $(PFMLIB_UNTAR_FILES) -C ./ &&\
 	$(PATCH) -p1 < $(PFMLIB_PATCH_FILE) &&\
