@@ -21,7 +21,7 @@ make docker:boot.iso V=1
 # Use QEMU to launch the guest
 echo "Launching KTF"
 declare -i STATUS=0
-timeout 10 make boot V=1 || STATUS=$?
+timeout 10 make docker:boot V=1 || STATUS=$?
 
 # Check if the expected exit code happened (124 for timeout)
 if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 124 ]
