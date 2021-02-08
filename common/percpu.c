@@ -58,3 +58,10 @@ percpu_t *get_percpu_page(unsigned int cpu) {
     list_add(&percpu->list, &percpu_frames);
     return percpu;
 }
+
+void for_each_percpu(void (*func)(percpu_t *percpu)) {
+    percpu_t *percpu;
+
+    list_for_each_entry (percpu, &percpu_frames, list)
+        func(percpu);
+}
