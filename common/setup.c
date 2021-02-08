@@ -54,6 +54,15 @@
 bool opt_debug = false;
 bool_cmd("debug", opt_debug);
 
+bool opt_keyboard = false;
+bool_cmd("keyboard", opt_keyboard);
+
+bool opt_pit = false;
+bool_cmd("pit", opt_pit);
+
+bool opt_apic_timer = false;
+bool_cmd("apic_timer", opt_apic_timer);
+
 io_port_t com_ports[2] = {COM1_PORT, COM2_PORT};
 
 static unsigned bsp_cpu_id = 0;
@@ -202,11 +211,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* Setup final pagetables */
     init_pagetables();
-
     write_cr3(cr3.paddr);
-
     write_sp(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
-
     if (opt_debug)
         dump_pagetables();
 
@@ -234,11 +240,14 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     uart_input_init(get_bsp_cpu_id());
 
     /* Initialize timers */
-    init_pit(get_bsp_cpu_id());
-    init_apic_timer();
+    if (opt_pit)
+        init_pit(get_bsp_cpu_id());
+    if (opt_apic_timer)
+        init_apic_timer();
 
     /* Initialize keyboard */
-    init_keyboard(get_bsp_cpu_id());
+    if (opt_keyboard)
+        init_keyboard(get_bsp_cpu_id());
 
     /* Jump from .text.init section to .text */
     asm volatile("push %0; ret" ::"r"(&kernel_main));
