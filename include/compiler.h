@@ -62,6 +62,7 @@ typedef uint64_t off_t;
 #define __weak       __attribute__((__weak__))
 #define __noinline   __attribute__((__noinline__))
 #define __section(s) __attribute__((__section__(s)))
+#define __naked      __attribute__((naked))
 
 #define UNREACHABLE()                                                                    \
     do {                                                                                 \
