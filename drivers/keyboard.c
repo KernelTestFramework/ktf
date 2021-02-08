@@ -82,7 +82,7 @@ void init_keyboard(uint8_t dst_cpus) {
 
     dual_channel = current_status.clock2 == 0 ? 1 : 0; /* second channel enabled if 0 */
 
-    printk("Current PS/2 status before: %x\n", current_status.config);
+    dprintk("Current PS/2 status before: %x\n", current_status.config);
 
     /* Disable IRQs and translation */
     current_status.port1_int = 0;
@@ -93,8 +93,8 @@ void init_keyboard(uint8_t dst_cpus) {
     outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
     outb(KEYBOARD_PORT_DATA, current_status.config);
 
-    printk("Current PS/2 status after mods: %x\n", current_status.config);
-    printk("PS/2 dual channel? %d\n", dual_channel);
+    dprintk("Current PS/2 status after mods: %x\n", current_status.config);
+    dprintk("PS/2 dual channel? %d\n", dual_channel);
 
     /* Controller self test */
     outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_SELF_TEST);
@@ -122,7 +122,7 @@ void init_keyboard(uint8_t dst_cpus) {
         port2 = inb(KEYBOARD_PORT_DATA) == 0 ? 1 : 0;
     }
 
-    printk("Port1 available? %d - port2 available? %d\n", port1, port2);
+    dprintk("Port1 available? %d - port2 available? %d\n", port1, port2);
     if (!port1 && !port2) {
         printk("No available PS/2 working ports\n");
         return;
@@ -130,7 +130,7 @@ void init_keyboard(uint8_t dst_cpus) {
 
     /* Enable devices */
     if (port1) {
-        printk("Keyboard: enabling first channel\n");
+        dprintk("Keyboard: enabling first channel\n");
         current_status.port1_int = 1;
         current_status.clock2 = 1; /* disable second port clock */
         current_status.translation = 1;
@@ -142,7 +142,7 @@ void init_keyboard(uint8_t dst_cpus) {
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_1);
     }
     else {
-        printk("Keyboard: enabling second channel\n");
+        dprintk("Keyboard: enabling second channel\n");
         current_status.port2_int = 1;
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
         outb(KEYBOARD_PORT_DATA, current_status.config);
