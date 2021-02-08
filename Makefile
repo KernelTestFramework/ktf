@@ -211,7 +211,7 @@ endif
 .PHONY: boot
 boot: $(ISO_FILE)
 	@echo "QEMU START"
-	$(VERBOSE)$(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS)
+	$(VERBOSE) $(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS)
 
 .PHONY: boot_debug
 boot_debug: $(ISO_FILE)
