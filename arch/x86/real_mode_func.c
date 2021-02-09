@@ -27,17 +27,22 @@
 #include <lib.h>
 #include <percpu.h>
 #include <smp/smp.h>
+#include <spinlock.h>
 #include <traps.h>
 
 extern void _long_to_real(const void *gdt_ptr, const void *idt_ptr);
 
+static spinlock_t lock = SPINLOCK_INIT;
+
 /* FIXME: add real mode calling functionality */
 void long_to_real(void) {
+    spin_lock(&lock);
     percpu_t *percpu = get_percpu_page(smp_processor_id());
 
     dprintk("%s: Before call\n", __func__);
     _long_to_real(&percpu->gdt_ptr, &percpu->idt_ptr);
     dprintk("%s: After call\n", __func__);
+    spin_unlock(&lock);
 }
 
 void init_real_mode(void) { init_rmode_traps(); }
