@@ -85,6 +85,8 @@ GLOBAL(_start)
     ljmp  $__KERN_CS64, $.Llong_mode
 
 ENTRY(prot_to_real)
+    /* FIXME: Add spinlock */
+
     lea   (boot_gdt_ptr), %eax
     push  %eax
     lea   (boot_idt_ptr), %eax
