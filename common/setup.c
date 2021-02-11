@@ -115,7 +115,7 @@ void __text_init cmdline_parse(const char *cmdline) {
             /* assume a bool later */
             optval = opt;
 
-        for (param = __start_cmdline; param < __end_cmdline; param++) {
+        for (param = &__start_cmdline; param < &__end_cmdline; param++) {
             if (strcmp(param->name, optkey))
                 continue;
 
