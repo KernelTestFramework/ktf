@@ -64,6 +64,12 @@ GLOBAL(_start)
     mov   $l4_pt_entries, %eax
     mov   %eax, %cr3
 
+#if defined (KTF_UNIT_TEST)
+    SAVE_REGS_32
+    call  prot_to_real
+    RESTORE_REGS_32
+#endif
+
     /* Enable long mode */
     movl  $MSR_EFER, %ecx
     rdmsr
@@ -76,7 +82,21 @@ GLOBAL(_start)
     mov   %eax, %cr0
 
     /* clear prefetch and jump to 64bit code */
-    ljmp $__KERN_CS64, $.Llong_mode
+    ljmp  $__KERN_CS64, $.Llong_mode
+
+ENTRY(prot_to_real)
+    /* FIXME: Add spinlock */
+
+    lea   (boot_gdt_ptr), %eax
+    push  %eax
+    lea   (boot_idt_ptr), %eax
+    push  %eax
+
+    call  _prot_to_real
+
+    add   $8, %esp
+    ret
+END_FUNC(prot_to_real)
 
 .code64
 .Llong_mode:

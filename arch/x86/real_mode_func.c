@@ -23,49 +23,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
-#include <drivers/keyboard.h>
 #include <ktf.h>
 #include <lib.h>
-#include <multiboot.h>
 #include <percpu.h>
-#include <sched.h>
-#include <setup.h>
-#ifdef KTF_PMU
-#include <perfmon/pfmlib.h>
-#endif
+#include <smp/smp.h>
+#include <spinlock.h>
+#include <traps.h>
 
-extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2kern_sp,
-                             unsigned long user_stack);
+extern void _long_to_real(const void *gdt_ptr, const void *idt_ptr);
 
-int usermode_call(user_func_t fn, void *fn_arg) {
-    return usermode_call_asm(fn, fn_arg, PERCPU_OFFSET(ret2kern_sp),
-                             PERCPU_OFFSET(user_stack));
+static spinlock_t lock = SPINLOCK_INIT;
+
+/* FIXME: add real mode calling functionality */
+void long_to_real(void) {
+    spin_lock(&lock);
+    percpu_t *percpu = get_percpu_page(smp_processor_id());
+
+    dprintk("%s: Before call\n", __func__);
+    _long_to_real(&percpu->gdt_ptr, &percpu->idt_ptr);
+    dprintk("%s: After call\n", __func__);
+    spin_unlock(&lock);
 }
 
-static void echo_loop(void) {
-    while (1) {
-        io_delay();
-        keyboard_process_keys();
-    }
-}
-
-void __naked kernel_main(void) {
-    printk("\nKTF - Kernel Test Framework!\n\n");
-
-    if (kernel_cmdline)
-        printk("Command line: %s\n", kernel_cmdline);
-
-    zap_boot_mappings();
-    display_memory_map();
-    display_multiboot_mmap();
-
-#ifdef KTF_PMU
-    pfm_initialize();
-#endif
-
-    test_main();
-
-    printk("All tasks done.\n");
-
-    echo_loop();
-}
+void init_real_mode(void) { init_rmode_traps(); }

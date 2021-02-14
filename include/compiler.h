@@ -77,6 +77,10 @@ typedef uint64_t off_t;
 #define __data_init __section(".data.init")
 #define __bss_init  __section(".bss.init")
 
+#define __text_rmode __section(".text.rmode")
+#define __data_rmode __section(".data.rmode")
+#define __bss_rmode  __section(".bss.rmode")
+
 #define IS_INIT_SECTION(name)                                                            \
     ((name) && (!strcmp(name, ".text.init") || !strcmp(name, ".data.init") ||            \
                 !strcmp(name, ".bss.init")))

@@ -56,6 +56,35 @@ idt_ptr_t boot_idt_ptr __data_init = {
     .addr = _ul(&boot_idt),
 };
 
+extern uint8_t *rmode_stack_ist_top;
+extern uint8_t *rmode_stack_df_top;
+
+x86_tss_t __data_rmode rmode_tss __aligned(16);
+x86_tss_t __data_rmode rmode_tss_df __aligned(16);
+
+gdt_desc_t __data_rmode rmode_gdt[NR_RMODE_GDT_ENTRIES] __aligned(16) = {
+    /* clang-format off */
+    [GDT_NULL].desc      = GDT_ENTRY(0x0, 0x0, 0x0),
+    [GDT_KERN_CS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, CODE, R, A), 0x0, 0xfffff),
+    [GDT_KERN_DS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
+    [GDT_KERN_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, CODE, R, A), 0x0, 0x00000),
+    [GDT_RMODE_CS16].desc = GDT_ENTRY(DESC_FLAGS(P, DPL0, S, CODE, R, A), 0x0, 0xfffff),
+    [GDT_RMODE_DS16].desc = GDT_ENTRY(DESC_FLAGS(P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
+    /* clang-format on */
+};
+
+gdt_ptr_t __data_rmode rmode_gdt_ptr = {
+    .size = sizeof(rmode_gdt) - 1,
+    .addr = _ul(&rmode_gdt),
+};
+
+idt_entry_t __data_rmode rmode_idt[256];
+
+idt_ptr_t rmode_idt_ptr __data_rmode = {
+    .size = sizeof(rmode_idt) - 1,
+    .addr = _ul(&rmode_idt),
+};
+
 static void __text_init init_boot_tss(void) {
 #if defined(__i386__)
     boot_tss_df.iopb = sizeof(boot_tss_df);
@@ -125,4 +154,69 @@ void __text_init init_boot_traps(void) {
     lidt(&boot_idt_ptr);
 
     init_boot_tss();
+}
+
+static void __text_init init_rmode_tss(void) {
+#if defined(__i386__)
+    rmode_tss_df.iopb = sizeof(rmode_tss_df);
+    rmode_tss_df.esp0 = _ul(rmode_stack_df_top);
+    rmode_tss_df.ss = __KERN_DS;
+    rmode_tss_df.ds = __KERN_DS;
+    rmode_tss_df.es = __KERN_DS;
+    rmode_tss_df.fs = __KERN_DS;
+    rmode_tss_df.gs = __KERN_DS;
+    rmode_tss_df.eip = _ul(entry_DF);
+    rmode_tss_df.cs = __KERN_CS;
+    rmode_tss_df.cr3 = read_cr3();
+
+    /* Assign identity mapping of the tss_df, because GDT has only 32-bit base. */
+    rmode_gdt[GDT_RMODE_TSS_DF].desc = GDT_ENTRY(
+        DESC_FLAGS(SZ, P, CODE, A), _ul(&rmode_tss_df), sizeof(rmode_tss_df) - 1);
+
+    /* FIXME */
+    rmode_tss.esp0 = _ul(rmode_stack_ist_top);
+    rmode_tss.ss0 = __KERN_DS;
+    rmode_tss.cr3 = read_cr3();
+#elif defined(__x86_64__)
+    rmode_tss.rsp0 = _ul(rmode_stack_ist_top);
+    rmode_tss.ist[0] = _ul(rmode_stack_df_top);
+#endif
+    rmode_tss.iopb = sizeof(rmode_tss);
+
+    /* Assign identity mapping of the tss, because GDT has only 32-bit base. */
+    rmode_gdt[GDT_RMODE_TSS].desc =
+        GDT_ENTRY(DESC_FLAGS(SZ, P, CODE, A), _ul(&rmode_tss), sizeof(rmode_tss) - 1);
+#if defined(__x86_64__)
+    rmode_gdt[GDT_RMODE_TSS + 1].desc = GDT_ENTRY(0x0, 0x0, 0x0);
+#endif
+}
+
+void __text_init init_rmode_traps(void) {
+    /* clang-format off */
+    set_intr_gate(&rmode_idt[X86_EX_DE],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_DB],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_NMI], __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_BP],  __KERN_CS, _ul(rmode_exception),  GATE_DPL3, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_OF],  __KERN_CS, _ul(rmode_exception),  GATE_DPL3, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_BR],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_UD],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_NM],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_CS],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_TS],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_NP],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_SS],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_GP],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_PF],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_MF],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_AC],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_MC],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_XM],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_VE],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&rmode_idt[X86_EX_SE],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 0);
+#if defined(__x86_64__)
+    set_intr_gate(&rmode_idt[X86_EX_DF],  __KERN_CS, _ul(rmode_exception),  GATE_DPL0, GATE_PRESENT, 1);
+#endif
+    /* clang-format on */
+
+    init_rmode_tss();
 }
