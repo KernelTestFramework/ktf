@@ -292,7 +292,7 @@ static inline char *strtok(char *s, const char *delim) {
     int ch;
 
     if (NULL == s)
-        s = lasts;
+        s = lasts + 1;
 
     do {
         if ((ch = *s++) == '\0')
