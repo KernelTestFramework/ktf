@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Amazon.com, Inc. or its affiliates.
+ * Copyright (c) 2021 Amazon.com, Inc. or its affiliates.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,60 +22,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <console.h>
-#include <ktf.h>
-#include <sched.h>
-#include <string.h>
-#include <symbols.h>
-#include <test.h>
+#ifndef KTF_TEST_H
+#define KTF_TEST_H
 
-static const char opt_test_delims[] = ",";
-#include <cmdline.h>
+#define MAX_OPT_TESTS_LEN 128
 
-enum get_next_test_result {
-    TESTS_DONE,
-    TESTS_FOUND,
-    TESTS_ERROR,
-};
-typedef enum get_next_test_result get_next_test_result_t;
+typedef int(test_fn)(void *arg);
 
-static char opt_tests[MAX_OPT_TESTS_LEN];
-string_cmd("tests", opt_tests);
-
-static get_next_test_result_t get_next_test(test_fn **out_test_fn, char **out_name) {
-    static char *opt = opt_tests;
-
-    *out_name = strtok(opt, opt_test_delims);
-
-    opt = NULL;
-    if (*out_name) {
-        *out_test_fn = symbol_address(*out_name);
-        if (!*out_test_fn) {
-            printk("Symbol for test %s not found\n", *out_name);
-            return TESTS_ERROR;
-        }
-        return TESTS_FOUND;
-    }
-    return TESTS_DONE;
-}
-
-void test_main(void) {
-    char *name;
-    test_fn *fn = NULL;
-    unsigned n = 0;
-
-    printk("\nRunning tests\n");
-
-    while (get_next_test(&fn, &name) == TESTS_FOUND) {
-        int rc;
-
-        printk("Running test: %s\n", name);
-        rc = fn(NULL);
-        printk("Test %s returned: 0x%x\n", name, rc);
-        n++;
-    }
-
-    wait_for_all_tasks();
-
-    printk("Tests completed: %u\n", n);
-}
+#endif /* KTF_TEST_H */

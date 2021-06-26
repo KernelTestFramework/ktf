@@ -136,6 +136,12 @@ vcpus=1
 
 You need to generate a bootable ISO for this.
 
+### Adding new tests
+
+New tests can be added by adding a new function in a file in the `tests` folder. Each test signature must
+be the same as `test_fn` provided in `test.h`. Tests can be enabled in `grub.cfg` by adding the option with key `tests` and values
+the comma-separated list of function names, such as `tests=test1,test2,unit_tests`.
+
 ## Style
 
 The style for this project is defined in `.clang-format` file in the main directory of this repository.
