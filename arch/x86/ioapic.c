@@ -177,10 +177,11 @@ void __text_init init_ioapic(void) {
 
         id.reg = ioapic_read32(ioapic, IOAPIC_ID);
         if (ioapic->id != id.apic_id) {
-            panic("IOAPIC with unexpected APIC ID detected: 0x%02x (expected: "
-                  "0x%02x)\n",
-                  id.apic_id, ioapic->id);
+            printk("IOAPIC with unexpected APIC ID detected: 0x%02x (expected: "
+                   "0x%02x)\n",
+                   id.apic_id, ioapic->id);
         }
+        ioapic->id = id.apic_id;
 
         version.reg = ioapic_read32(ioapic, IOAPIC_VERSION);
         ioapic->version = version.version;
