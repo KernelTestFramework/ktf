@@ -288,10 +288,13 @@ static inline size_t strcspn(const char *s1, const char *s2) {
 
 static inline char *strtok(char *s, const char *delim) {
 
-    static char *lasts;
+    static char *lasts = NULL;
     int ch;
 
-    if (NULL == s)
+    if (s == NULL && lasts == NULL)
+        return NULL;
+
+    if (s == NULL)
         s = lasts + 1;
 
     do {
