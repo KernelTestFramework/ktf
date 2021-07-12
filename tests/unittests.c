@@ -90,7 +90,7 @@ int unit_tests(void *_unused) {
     }
 
     if (opt_ulong != 42) {
-        printk("Integer parameter opt_ulong != 42: %d\n", opt_ulong);
+        printk("Integer parameter opt_ulong != 42: %lu\n", opt_ulong);
         BUG();
     }
     else {
