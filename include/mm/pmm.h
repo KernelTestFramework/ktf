@@ -83,6 +83,8 @@ typedef struct frame frame_t;
 
 #define for_each_order(order) for (int order = 0; order < MAX_PAGE_ORDER + 1; order++)
 
+typedef bool (*free_frames_cond_t)(frame_t *free_frame);
+
 /* External definitions */
 
 extern void display_memory_map(void);
@@ -96,6 +98,7 @@ extern bool paddr_invalid(paddr_t pa);
 
 extern void init_pmm(void);
 
+extern frame_t *get_free_frames_cond(free_frames_cond_t cb);
 extern mfn_t get_free_frames(unsigned int order);
 extern void put_frame(mfn_t mfn, unsigned int order);
 extern void reclaim_frame(mfn_t mfn, unsigned int order);

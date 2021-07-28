@@ -245,6 +245,40 @@ void init_pmm(void) {
     }
 }
 
+static frame_t *reserve_frame(frame_t *frame, unsigned int order) {
+    BUG_ON(!frame);
+    BUG_ON(!frame->free);
+    frame->free = false;
+
+    BUG_ON(frame->refcount > 0);
+    frame->refcount++;
+
+    list_unlink(&frame->list);
+    list_add(&frame->list, &busy_frames[order]);
+
+    return frame;
+}
+
+/* Reserves and returns the first free frame
+ * fulfilling the condition specified by
+ * the callback
+ */
+frame_t *get_free_frames_cond(free_frames_cond_t cb) {
+    frame_t *frame;
+
+    for_each_order (order) {
+        if (list_is_empty(&free_frames[order]))
+            continue;
+
+        list_for_each_entry (frame, &free_frames[order], list) {
+            if (cb(frame)) {
+                return reserve_frame(frame, order);
+            }
+        }
+    }
+    return NULL;
+}
+
 mfn_t get_free_frames(unsigned int order) {
     frame_t *frame;
 
@@ -257,14 +291,8 @@ mfn_t get_free_frames(unsigned int order) {
     }
 
     frame = list_first_entry(&free_frames[order], frame_t, list);
-    BUG_ON(!frame->free);
-    frame->free = false;
 
-    BUG_ON(frame->refcount > 0);
-    frame->refcount++;
-
-    list_unlink(&frame->list);
-    list_add(&frame->list, &busy_frames[order]);
+    frame = reserve_frame(frame, order);
 
     return frame->mfn;
 }
