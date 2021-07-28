@@ -146,7 +146,11 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
     return mfn;
 }
 
-void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
+void *vmap(void *va, mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+           unsigned long l4_flags,
+#endif
+           unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
     static spinlock_t lock = SPINLOCK_INIT;
     mfn_t l1t_mfn, l2t_mfn, l3t_mfn;
     pgentry_t *tab, *entry;
@@ -159,7 +163,7 @@ void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
     spin_lock(&lock);
 
 #if defined(__x86_64__)
-    l3t_mfn = get_pgentry_mfn(get_cr3_mfn(&cr3), l4_table_index(va), L4_PROT_USER);
+    l3t_mfn = get_pgentry_mfn(get_cr3_mfn(&cr3), l4_table_index(va), l4_flags);
 #else
     l3t_mfn = get_cr3_mfn(&cr3);
 #endif
@@ -167,52 +171,66 @@ void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags) {
     if (order == PAGE_ORDER_1G) {
         tab = init_map_mfn(l3t_mfn);
         entry = &tab[l3_table_index(va)];
-        set_pgentry(entry, mfn, flags | _PAGE_PSE);
+        set_pgentry(entry, mfn, l3_flags | _PAGE_PSE);
         goto done;
     }
 
-    l2t_mfn = get_pgentry_mfn(l3t_mfn, l3_table_index(va), L3_PROT_USER);
+    l2t_mfn = get_pgentry_mfn(l3t_mfn, l3_table_index(va), l3_flags);
 
     if (order == PAGE_ORDER_2M) {
         tab = init_map_mfn(l2t_mfn);
         entry = &tab[l2_table_index(va)];
-        set_pgentry(entry, mfn, flags | _PAGE_PSE);
+        set_pgentry(entry, mfn, l2_flags | _PAGE_PSE);
         goto done;
     }
 
-    l1t_mfn = get_pgentry_mfn(l2t_mfn, l2_table_index(va), L2_PROT_USER);
+    l1t_mfn = get_pgentry_mfn(l2t_mfn, l2_table_index(va), l2_flags);
 
     tab = init_map_mfn(l1t_mfn);
     entry = &tab[l1_table_index(va)];
-    set_pgentry(entry, mfn, flags);
+    set_pgentry(entry, mfn, l1_flags);
 
 done:
     spin_unlock(&lock);
     return va;
 }
 
-void *vunmap(void *va, unsigned int order) { return vmap(va, MFN_INVALID, order, 0x0); }
-
-void *kmap(mfn_t mfn, unsigned int order, unsigned long flags) {
-    return vmap(mfn_to_virt_kern(mfn), mfn, order, flags);
+void *vunmap(void *va, unsigned int order) {
+    return vmap(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS,
+                PT_NO_FLAGS);
 }
 
-void *kunmap(void *va, unsigned int order) { return vmap(va, MFN_INVALID, order, 0x0); }
+void *kmap(mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+           unsigned long l4_flags,
+#endif
+           unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
+    return vmap(mfn_to_virt_kern(mfn), mfn, order,
+#if defined(__x86_64__)
+                l4_flags,
+#endif
+                l3_flags, l2_flags, l1_flags);
+}
+
+void *kunmap(void *va, unsigned int order) {
+    return vmap(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS,
+                PT_NO_FLAGS);
+}
 
 void init_pagetables(void) {
     for_each_memory_range (r) {
         switch (r->base) {
         case VIRT_IDENT_BASE:
             for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)
-                vmap(mfn_to_virt(mfn), mfn, PAGE_ORDER_4K, r->flags);
+                vmap_4k(mfn_to_virt(mfn), mfn, r->flags);
             break;
         case VIRT_KERNEL_BASE:
             for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)
-                kmap(mfn, PAGE_ORDER_4K, r->flags);
+                kmap_4k(mfn, r->flags);
             break;
         case VIRT_USER_BASE:
             for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)
-                vmap(mfn_to_virt_user(mfn), mfn, PAGE_ORDER_4K, r->flags);
+                vmap_4k(mfn_to_virt_user(mfn), mfn, r->flags);
             break;
         default:
             break;

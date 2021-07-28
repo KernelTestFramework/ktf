@@ -217,9 +217,8 @@ ioapic_t *add_ioapic(uint8_t id, uint8_t version, bool enabled, uint64_t base_ad
     ioapic->base_address = base_address;
     ioapic->gsi_base = gsi_base;
 
-    ioapic->virt_address =
-        vmap(paddr_to_virt(ioapic->base_address), paddr_to_mfn(ioapic->base_address),
-             PAGE_ORDER_4K, L1_PROT);
+    ioapic->virt_address = vmap_4k(paddr_to_virt(ioapic->base_address),
+                                   paddr_to_mfn(ioapic->base_address), L1_PROT);
     BUG_ON(!ioapic->virt_address);
 
     return ioapic;

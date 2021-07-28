@@ -65,6 +65,8 @@
 
 #define PTE_FLAGS(...) (TOKEN_OR(_PAGE_, ##__VA_ARGS__))
 
+#define PT_NO_FLAGS 0
+
 #define L1_PROT         (_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED | _PAGE_DIRTY)
 #define L1_PROT_RO      (_PAGE_PRESENT | _PAGE_ACCESSED)
 #define L1_PROT_NOCACHE (L1_PROT | _PAGE_PCD)
@@ -127,6 +129,26 @@ typedef unsigned long mfn_t;
 #define PADDR_INVALID (0UL)
 #define MFN_INVALID   (0UL)
 
+#define IS_ADDR_SPACE_VA(va, as) ((_ul(va) & (as)) == (as))
+
+/* External declarations */
+
+extern void *vmap(void *va, mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                  unsigned long l4_flags,
+#endif
+                  unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags);
+extern void *vunmap(void *va, unsigned int order);
+
+extern void *kmap(mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                  unsigned long l4_flags,
+#endif
+                  unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags);
+extern void *kunmap(void *va, unsigned int order);
+
+/* Static declarations */
+
 static inline mfn_t paddr_to_mfn(paddr_t pa) { return (mfn_t)(pa >> PAGE_SHIFT); }
 static inline paddr_t mfn_to_paddr(mfn_t mfn) { return (paddr_t)(mfn << PAGE_SHIFT); }
 
@@ -151,8 +173,6 @@ static inline void *mfn_to_virt_user(mfn_t mfn) {
 }
 static inline void *mfn_to_virt(mfn_t mfn) { return paddr_to_virt(mfn << PAGE_SHIFT); }
 
-#define IS_ADDR_SPACE_VA(va, as) ((_ul(va) & (as)) == (as))
-
 static inline paddr_t virt_to_paddr(const void *va) {
     paddr_t pa = (paddr_t) va;
 
@@ -168,12 +188,31 @@ static inline mfn_t virt_to_mfn(const void *va) {
     return paddr_to_mfn(virt_to_paddr(va));
 }
 
-/* External declarations */
+static inline void *vmap_1g(void *va, mfn_t mfn, unsigned long l3_flags) {
+    return vmap(va, mfn, PAGE_ORDER_1G, L4_PROT_USER, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
+}
 
-extern void *vmap(void *va, mfn_t mfn, unsigned int order, unsigned long flags);
-extern void *vunmap(void *va, unsigned int order);
-extern void *kmap(mfn_t mfn, unsigned int order, unsigned long flags);
-extern void *kunmap(void *va, unsigned int order);
+static inline void *vmap_2m(void *va, mfn_t mfn, unsigned long l2_flags) {
+    return vmap(va, mfn, PAGE_ORDER_2M, L4_PROT_USER, L3_PROT_USER, PT_NO_FLAGS,
+                PT_NO_FLAGS);
+}
+
+static inline void *vmap_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
+    return vmap(va, mfn, PAGE_ORDER_4K, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER,
+                l1_flags);
+}
+
+static inline void *kmap_1g(mfn_t mfn, unsigned long l3_flags) {
+    return kmap(mfn, PAGE_ORDER_1G, L4_PROT_USER, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
+}
+
+static inline void *kmap_2m(mfn_t mfn, unsigned long l2_flags) {
+    return kmap(mfn, PAGE_ORDER_2M, L4_PROT_USER, L3_PROT_USER, l2_flags, PT_NO_FLAGS);
+}
+
+static inline void *kmap_4k(mfn_t mfn, unsigned long l1_flags) {
+    return kmap(mfn, PAGE_ORDER_4K, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER, l1_flags);
+}
 
 #endif /* __ASSEMBLY__ */
 

@@ -43,7 +43,7 @@ bool init_hpet(uint8_t dst_cpus) {
     }
 
     hpet_base_mfn = paddr_to_mfn(hpet->address.address);
-    vmap((uint64_t *) hpet->address.address, hpet_base_mfn, PAGE_ORDER_4K, L1_PROT);
+    vmap_4k((uint64_t *) hpet->address.address, hpet_base_mfn, L1_PROT);
     config = (acpi_hpet_timer_t *) (hpet->address.address +
                                     HPET_OFFSET_TIMER_0_CONFIG_CAP_REG);
     general =

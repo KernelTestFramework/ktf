@@ -128,7 +128,7 @@ static unsigned acpi_table_map_pages(paddr_t pa, size_t len) {
                   mfn);
         }
 
-        BUG_ON(!kmap(mfn, PAGE_ORDER_4K, L1_PROT));
+        BUG_ON(!kmap_4k(mfn, L1_PROT));
     }
 
     return num_pages;
