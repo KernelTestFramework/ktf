@@ -37,11 +37,12 @@ void *get_free_pages(unsigned int order, uint32_t flags) {
         return NULL;
 
     if (flags & GFP_IDENT)
-        va = vmap(mfn_to_virt(mfn), mfn, order, L1_PROT);
+        va = vmap(mfn_to_virt(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
     if (flags & GFP_USER)
-        va = vmap(mfn_to_virt_user(mfn), mfn, order, L1_PROT_USER);
+        va = vmap(mfn_to_virt_user(mfn), mfn, order, L4_PROT_USER, L3_PROT_USER,
+                  L2_PROT_USER, L1_PROT_USER);
     if (flags & GFP_KERNEL)
-        va = kmap(mfn, order, L1_PROT);
+        va = kmap(mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
 
     return va;
 }

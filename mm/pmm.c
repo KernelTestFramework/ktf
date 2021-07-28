@@ -306,7 +306,7 @@ void map_used_memory(void) {
     for_each_order (order) {
         list_for_each_entry (frame, &busy_frames[order], list) {
             if (!frame->mapped) {
-                kmap(frame->mfn, order, L1_PROT);
+                kmap(frame->mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
                 frame->mapped = true;
             }
         }
