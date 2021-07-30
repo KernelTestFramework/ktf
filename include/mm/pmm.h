@@ -135,6 +135,10 @@ static inline bool in_kernel_section(const void *addr) {
            (addr >= _ptr(__start_rodata) && addr < _ptr(__end_rodata));
 }
 
+static inline uint32_t get_bios_ebda_addr(void) {
+    return (*(uint16_t *) paddr_to_virt_kern(EBDA_ADDR_ENTRY)) << 4;
+}
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PMM_H */
