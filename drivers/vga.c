@@ -79,3 +79,11 @@ void vga_write(const char *buf, size_t len, vga_color_t color) {
     scroll_screen = screen;
     write_vga_buffer(screen);
 }
+
+void map_vga_area(void) {
+    for (mfn_t vga_mfn = paddr_to_mfn(VGA_START_ADDR);
+         vga_mfn < paddr_to_mfn(VGA_END_ADDR); vga_mfn++) {
+        vmap_4k(mfn_to_virt(vga_mfn), vga_mfn, L1_PROT);
+        kmap_4k(vga_mfn, L1_PROT);
+    }
+}
