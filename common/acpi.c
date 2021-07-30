@@ -103,7 +103,7 @@ static rsdp_rev1_t *acpi_find_rsdp(void) {
     uint32_t ebda_addr;
     rsdp_rev1_t *rsdp;
 
-    ebda_addr = (*(uint16_t *) paddr_to_virt_kern(EBDA_ADDR_ENTRY)) << 4;
+    ebda_addr = get_bios_ebda_addr();
     rsdp =
         find_rsdp(paddr_to_virt_kern(ebda_addr), paddr_to_virt_kern(ebda_addr + KB(1)));
     if (rsdp)
