@@ -59,4 +59,6 @@ extern void vga_scroll_up(void);
 extern void vga_scroll_down(void);
 
 extern void vga_write(const char *buf, size_t len, vga_color_t color);
+
+extern void map_vga_area(void);
 #endif /* KTF_DRV_VGA_H */

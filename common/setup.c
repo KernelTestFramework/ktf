@@ -52,6 +52,7 @@
 #include <drivers/pic.h>
 #include <drivers/pit.h>
 #include <drivers/serial.h>
+#include <drivers/vga.h>
 
 bool opt_debug = false;
 bool_cmd("debug", opt_debug);
@@ -234,6 +235,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     map_multiboot_areas();
     map_bios_area();
+    map_vga_area();
 
     write_cr3(cr3.paddr);
     WRITE_SP(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
