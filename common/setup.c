@@ -179,6 +179,19 @@ void zap_boot_mappings(void) {
     }
 }
 
+static void map_bios_area(void) {
+    vmap_4k(paddr_to_virt(BDA_ADDR_START), paddr_to_mfn(BDA_ADDR_START), L1_PROT_RO);
+    kmap_4k(paddr_to_mfn(BDA_ADDR_START), L1_PROT_RO);
+
+    uint32_t ebda_addr = get_bios_ebda_addr();
+    vmap_4k(paddr_to_virt(ebda_addr), paddr_to_mfn(ebda_addr), L1_PROT_RO);
+    kmap_4k(paddr_to_mfn(ebda_addr), L1_PROT_RO);
+
+    for (mfn_t bios_mfn = paddr_to_mfn(BIOS_ACPI_ROM_START);
+         bios_mfn < paddr_to_mfn(BIOS_ACPI_ROM_STOP); bios_mfn++)
+        kmap_4k(bios_mfn, L1_PROT_RO);
+}
+
 void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
                                          multiboot_info_t *mbi) {
     /* Zero-out BSS sections */
@@ -220,6 +233,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_pagetables();
 
     map_multiboot_areas();
+    map_bios_area();
 
     write_cr3(cr3.paddr);
     WRITE_SP(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));

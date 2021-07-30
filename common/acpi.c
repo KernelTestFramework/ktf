@@ -33,9 +33,6 @@
 #include <percpu.h>
 #include <string.h>
 
-#define ACPI_RSDP_BIOS_ROM_START 0xE0000
-#define ACPI_RSDP_BIOS_ROM_STOP  0xFFFFF
-
 acpi_table_t *acpi_tables[128];
 unsigned max_acpi_tables;
 
@@ -109,8 +106,8 @@ static rsdp_rev1_t *acpi_find_rsdp(void) {
     if (rsdp)
         return rsdp;
 
-    rsdp = find_rsdp(paddr_to_virt_kern(ACPI_RSDP_BIOS_ROM_START),
-                     paddr_to_virt_kern(ACPI_RSDP_BIOS_ROM_STOP));
+    rsdp = find_rsdp(paddr_to_virt_kern(BIOS_ACPI_ROM_START),
+                     paddr_to_virt_kern(BIOS_ACPI_ROM_STOP));
     if (rsdp)
         return rsdp;
 
