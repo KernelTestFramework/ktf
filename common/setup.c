@@ -218,6 +218,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* Setup final pagetables */
     init_pagetables();
+
+    map_multiboot_areas();
+
     write_cr3(cr3.paddr);
     WRITE_SP(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
     if (opt_debug)
