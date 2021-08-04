@@ -35,9 +35,7 @@ typedef struct sem sem_t;
 
 #define MAX_SEMAPHORE_VALUE (_U32(-1) / 2)
 #define SEM_INIT(value)                                                                  \
-    {                                                                                    \
-        .v = {(value) }                                                                  \
-    }
+    { .v = {(value)}, }
 
 extern int32_t sem_value(const sem_t *sem);
 

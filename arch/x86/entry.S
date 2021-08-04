@@ -46,11 +46,7 @@ ENTRY(asm_interrupt_handler_\sym)
     SAVE_REGS
     call \func
     RESTORE_REGS
-#if defined(__x86_64__)
-    iretq
-#else
-    iret
-#endif
+    IRET
 END_FUNC(asm_interrupt_handler_\sym)
 .endm
 
