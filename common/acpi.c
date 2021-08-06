@@ -511,4 +511,11 @@ ACPI_STATUS init_acpi(unsigned bsp_cpu_id) {
     status = InitializeFullAcpi();
     return status;
 }
+
+void acpi_power_off(void) {
+    AcpiEnterSleepStatePrep(ACPI_STATE_S5);
+    cli();
+    AcpiEnterSleepState(ACPI_STATE_S5);
+    panic("Power Off");
+}
 #endif /* KTF_ACPICA */

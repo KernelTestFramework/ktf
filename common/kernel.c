@@ -22,6 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <acpi_ktf.h>
 #include <console.h>
 #include <drivers/keyboard.h>
 #include <ktf.h>
@@ -67,5 +68,8 @@ void __naked kernel_main(void) {
 
     printk("All tasks done.\n");
 
+#ifdef KTF_ACPICA
+    acpi_power_off();
+#endif
     echo_loop();
 }
