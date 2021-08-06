@@ -289,6 +289,7 @@ extern void acpi_walk_subtables(ACPI_SUBTABLE_HEADER *entry, uint32_t length,
                                 acpi_subtable_parser_t parser, void *arg);
 
 extern ACPI_STATUS init_acpi(unsigned bsp_cpu_id);
+extern void acpi_power_off(void);
 
 #endif /* KTF_ACPICA */
 #endif /* KTF_ACPI_H */
