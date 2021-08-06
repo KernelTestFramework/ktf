@@ -203,7 +203,7 @@ static void run_task(task_t *task) {
     printk("CPU[%u]: Running task %s[%u]\n", task->cpu, task->name, task->id);
 
     set_task_state(task, TASK_STATE_RUNNING);
-    task->func(task, task->arg);
+    task->func(task->arg);
     set_task_state(task, TASK_STATE_DONE);
 }
 
