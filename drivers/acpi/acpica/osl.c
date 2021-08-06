@@ -24,6 +24,7 @@
  */
 #ifdef KTF_ACPICA
 #include <ktf.h>
+#include <mm/slab.h>
 
 #include "acpi.h"
 
@@ -65,5 +66,130 @@ ACPI_STATUS AcpiOsEnterSleep(UINT8 SleepState, UINT32 RegaValue, UINT32 RegbValu
     dprintk("ACPI Entering sleep state S%u.\n", SleepState);
 
     return AE_OK;
+}
+
+/* Memory and IO space read/write functions */
+
+ACPI_STATUS AcpiOsReadMemory(ACPI_PHYSICAL_ADDRESS Address, UINT64 *Value, UINT32 Width) {
+    void *pa = _ptr(_paddr(Address));
+    UINT64 val = 0;
+
+    switch (Width) {
+    case 8:
+        val = *(uint8_t *) pa;
+        break;
+    case 16:
+        val = *(uint16_t *) pa;
+        break;
+    case 32:
+        val = *(uint32_t *) pa;
+        break;
+    case 64:
+        val = *(uint64_t *) pa;
+        break;
+    default:
+        return AE_BAD_PARAMETER;
+    }
+
+    *Value = val;
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsWriteMemory(ACPI_PHYSICAL_ADDRESS Address, UINT64 Value, UINT32 Width) {
+    void *pa = _ptr(_paddr(Address));
+
+    switch (Width) {
+    case 8:
+        *(uint8_t *) pa = (uint8_t) Value;
+        break;
+    case 16:
+        *(uint16_t *) pa = (uint16_t) Value;
+        break;
+    case 32:
+        *(uint32_t *) pa = (uint32_t) Value;
+        break;
+    case 64:
+        *(uint64_t *) pa = (uint64_t) Value;
+        break;
+    default:
+        return AE_BAD_PARAMETER;
+    }
+
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsReadPort(ACPI_IO_ADDRESS Address, UINT32 *Value, UINT32 Width) {
+    switch (Width) {
+    case 8:
+        *Value = inb(Address);
+        break;
+    case 16:
+        *Value = inw(Address);
+        break;
+    case 32:
+        *Value = ind(Address);
+        break;
+    default:
+        return AE_BAD_PARAMETER;
+    }
+
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsWritePort(ACPI_IO_ADDRESS Address, UINT32 Value, UINT32 Width) {
+    switch (Width) {
+    case 8:
+        outb(Address, (uint8_t) Value);
+        break;
+    case 16:
+        outw(Address, (uint16_t) Value);
+        break;
+    case 32:
+        outd(Address, (uint32_t) Value);
+        break;
+    default:
+        return AE_BAD_PARAMETER;
+    }
+
+    return AE_OK;
+}
+
+/* Memory management functions */
+
+void *AcpiOsAllocate(ACPI_SIZE Size) { return kmalloc(Size); }
+
+void AcpiOsFree(void *Memory) { kfree(Memory); }
+
+/* FIXME: Check if pages are mapped (with exception tables) */
+BOOLEAN AcpiOsReadable(void *Memory, ACPI_SIZE Length) { return true; }
+
+/* FIXME: Check if pages are mapped and writeable (with exception tables) */
+BOOLEAN AcpiOsWriteable(void *Memory, ACPI_SIZE Length) { return true; }
+
+void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
+    unsigned offset = PhysicalAddress & ~PAGE_MASK;
+    unsigned num_pages = ((offset + Length) / PAGE_SIZE) + 1;
+    mfn_t mfn = paddr_to_mfn(PhysicalAddress);
+    void *va = NULL;
+
+    for (unsigned i = 0; i < num_pages; i++, mfn++) {
+        void *_va = kmap_4k(mfn, L1_PROT);
+        if (!_va)
+            return NULL;
+
+        if (!va)
+            va = _ptr(_ul(_va) + offset);
+    }
+
+    return va;
+}
+
+void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
+    unsigned offset = _ul(LogicalAddress) & ~PAGE_MASK;
+    unsigned num_pages = ((offset + Length) / PAGE_SIZE) + 1;
+    mfn_t mfn = virt_to_mfn(LogicalAddress);
+
+    for (unsigned i = 0; i < num_pages; i++, mfn++)
+        kunmap(mfn_to_virt_kern(mfn), PAGE_ORDER_4K);
 }
 #endif /* KTF_ACPICA */
