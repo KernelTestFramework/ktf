@@ -1,0 +1,69 @@
+/*
+ * Copyright © 2021 Amazon.com, Inc. or its affiliates.
+ * All Rights Reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+#ifdef KTF_ACPICA
+#include <ktf.h>
+
+#include "acpi.h"
+
+/* General OS functions */
+
+ACPI_STATUS AcpiOsInitialize(void) {
+    dprintk("ACPI OS Initialization:\n");
+
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsTerminate(void) {
+    dprintk("ACPI OS Termination:\n");
+
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsSignal(UINT32 Function, void *Info) {
+    switch (Function) {
+    case ACPI_SIGNAL_FATAL: {
+        ACPI_SIGNAL_FATAL_INFO *info = Info;
+
+        panic("ACPI: Received ACPI_SIGNAL_FATAL: Type: %u, Code: %u, Arg: %u",
+              info ? info->Type : 0, info ? info->Code : 0, info ? info->Argument : 0);
+    } break;
+    case ACPI_SIGNAL_BREAKPOINT: {
+        char *bp_msg = Info;
+
+        printk("ACPI: Received ACPI_SIGNAL_BREAKPOINT: %s", bp_msg ?: "");
+    } break;
+    default:
+        BUG();
+    }
+
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsEnterSleep(UINT8 SleepState, UINT32 RegaValue, UINT32 RegbValue) {
+    dprintk("ACPI Entering sleep state S%u.\n", SleepState);
+
+    return AE_OK;
+}
+#endif /* KTF_ACPICA */

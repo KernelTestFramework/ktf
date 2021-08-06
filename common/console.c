@@ -70,6 +70,18 @@ void printk(const char *fmt, ...) {
     va_end(args);
 }
 
+#ifdef KTF_ACPICA
+void AcpiOsVprintf(const char *Format, va_list args) { vprintk(Format, args); }
+
+void AcpiOsPrintf(const char *Format, ...) {
+    va_list args;
+
+    va_start(args, Format);
+    vprintk(Format, args);
+    va_end(args);
+}
+#endif
+
 void putchar(int c) { putc(SERIAL_CONSOLE, c); }
 
 void serial_console_write(const char *buf, size_t len) {
