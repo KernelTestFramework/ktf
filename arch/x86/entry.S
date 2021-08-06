@@ -93,6 +93,9 @@ END_FUNC(handle_exception)
 interrupt_handler timer timer_interrupt_handler
 interrupt_handler uart uart_interrupt_handler
 interrupt_handler keyboard keyboard_interrupt_handler
+#ifdef KTF_ACPICA
+interrupt_handler acpi acpi_interrupt_handler
+#endif
 
 ENTRY(usermode_call_asm)
     /* FIXME: Add 32-bit support */

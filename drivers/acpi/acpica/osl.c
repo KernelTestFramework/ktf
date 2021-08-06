@@ -25,8 +25,10 @@
 #ifdef KTF_ACPICA
 #include <ktf.h>
 #include <mm/slab.h>
+#include <percpu.h>
 #include <sched.h>
 #include <semaphore.h>
+#include <setup.h>
 #include <smp/smp.h>
 #include <spinlock.h>
 #include <time.h>
@@ -365,4 +367,65 @@ UINT64 AcpiOsGetTimer(void) { return get_timer_ticks(); }
 
 /* FIXME: Use microseconds granularity */
 void AcpiOsStall(UINT32 Microseconds) { msleep(1); }
+
+/* ACPI interrupt handling functions */
+
+extern void asm_interrupt_handler_acpi(void);
+static bool acpi_irq_installed = false;
+static uint32_t acpi_irq_num;
+static ACPI_OSD_HANDLER acpi_irq_handler = NULL;
+static void *acpi_irq_context = NULL;
+static bool acpi_irq_handled = false;
+
+void acpi_interrupt_handler(void) {
+    uint32_t ret = acpi_irq_handler(acpi_irq_context);
+
+    if (ret == ACPI_INTERRUPT_HANDLED)
+        acpi_irq_handled = true;
+    else if (ret == ACPI_INTERRUPT_NOT_HANDLED)
+        acpi_irq_handled = false;
+}
+
+ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 InterruptLevel, ACPI_OSD_HANDLER Handler,
+                                          void *Context) {
+    percpu_t *percpu = get_percpu_page(get_bsp_cpu_id());
+
+    if (acpi_irq_installed)
+        return AE_ALREADY_EXISTS;
+
+    if (!Handler || InterruptLevel > ARRAY_SIZE(idt))
+        return AE_BAD_PARAMETER;
+
+    acpi_irq_num = InterruptLevel;
+    acpi_irq_handler = Handler;
+    acpi_irq_context = Context;
+
+    set_intr_gate(&percpu->idt[acpi_irq_num], __KERN_CS, _ul(asm_interrupt_handler_acpi),
+                  GATE_DPL0, GATE_PRESENT, 1);
+    barrier();
+
+    acpi_irq_installed = true;
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsRemoveInterruptHandler(UINT32 InterruptLevel,
+                                         ACPI_OSD_HANDLER Handler) {
+    percpu_t *percpu = get_percpu_page(get_bsp_cpu_id());
+
+    if (!acpi_irq_installed)
+        return AE_NOT_EXIST;
+
+    if (!Handler || InterruptLevel > ARRAY_SIZE(idt) || InterruptLevel != acpi_irq_num)
+        return AE_BAD_PARAMETER;
+
+    if (Handler != _ptr(get_intr_handler(&percpu->idt[acpi_irq_num])))
+        return AE_BAD_PARAMETER;
+
+    set_intr_gate(&percpu->idt[acpi_irq_num], __KERN_CS, _ul(NULL), GATE_DPL0,
+                  GATE_NOT_PRESENT, 0);
+    barrier();
+
+    acpi_irq_installed = false;
+    return AE_OK;
+}
 #endif /* KTF_ACPICA */
