@@ -36,6 +36,11 @@ struct percpu {
 
     unsigned int cpu_id;
     uint32_t apic_id;
+    uint32_t sapic_uid;
+    uint8_t sapic_id;
+    uint8_t sapic_eid;
+    char sapic_uid_str[1];
+
     apic_base_t apic_base;
     bool enabled;
     bool bsp;
