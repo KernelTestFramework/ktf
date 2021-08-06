@@ -39,6 +39,8 @@ typedef struct sem sem_t;
         .v = {(value) }                                                                  \
     }
 
+extern int32_t sem_value(const sem_t *sem);
+
 extern void sem_init(sem_t *sem, uint32_t value);
 extern bool sem_trywait(sem_t *sem);
 extern void sem_wait(sem_t *sem);

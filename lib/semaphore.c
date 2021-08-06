@@ -33,10 +33,12 @@ void sem_init(sem_t *sem, uint32_t value) {
     atomic_set(&(sem->v), value);
 }
 
+int32_t sem_value(const sem_t *sem) { return atomic_read(&sem->v); }
+
 bool sem_trywait(sem_t *sem) {
     int64_t val;
 
-    if (atomic_read(&(sem->v)) > 0) {
+    if (sem_value(sem) > 0) {
         val = atomic_dec_return(&(sem->v));
         if (val >= 0) {
             return true;
