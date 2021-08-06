@@ -29,4 +29,8 @@ typedef uint64_t time_t;
 
 extern void sleep(time_t ms);
 
+/* Static declarations */
+
+static inline void msleep(time_t ms) { sleep(ms); }
+
 #endif
