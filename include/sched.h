@@ -43,6 +43,7 @@ typedef enum task_state task_state_t;
 
 enum task_group {
     TASK_GROUP_UNSPECIFIED = 0,
+    TASK_GROUP_ACPI,
     TASK_GROUP_TEST,
 };
 typedef enum task_group task_group_t;
