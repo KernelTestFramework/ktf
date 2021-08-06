@@ -419,6 +419,28 @@ static inline int strncasecmp(const char *s1, const char *s2, size_t n) {
     return res;
 }
 
+static inline char *strcat(char *s1, const char *s2) {
+    strcpy(&s1[strlen(s1)], s2);
+    return s1;
+}
+
+static inline char *strncat(char *s1, const char *s2, size_t n) {
+    char *dst;
+
+    if (n == 0)
+        return s1;
+
+    dst = &s1[strlen(s1)];
+    while ((*dst++ = *s2++) != '\0') {
+        if (--n == 0) {
+            *dst = '\0';
+            break;
+        }
+    }
+
+    return s1;
+}
+
 /* External declarations */
 
 extern unsigned long strtoul(const char *nptr, char **endptr, int base);

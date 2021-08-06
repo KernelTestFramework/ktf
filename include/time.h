@@ -28,5 +28,10 @@
 typedef uint64_t time_t;
 
 extern void sleep(time_t ms);
+extern time_t get_timer_ticks(void);
+
+/* Static declarations */
+
+static inline void msleep(time_t ms) { sleep(ms); }
 
 #endif
