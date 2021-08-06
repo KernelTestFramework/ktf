@@ -332,12 +332,32 @@ static inline uint8_t inb(io_port_t port) {
     return value;
 }
 
+static inline uint16_t inw(io_port_t port) {
+    uint16_t value;
+
+    asm volatile("inw %1, %0" : "=a"(value) : "Nd"(port));
+
+    return value;
+}
+
+static inline uint32_t ind(io_port_t port) {
+    uint32_t value;
+
+    asm volatile("in %1, %0" : "=a"(value) : "Nd"(port));
+
+    return value;
+}
+
 static inline void outb(io_port_t port, uint8_t value) {
     asm volatile("outb %0, %1" ::"a"(value), "Nd"(port));
 }
 
 static inline void outw(io_port_t port, uint16_t value) {
     asm volatile("outw %0, %1" ::"a"(value), "Nd"(port));
+}
+
+static inline void outd(io_port_t port, uint32_t value) {
+    asm volatile("out %0, %1" ::"a"(value), "Nd"(port));
 }
 
 static inline void putc(io_port_t port, int c) { outb(port, c); }
