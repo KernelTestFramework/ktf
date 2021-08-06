@@ -25,12 +25,29 @@
 #ifndef KTF_ACPI_H
 #define KTF_ACPI_H
 
-#ifndef KTF_ACPICA
 #include <ktf.h>
 #include <lib.h>
 #include <mm/pmm.h>
 #include <processor.h>
 
+#define ACPI_MADT_INT_BUS_ISA 0x00
+
+#define ACPI_MADT_IRQ_TYPE_INT 0
+#define ACPI_MADT_IRQ_TYPE_NMI 1
+
+#define ACPI_MADT_INT_POLARITY_BS   0x00
+#define ACPI_MADT_INT_POLARITY_AH   0x01
+#define ACPI_MADT_INT_POLARITY_RSVD 0x02
+#define ACPI_MADT_INT_POLARITY_AL   0x03
+
+#define ACPI_MADT_INT_TRIGGER_BS   0x00
+#define ACPI_MADT_INT_TRIGGER_ET   0x01
+#define ACPI_MADT_INT_TRIGGER_RSVD 0x02
+#define ACPI_MADT_INT_TRIGGER_LT   0x03
+
+extern unsigned acpi_get_nr_cpus(void);
+
+#ifndef KTF_ACPICA
 #define RSDP_SIGNATURE (('R') | ('S' << 8) | ('D' << 16) | ('P' << 24))
 #define RSDT_SIGNATURE (('R') | ('S' << 8) | ('D' << 16) | ('T' << 24))
 #define XSDT_SIGNATURE (('X') | ('S' << 8) | ('D' << 16) | ('T' << 24))
@@ -212,21 +229,6 @@ struct acpi_madt_iosapic {
 } __packed;
 typedef struct acpi_madt_iosapic acpi_madt_iosapic_t;
 
-#define ACPI_MADT_INT_BUS_ISA 0x00
-
-#define ACPI_MADT_IRQ_TYPE_INT 0
-#define ACPI_MADT_IRQ_TYPE_NMI 1
-
-#define ACPI_MADT_INT_POLARITY_BS   0x00
-#define ACPI_MADT_INT_POLARITY_AH   0x01
-#define ACPI_MADT_INT_POLARITY_RSVD 0x02
-#define ACPI_MADT_INT_POLARITY_AL   0x03
-
-#define ACPI_MADT_INT_TRIGGER_BS   0x00
-#define ACPI_MADT_INT_TRIGGER_ET   0x01
-#define ACPI_MADT_INT_TRIGGER_RSVD 0x02
-#define ACPI_MADT_INT_TRIGGER_LT   0x03
-
 struct acpi_madt_irq_src {
     uint8_t bus; /* Constant 0x0, ISA */
     uint8_t irq_src;
@@ -265,24 +267,23 @@ typedef struct acpi_madt acpi_madt_t;
 /* External Declarations */
 
 extern acpi_table_t *acpi_find_table(uint32_t signature);
-
-extern unsigned acpi_get_nr_cpus(void);
 extern int init_acpi(unsigned bsp_cpu_id);
 
 #else /* KTF_ACPICA */
-
-#include <ktf.h>
-#include <lib.h>
-#include <mm/pmm.h>
-#include <processor.h>
 
 #include "acpi.h"
 
 typedef void (*acpi_subtable_parser_t)(ACPI_SUBTABLE_HEADER *entry, void *arg);
 
-/* External Declarations */
+union inti_flags {
+    struct {
+        uint16_t polarity : 2, trigger_mode : 2, rsvd : 12;
+    } __packed;
+    uint16_t flags;
+};
+typedef union inti_flags inti_flags_t;
 
-extern unsigned acpi_get_nr_cpus(void);
+/* External Declarations */
 
 extern void *acpi_find_table(char *signature);
 extern void acpi_walk_subtables(ACPI_SUBTABLE_HEADER *entry, uint32_t length,

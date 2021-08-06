@@ -22,25 +22,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef KTF_ACPICA
 #include <acpi_ktf.h>
-#include <errno.h>
 #include <ioapic.h>
-#include <ktf.h>
-#include <lib.h>
-#include <mm/pmm.h>
-#include <page.h>
-#include <pagetable.h>
 #include <percpu.h>
 #include <setup.h>
 #include <string.h>
 
-acpi_table_t *acpi_tables[128];
-unsigned max_acpi_tables;
+static const char *madt_int_bus_names[] = {
+    [ACPI_MADT_INT_BUS_ISA] = "ISA",
+};
+
+static const char *madt_int_polarity_names[] = {
+    [ACPI_MADT_INT_POLARITY_BS] = "Bus Spec",
+    [ACPI_MADT_INT_POLARITY_AH] = "Active High",
+    [ACPI_MADT_INT_POLARITY_RSVD] = "Reserved",
+    [ACPI_MADT_INT_POLARITY_AL] = "Active Low",
+};
+
+static const char *madt_int_trigger_names[] = {
+    [ACPI_MADT_INT_TRIGGER_BS] = "Bus Spec",
+    [ACPI_MADT_INT_TRIGGER_ET] = "Edge",
+    [ACPI_MADT_INT_TRIGGER_RSVD] = "Reserved",
+    [ACPI_MADT_INT_TRIGGER_LT] = "Level",
+};
 
 static unsigned nr_cpus;
 
 unsigned acpi_get_nr_cpus(void) { return nr_cpus; }
+
+#ifndef KTF_ACPICA
+#include <errno.h>
+#include <page.h>
+#include <pagetable.h>
+#include <string.h>
+
+acpi_table_t *acpi_tables[128];
+unsigned max_acpi_tables;
 
 /* Calculate number of entries in the ACPI table.
  * Formula: (table_length - header_length) / entry_size
@@ -201,24 +218,6 @@ static inline void acpi_dump_tables(void) {
     for (unsigned int i = 0; i < max_acpi_tables; i++)
         acpi_dump_table(acpi_tables[i], &acpi_tables[i]->header);
 }
-
-static const char *madt_int_bus_names[] = {
-    [ACPI_MADT_INT_BUS_ISA] = "ISA",
-};
-
-static const char *madt_int_polarity_names[] = {
-    [ACPI_MADT_INT_POLARITY_BS] = "Bus Spec",
-    [ACPI_MADT_INT_POLARITY_AH] = "Active High",
-    [ACPI_MADT_INT_POLARITY_RSVD] = "Reserved",
-    [ACPI_MADT_INT_POLARITY_AL] = "Active Low",
-};
-
-static const char *madt_int_trigger_names[] = {
-    [ACPI_MADT_INT_TRIGGER_BS] = "Bus Spec",
-    [ACPI_MADT_INT_TRIGGER_ET] = "Edge",
-    [ACPI_MADT_INT_TRIGGER_RSVD] = "Reserved",
-    [ACPI_MADT_INT_TRIGGER_LT] = "Level",
-};
 
 static int process_fadt(void) {
     acpi_fadt_rev1_t *fadt = (acpi_fadt_rev1_t *) acpi_find_table(FADT_SIGNATURE);
@@ -441,14 +440,7 @@ int init_acpi(unsigned bsp_cpu_id) {
     return process_madt_entries(bsp_cpu_id);
 }
 #else /* KTF_ACPICA */
-#include <acpi_ktf.h>
-#include <ioapic.h>
-#include <ktf.h>
-#include <percpu.h>
-
 #include "acpi.h"
-
-static unsigned nr_cpus;
 
 /* ACPI initialization and termination functions */
 
@@ -484,7 +476,231 @@ static ACPI_STATUS InitializeFullAcpi(void) {
     return AE_OK;
 }
 
-unsigned acpi_get_nr_cpus(void) { return nr_cpus; }
+static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
+    bus_t *isa_bus =
+        add_system_bus(ACPI_MADT_INT_BUS_ISA, madt_int_bus_names[ACPI_MADT_INT_BUS_ISA],
+                       strlen(madt_int_bus_names[ACPI_MADT_INT_BUS_ISA]));
+
+    BUG_ON(!isa_bus);
+
+    switch (entry->Type) {
+    case ACPI_MADT_TYPE_LOCAL_APIC: {
+        ACPI_MADT_LOCAL_APIC *lapic = (ACPI_MADT_LOCAL_APIC *) entry;
+        uint32_t bsp_cpu_id = (uint32_t) _ul(arg);
+        percpu_t *percpu;
+        bool enabled;
+
+        /* Some systems report all CPUs, marked as disabled */
+        enabled = !!(lapic->LapicFlags & 0x1);
+        if (!enabled)
+            break;
+
+        percpu = get_percpu_page(lapic->ProcessorId);
+        percpu->cpu_id = lapic->ProcessorId;
+        percpu->apic_id = lapic->Id;
+        percpu->bsp = !!(lapic->ProcessorId == bsp_cpu_id);
+        percpu->enabled = enabled;
+
+        nr_cpus++;
+        printk("ACPI: [MADT] APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n",
+               percpu->cpu_id, percpu->apic_id, lapic->LapicFlags);
+        break;
+    }
+    case ACPI_MADT_TYPE_IO_APIC: {
+        ACPI_MADT_IO_APIC *ioapic = (ACPI_MADT_IO_APIC *) entry;
+
+        add_ioapic(ioapic->Id, 0x00, true, ioapic->Address, ioapic->GlobalIrqBase);
+
+        printk("ACPI: [MADT] IOAPIC ID: %u, Base Address: 0x%08x, GSI Base: 0x%08x\n",
+               ioapic->Id, ioapic->Address, ioapic->GlobalIrqBase);
+
+        break;
+    }
+    case ACPI_MADT_TYPE_INTERRUPT_OVERRIDE: {
+        ACPI_MADT_INTERRUPT_OVERRIDE *irq_src = (ACPI_MADT_INTERRUPT_OVERRIDE *) entry;
+        irq_override_t override;
+
+        memset(&override, 0, sizeof(override));
+        override.type = ACPI_MADT_IRQ_TYPE_INT;
+        override.src = irq_src->SourceIrq;
+        override.dst = irq_src->GlobalIrq;
+        /* Destination to be found. Each IOAPIC has GSI base and Max Redir Entry
+         * register */
+        override.dst_id = IOAPIC_DEST_ID_UNKNOWN;
+
+        inti_flags_t flags = (inti_flags_t) irq_src->IntiFlags;
+        override.polarity = flags.polarity;
+        override.trigger_mode = flags.trigger_mode;
+        add_system_bus_irq_override(irq_src->Bus, &override);
+
+        printk("ACPI: [MADT] IRQ Src Override: Bus: %3s, IRQ: 0x%02x, GSI: 0x%08x, "
+               "Polarity: %11s, Trigger: %9s\n",
+               madt_int_bus_names[irq_src->Bus], irq_src->SourceIrq, irq_src->GlobalIrq,
+               madt_int_polarity_names[flags.polarity],
+               madt_int_trigger_names[flags.trigger_mode]);
+        break;
+    }
+    case ACPI_MADT_TYPE_NMI_SOURCE: {
+        ACPI_MADT_NMI_SOURCE *nmi_src = (ACPI_MADT_NMI_SOURCE *) entry;
+        irq_override_t override;
+
+        memset(&override, 0, sizeof(override));
+        override.type = ACPI_MADT_IRQ_TYPE_NMI;
+        override.src = nmi_src->GlobalIrq;
+
+        inti_flags_t flags = (inti_flags_t) nmi_src->IntiFlags;
+        override.polarity = flags.polarity;
+        override.trigger_mode = flags.trigger_mode;
+        add_system_bus_irq_override(ACPI_MADT_INT_BUS_ISA, &override);
+
+        printk("ACPI: [MADT] NMI Src: GSI: 0x%08x, Polarity: %11s, Trigger: %9s\n",
+               nmi_src->GlobalIrq, madt_int_polarity_names[flags.polarity],
+               madt_int_trigger_names[flags.trigger_mode]);
+        break;
+    }
+    case ACPI_MADT_TYPE_LOCAL_APIC_NMI: {
+        ACPI_MADT_LOCAL_APIC_NMI *lapic_nmi = (ACPI_MADT_LOCAL_APIC_NMI *) entry;
+        irq_override_t override;
+
+        memset(&override, 0, sizeof(override));
+        override.type = ACPI_MADT_IRQ_TYPE_NMI;
+        override.dst_id = lapic_nmi->ProcessorId;
+        override.dst = lapic_nmi->Lint;
+
+        inti_flags_t flags = (inti_flags_t) lapic_nmi->IntiFlags;
+        override.polarity = flags.polarity;
+        override.trigger_mode = flags.trigger_mode;
+        add_system_bus_irq_override(ACPI_MADT_INT_BUS_ISA, &override);
+
+        printk("ACPI: [MADT] Local APIC NMI LINT#: CPU UID: %02x, Polarity: %11s, "
+               "Trigger: %9s, LINT#: 0x%02x\n",
+               lapic_nmi->ProcessorId, madt_int_polarity_names[flags.polarity],
+               madt_int_trigger_names[flags.trigger_mode], lapic_nmi->Lint);
+        break;
+    }
+    case ACPI_MADT_TYPE_LOCAL_APIC_OVERRIDE: {
+        ACPI_MADT_LOCAL_APIC_OVERRIDE *lapic_addr =
+            (ACPI_MADT_LOCAL_APIC_OVERRIDE *) entry;
+
+        /* FIXME: set for each Per-CPU apic_base */
+        printk("ACPI: [MADT] Local APIC Address: 0x%016lx\n", lapic_addr->Address);
+        break;
+    }
+    case ACPI_MADT_TYPE_IO_SAPIC: {
+        ACPI_MADT_IO_SAPIC *iosapic = (ACPI_MADT_IO_SAPIC *) entry;
+
+        add_ioapic(iosapic->Id, 0x00, true, iosapic->Address, iosapic->GlobalIrqBase);
+
+        printk("ACPI: [MADT] IOSAPIC ID: %u, Base Address: %p, GSI Base: 0x%08x\n",
+               iosapic->Id, _ptr(iosapic->Address), iosapic->GlobalIrqBase);
+        break;
+    }
+    case ACPI_MADT_TYPE_LOCAL_SAPIC: {
+        ACPI_MADT_LOCAL_SAPIC *slapic = (ACPI_MADT_LOCAL_SAPIC *) entry;
+        percpu_t *percpu = get_percpu_page(slapic->ProcessorId);
+        uint32_t bsp_cpu_id = (uint32_t) _ul(arg);
+
+        percpu->cpu_id = slapic->ProcessorId;
+        percpu->sapic_id = slapic->Id;
+        percpu->sapic_eid = slapic->Eid;
+
+        percpu->sapic_uid = slapic->Uid;
+        percpu->sapic_uid_str[0] = slapic->UidString[0];
+
+        percpu->bsp = !!(slapic->ProcessorId == bsp_cpu_id);
+        percpu->enabled = !!(slapic->LapicFlags & 0x1);
+
+        if (percpu->enabled) {
+            nr_cpus++;
+            printk("ACPI: [MADT] SAPIC Processor ID: %u, SAPIC ID: %u, SAPIC EID: %u, "
+                   "SAPIC UID: %u, SAPIC UID Str: %c Flags: %08x\n",
+                   percpu->cpu_id, slapic->Id, slapic->Eid, slapic->Uid,
+                   slapic->UidString[0], slapic->LapicFlags);
+        }
+        break;
+    }
+    case ACPI_MADT_TYPE_INTERRUPT_SOURCE: {
+        /* TODO: to be implemented */
+        break;
+    }
+    case ACPI_MADT_TYPE_LOCAL_X2APIC: {
+        ACPI_MADT_LOCAL_X2APIC *x2lapic = (ACPI_MADT_LOCAL_X2APIC *) entry;
+        percpu_t *percpu = get_percpu_page(x2lapic->Uid);
+        uint32_t bsp_cpu_id = (uint32_t) _ul(arg);
+
+        percpu->cpu_id = x2lapic->Uid;
+        percpu->apic_id = x2lapic->LocalApicId;
+        percpu->bsp = !!(x2lapic->Uid == bsp_cpu_id);
+        percpu->enabled = !!(x2lapic->LapicFlags & 0x1);
+
+        if (percpu->enabled) {
+            nr_cpus++;
+            printk("ACPI: [MADT] X2APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n",
+                   percpu->cpu_id, percpu->apic_id, x2lapic->LapicFlags);
+        }
+        break;
+    }
+    case ACPI_MADT_TYPE_LOCAL_X2APIC_NMI: {
+        ACPI_MADT_LOCAL_X2APIC_NMI *x2lapic_nmi = (ACPI_MADT_LOCAL_X2APIC_NMI *) entry;
+        irq_override_t override;
+
+        memset(&override, 0, sizeof(override));
+        override.type = ACPI_MADT_IRQ_TYPE_NMI;
+        override.dst_id = x2lapic_nmi->Uid;
+        override.dst = x2lapic_nmi->Lint;
+
+        inti_flags_t flags = (inti_flags_t) x2lapic_nmi->IntiFlags;
+        override.polarity = flags.polarity;
+        override.trigger_mode = flags.trigger_mode;
+        add_system_bus_irq_override(ACPI_MADT_INT_BUS_ISA, &override);
+
+        printk("ACPI: [MADT] Local X2APIC NMI LINT#: CPU UID: %02x, Polarity: %11s, "
+               "Trigger: %9s, LINT#: 0x%02x\n",
+               x2lapic_nmi->Uid, madt_int_polarity_names[flags.polarity],
+               madt_int_trigger_names[flags.trigger_mode], x2lapic_nmi->Lint);
+        break;
+    }
+    case ACPI_MADT_TYPE_GENERIC_INTERRUPT: {
+        /* TODO: to be implemented */
+        break;
+    }
+    case ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR: {
+        /* TODO: to be implemented */
+        break;
+    }
+    case ACPI_MADT_TYPE_GENERIC_MSI_FRAME: {
+        /* TODO: to be implemented */
+        break;
+    }
+    case ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR: {
+        /* TODO: to be implemented */
+        break;
+    }
+    case ACPI_MADT_TYPE_GENERIC_TRANSLATOR: {
+        /* TODO: to be implemented */
+        break;
+    }
+    case ACPI_MADT_TYPE_MULTIPROC_WAKEUP: {
+        /* TODO: to be implemented */
+        break;
+    }
+    default:
+        panic("ACPI [MADT]: Unsupported subtable entry type: %x\n", entry->Type);
+        break;
+    }
+}
+
+static ACPI_STATUS init_madt(unsigned bsp_cpu_id) {
+    ACPI_TABLE_MADT *madt = acpi_find_table(ACPI_SIG_MADT);
+    ACPI_SUBTABLE_HEADER *subtbl = (void *) madt + sizeof(*madt);
+    uint32_t length = madt->Header.Length - sizeof(*madt);
+
+    if (!madt || !subtbl)
+        return AE_ERROR;
+
+    acpi_walk_subtables(subtbl, length, madt_parser, (void *) _ul(bsp_cpu_id));
+    return AE_OK;
+}
 
 void *acpi_find_table(char *signature) {
     ACPI_TABLE_HEADER *hdr;
@@ -509,6 +725,10 @@ ACPI_STATUS init_acpi(unsigned bsp_cpu_id) {
     printk("Initializing ACPI support\n");
 
     status = InitializeFullAcpi();
+    if (status != AE_OK)
+        return status;
+
+    status = init_madt(bsp_cpu_id);
     return status;
 }
 
