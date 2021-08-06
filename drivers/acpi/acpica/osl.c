@@ -25,6 +25,7 @@
 #ifdef KTF_ACPICA
 #include <ktf.h>
 #include <mm/slab.h>
+#include <pci_cfg.h>
 #include <percpu.h>
 #include <sched.h>
 #include <semaphore.h>
@@ -367,6 +368,62 @@ UINT64 AcpiOsGetTimer(void) { return get_timer_ticks(); }
 
 /* FIXME: Use microseconds granularity */
 void AcpiOsStall(UINT32 Microseconds) { msleep(1); }
+
+/* PCI Configuration read/write functions */
+
+ACPI_STATUS AcpiOsReadPciConfiguration(ACPI_PCI_ID *PciId, UINT32 Register, UINT64 *Value,
+                                       UINT32 Width) {
+    UINT64 value = 0;
+
+    if (!PciId || !Value)
+        return AE_BAD_PARAMETER;
+
+    switch (Width) {
+    case 8:
+        value = pci_cfg_read8(PciId->Bus, PciId->Device, PciId->Function, Register);
+        break;
+    case 16:
+        value = pci_cfg_read16(PciId->Bus, PciId->Device, PciId->Function, Register);
+        break;
+    case 32:
+    /* FIXME: Add 64-bit handling */
+    case 64:
+        value = pci_cfg_read(PciId->Bus, PciId->Device, PciId->Function, Register);
+        break;
+    default:
+        return AE_BAD_PARAMETER;
+    }
+
+    *Value = value;
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsWritePciConfiguration(ACPI_PCI_ID *PciId, UINT32 Register, UINT64 Value,
+                                        UINT32 Width) {
+    if (!PciId)
+        return AE_BAD_PARAMETER;
+
+    switch (Width) {
+    case 8:
+        pci_cfg_write8(PciId->Bus, PciId->Device, PciId->Function, Register,
+                       (uint8_t) Value);
+        break;
+    case 16:
+        pci_cfg_write16(PciId->Bus, PciId->Device, PciId->Function, Register,
+                        (uint16_t) Value);
+        break;
+    case 32:
+    /* FIXME: Add 64-bit handling */
+    case 64:
+        pci_cfg_write(PciId->Bus, PciId->Device, PciId->Function, Register,
+                      (uint32_t) Value);
+        break;
+    default:
+        return AE_BAD_PARAMETER;
+    }
+
+    return AE_OK;
+}
 
 /* ACPI interrupt handling functions */
 
