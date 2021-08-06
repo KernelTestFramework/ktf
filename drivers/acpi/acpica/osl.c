@@ -25,6 +25,10 @@
 #ifdef KTF_ACPICA
 #include <ktf.h>
 #include <mm/slab.h>
+#include <sched.h>
+#include <semaphore.h>
+#include <smp/smp.h>
+#include <spinlock.h>
 #include <time.h>
 
 #include "acpi.h"
@@ -231,6 +235,125 @@ void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
 
     for (unsigned i = 0; i < num_pages; i++, mfn++)
         kunmap(mfn_to_virt_kern(mfn), PAGE_ORDER_4K);
+}
+
+/* Task management functions */
+
+ACPI_THREAD_ID AcpiOsGetThreadId(void) {
+    /* This should return non-zero task ID.
+     * Currently assume task ID equals to CPU ID.
+     */
+    return smp_processor_id() + 1;
+}
+
+ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Function,
+                          void *Context) {
+    static unsigned counter = 0;
+    unsigned cpu = smp_processor_id();
+    char name[40];
+    task_t *task;
+
+    snprintf(name, sizeof(name), "acpi_%u_%u_%u", Type, counter++, cpu);
+
+    task = new_task(name, (task_func_t) Function, Context);
+    if (!task)
+        return AE_NO_MEMORY;
+
+    set_task_group(task, TASK_GROUP_ACPI);
+    schedule_task(task, cpu);
+
+    return AE_OK;
+}
+
+void AcpiOsWaitEventsComplete(void) { wait_for_task_group(TASK_GROUP_ACPI); }
+
+/* Synchronization and locking functions */
+
+ACPI_STATUS AcpiOsCreateLock(ACPI_SPINLOCK *OutHandle) {
+    spinlock_t *lock;
+
+    if (!OutHandle)
+        return AE_BAD_PARAMETER;
+
+    lock = kmalloc(sizeof(*lock));
+    if (!lock)
+        return AE_NO_MEMORY;
+
+    *lock = SPINLOCK_INIT;
+    *OutHandle = lock;
+
+    return AE_OK;
+}
+
+void AcpiOsDeleteLock(ACPI_SPINLOCK Handle) {
+    spinlock_t *lock = Handle;
+
+    kfree((void *) lock);
+}
+
+ACPI_CPU_FLAGS AcpiOsAcquireLock(ACPI_SPINLOCK Handle) {
+    /* FIXME: CPU flags are currently not implemented */
+    ACPI_CPU_FLAGS flags = 0;
+
+    spin_lock(Handle);
+    return flags;
+}
+
+void AcpiOsReleaseLock(ACPI_SPINLOCK Handle, ACPI_CPU_FLAGS Flags) {
+    /* FIXME: CPU flags are currently not implemented */
+    spin_unlock(Handle);
+}
+
+ACPI_STATUS AcpiOsCreateSemaphore(UINT32 MaxUnits, UINT32 InitialUnits,
+                                  ACPI_SEMAPHORE *OutHandle) {
+    sem_t *sem;
+
+    if (!OutHandle)
+        return AE_BAD_PARAMETER;
+
+    sem = kmalloc(sizeof(*sem));
+    if (!sem)
+        return AE_NO_MEMORY;
+
+    sem_init(sem, InitialUnits);
+    *OutHandle = sem;
+
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsDeleteSemaphore(ACPI_SEMAPHORE Handle) {
+    sem_t *sem = Handle;
+
+    if (!sem)
+        return AE_BAD_PARAMETER;
+
+    kfree((void *) sem);
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsWaitSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units, UINT16 Timeout) {
+    if (!Handle)
+        return AE_BAD_PARAMETER;
+
+    if (Timeout == ACPI_DO_NOT_WAIT) {
+        uint32_t val = sem_value(Handle);
+
+        if (val < Units)
+            return AE_TIME;
+    }
+
+    sem_wait_units(Handle, Units);
+
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsSignalSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units) {
+    if (!Handle)
+        return AE_BAD_PARAMETER;
+
+    sem_post_units(Handle, Units);
+
+    return AE_OK;
 }
 
 /* Time management functions */
