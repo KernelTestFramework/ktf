@@ -51,10 +51,34 @@ bool sem_trywait(sem_t *sem) {
     return false;
 }
 
+bool sem_trywait_units(sem_t *sem, int32_t units) {
+    int64_t val;
+
+    if (sem_value(sem) >= units) {
+        val = atomic_sub_return(&(sem->v), units);
+        if (val >= 0) {
+            return true;
+        }
+        else {
+            atomic_add_return(&(sem->v), units);
+        }
+    }
+
+    return false;
+}
+
 void sem_wait(sem_t *sem) {
     while (!sem_trywait(sem)) {
         cpu_relax();
     }
 }
 
+void sem_wait_units(sem_t *sem, int32_t units) {
+    while (!sem_trywait_units(sem, units)) {
+        cpu_relax();
+    }
+}
+
 void sem_post(sem_t *sem) { atomic_inc(&(sem->v)); }
+
+void sem_post_units(sem_t *sem, int32_t units) { atomic_add_return(&(sem->v), units); }
