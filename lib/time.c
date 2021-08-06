@@ -38,3 +38,5 @@ void sleep(time_t ms) {
         cpu_relax();
     }
 }
+
+time_t get_timer_ticks(void) { return ticks; }
