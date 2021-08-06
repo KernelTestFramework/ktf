@@ -182,6 +182,10 @@ static inline void set_gate32_offset(struct x86_gate32 *gate, unsigned long offs
     gate->offset_hi = ((offset & _ul(0xffff0000)) >> 16);
 }
 
+static inline uint32_t get_gate32_offset(const struct x86_gate32 *gate) {
+    return (gate->offset_hi << 16) | gate->offset_lo;
+}
+
 static inline void set_gate32(struct x86_gate32 *gate, uint8_t type, uint16_t selector,
                               unsigned long offset, uint8_t dpl, bool present) {
     set_gate32_offset(gate, offset);
@@ -216,6 +220,10 @@ static inline void set_gate64_offset(struct x86_gate64 *gate, unsigned long offs
     gate->offset_lo = (offset & _ul(0x000000000000ffff));
     gate->offset_mi = ((offset & _ul(0x00000000ffff0000)) >> 16);
     gate->offset_hi = ((offset & _ul(0xffffffff00000000)) >> 32);
+}
+
+static inline uint64_t get_gate64_offset(const struct x86_gate64 *gate) {
+    return ((uint64_t) gate->offset_hi << 32) | (gate->offset_mi << 16) | gate->offset_lo;
 }
 
 static inline void set_gate64(struct x86_gate64 *gate, uint8_t type, uint16_t selector,
@@ -287,6 +295,9 @@ static inline void set_intr_gate(struct x86_gate32 *gate, uint16_t selector,
     set_gate32(gate, GATE_TYPE_INTR, selector, offset, dpl, present);
 }
 
+static inline uint32_t get_intr_handler(const struct x86_gate32 *gate) {
+    return get_gate32_offset(gate);
+}
 #else
 
 typedef struct x86_gate64 task_gate_t;
@@ -303,6 +314,10 @@ static inline void set_intr_gate(struct x86_gate64 *gate, uint16_t selector,
                                  unsigned long offset, uint8_t dpl, bool present,
                                  uint8_t ist) {
     set_gate64(gate, GATE_TYPE_INTR, selector, offset, dpl, present, ist);
+}
+
+static inline uint64_t get_intr_handler(const struct x86_gate64 *gate) {
+    return get_gate64_offset(gate);
 }
 #endif
 
