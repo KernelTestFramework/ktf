@@ -37,9 +37,15 @@ typedef struct sem sem_t;
 #define SEM_INIT(value)                                                                  \
     { .v = {(value)}, }
 
+extern int32_t sem_value(const sem_t *sem);
+
 extern void sem_init(sem_t *sem, uint32_t value);
 extern bool sem_trywait(sem_t *sem);
 extern void sem_wait(sem_t *sem);
 extern void sem_post(sem_t *sem);
 
-#endif
+extern bool sem_trywait_units(sem_t *sem, int32_t units);
+extern void sem_wait_units(sem_t *sem, int32_t units);
+extern void sem_post_units(sem_t *sem, int32_t units);
+
+#endif /* KTF_SEMAPHORE_H */
