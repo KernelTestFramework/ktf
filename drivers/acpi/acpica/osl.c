@@ -25,6 +25,7 @@
 #ifdef KTF_ACPICA
 #include <ktf.h>
 #include <mm/slab.h>
+#include <time.h>
 
 #include "acpi.h"
 
@@ -154,6 +155,45 @@ ACPI_STATUS AcpiOsWritePort(ACPI_IO_ADDRESS Address, UINT32 Value, UINT32 Width)
     return AE_OK;
 }
 
+/* General Table handling functions */
+
+ACPI_PHYSICAL_ADDRESS AcpiOsGetRootPointer(void) {
+    ACPI_PHYSICAL_ADDRESS pa = 0;
+
+    AcpiFindRootPointer(&pa);
+    return pa;
+}
+
+ACPI_STATUS AcpiOsPredefinedOverride(const ACPI_PREDEFINED_NAMES *PredefinedObject,
+                                     ACPI_STRING *NewValue) {
+    if (!NewValue)
+        return AE_BAD_PARAMETER;
+
+    *NewValue = NULL;
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsTableOverride(ACPI_TABLE_HEADER *ExistingTable,
+                                ACPI_TABLE_HEADER **NewTable) {
+    if (!NewTable)
+        return AE_BAD_PARAMETER;
+
+    *NewTable = NULL;
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsPhysicalTableOverride(ACPI_TABLE_HEADER *ExistingTable,
+                                        ACPI_PHYSICAL_ADDRESS *NewAddress,
+                                        UINT32 *NewTableLength) {
+    if (!NewAddress || !NewTableLength)
+        return AE_BAD_PARAMETER;
+
+    *NewAddress = _paddr(NULL);
+    *NewTableLength = 0;
+
+    return AE_OK;
+}
+
 /* Memory management functions */
 
 void *AcpiOsAllocate(ACPI_SIZE Size) { return kmalloc(Size); }
@@ -192,4 +232,14 @@ void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
     for (unsigned i = 0; i < num_pages; i++, mfn++)
         kunmap(mfn_to_virt_kern(mfn), PAGE_ORDER_4K);
 }
+
+/* Time management functions */
+
+void AcpiOsSleep(UINT64 Miliseconds) { msleep(Miliseconds); }
+
+/* FIXME: Return in correct 100ns units */
+UINT64 AcpiOsGetTimer(void) { return get_timer_ticks(); }
+
+/* FIXME: Use microseconds granularity */
+void AcpiOsStall(UINT32 Microseconds) { msleep(1); }
 #endif /* KTF_ACPICA */
