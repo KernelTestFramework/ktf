@@ -1,6 +1,9 @@
 KTF_ROOT := $(abspath $(CURDIR))
 export KTF_ROOT
 
+CONFIG := $(KTF_ROOT)/.config
+include $(CONFIG)
+
 THIRD_PARTY := third-party
 PATCH := patch
 TOOLS_DIR := tools
