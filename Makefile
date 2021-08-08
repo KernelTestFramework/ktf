@@ -55,6 +55,9 @@ LD := ld
 NM := nm
 PYTHON := python
 SHELL := bash
+RM := rm
+LN := ln
+SYMLINK := $(LN) -s -f
 
 GRUB_FILE := grub-file
 GRUB_MKIMAGE := grub-mkimage
