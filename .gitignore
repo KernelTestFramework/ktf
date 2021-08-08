@@ -7,3 +7,4 @@ cscope.*
 *.img
 Makeconf.local
 .DS_Store
+drivers/acpi/acpica/source/

@@ -25,6 +25,7 @@
 #ifndef KTF_ACPI_H
 #define KTF_ACPI_H
 
+#ifndef KTF_ACPICA
 #include <ktf.h>
 #include <lib.h>
 #include <mm/pmm.h>
@@ -268,4 +269,26 @@ extern acpi_table_t *acpi_find_table(uint32_t signature);
 extern unsigned acpi_get_nr_cpus(void);
 extern int init_acpi(unsigned bsp_cpu_id);
 
+#else /* KTF_ACPICA */
+
+#include <ktf.h>
+#include <lib.h>
+#include <mm/pmm.h>
+#include <processor.h>
+
+#include "acpi.h"
+
+typedef void (*acpi_subtable_parser_t)(ACPI_SUBTABLE_HEADER *entry, void *arg);
+
+/* External Declarations */
+
+extern unsigned acpi_get_nr_cpus(void);
+
+extern void *acpi_find_table(char *signature);
+extern void acpi_walk_subtables(ACPI_SUBTABLE_HEADER *entry, uint32_t length,
+                                acpi_subtable_parser_t parser, void *arg);
+
+extern ACPI_STATUS init_acpi(unsigned bsp_cpu_id);
+
+#endif /* KTF_ACPICA */
 #endif /* KTF_ACPI_H */

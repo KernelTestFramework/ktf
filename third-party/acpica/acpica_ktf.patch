@@ -1,0 +1,13 @@
+--- drivers/acpi/acpica/source/include/platform/acenv.h	2021-07-30 17:20:33.000000000 +0200
+@@ -305,7 +305,10 @@
+ 
+ #endif
+ 
+-#if defined(_LINUX) || defined(__linux__)
++#if defined(__KTF__)
++#include "acktf.h"
++
++#elif defined(_LINUX) || defined(__linux__)
+ #include "aclinux.h"
+ 
+ #elif defined(_APPLE) || defined(__APPLE__)

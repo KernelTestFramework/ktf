@@ -28,7 +28,7 @@ PFMLIB_INCLUDE :=
 ifeq ($(CONFIG_LIBPFM),y)
 KTF_PFMLIB_COMPILE := 1
 export KTF_PFMLIB_COMPILE
-TAR_CMD := tar --exclude=.git --exclude=.gitignore --strip-components=1 -xvf
+TAR_CMD_PFMLIB := tar --exclude=.git --exclude=.gitignore --strip-components=1 -xvf
 PFMLIB_VER := 4.10.1
 PFMLIB_NAME := libpfm
 PFMLIB_DIR := $(KTF_ROOT)/$(THIRD_PARTY)/$(PFMLIB_NAME)
@@ -45,6 +45,27 @@ PFMLIB_UNTAR_FILES += $(PFMLIB_NAME)-$(PFMLIB_VER)/COPYING
 PFMLIB_PATCH_FILE := $(PFMLIB_TOOLS_DIR)/libpfm_diff.patch
 PFMLIB_LINKER_FLAGS += -L$(PFMLIB_DIR) -lpfm
 PFMLIB_INCLUDE += $(PFMLIB_DIR)/include
+endif
+
+ACPICA_DEST_DIR := $(KTF_ROOT)/drivers/acpi/acpica
+ifeq ($(CONFIG_ACPICA),y)
+TAR_CMD_ACPICA := tar --exclude=.git --exclude=.gitignore --strip-components=1 -C $(ACPICA_DEST_DIR) -xf
+ACPICA_VER := unix-20210730
+ACPICA_NAME := acpica
+ACPICA_DIR := $(KTF_ROOT)/$(THIRD_PARTY)/$(ACPICA_NAME)
+ACPICA_TARBALL := $(ACPICA_DIR)/$(ACPICA_NAME)-$(ACPICA_VER).tar.gz
+ACPICA_PATCH := $(ACPICA_DIR)/acpica_ktf.patch
+ACPICA_UNTAR_DIRS := $(ACPICA_NAME)-$(ACPICA_VER)/source/components/dispatcher
+ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/events
+ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/executer
+ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/hardware
+ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/namespace
+ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/parser
+ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/resources
+ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/tables
+ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/utilities
+ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/include
+ACPICA_INCLUDE := $(ACPICA_DEST_DIR)/source/include
 endif
 
 ifeq ($(CC),cc) # overwrite on default, otherwise use whatever is in the CC env variable
@@ -75,11 +96,18 @@ COMMON_INCLUDES := -I$(KTF_ROOT)/include -I$(KTF_ROOT)/include/arch/x86
 ifeq ($(CONFIG_LIBPFM),y)
 COMMON_INCLUDES += -I$(PFMLIB_INCLUDE)
 endif
+ifeq ($(CONFIG_ACPICA),y)
+COMMON_INCLUDES += -I$(ACPICA_INCLUDE)
+endif
 
-COMMON_FLAGS := $(COMMON_INCLUDES) -pipe -MP -MMD -m64 -D__x86_64__ -DEARLY_VIRT_MEM=$(CONFIG_EARLY_VIRT_MEM)
+COMMON_FLAGS := $(COMMON_INCLUDES) -pipe -MP -MMD -m64 -D__x86_64__ -D__KTF__ -DEARLY_VIRT_MEM=$(CONFIG_EARLY_VIRT_MEM)
 
 ifeq ($(CONFIG_LIBPFM),y)
 COMMON_FLAGS += -DKTF_PMU
+endif
+
+ifeq ($(CONFIG_ACPICA),y)
+COMMON_FLAGS += -DKTF_ACPICA
 endif
 
 AFLAGS  := $(COMMON_FLAGS) -D__ASSEMBLY__ -nostdlib -nostdinc
@@ -95,6 +123,13 @@ VERBOSE=@
 endif
 
 -include Makeconf.local
+
+ifeq ($(CONFIG_ACPICA),y)
+ACPICA_INSTALL := $(shell [ -d $(ACPICA_DEST_DIR)/source ] ||                         \
+                          $(TAR_CMD_ACPICA) $(ACPICA_TARBALL) $(ACPICA_UNTAR_DIRS) && \
+                          $(PATCH) -p0 < $(ACPICA_PATCH) &&                           \
+                          $(SYMLINK) $(ACPICA_DEST_DIR)/acktf.h $(ACPICA_DEST_DIR)/source/include/platform/acktf.h)
+endif
 
 SOURCES     := $(shell find . -name \*.c)
 HEADERS     := $(shell find . -name \*.h)
@@ -139,7 +174,7 @@ $(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
 	@echo "UNTAR pfmlib"
 	# untar tarball and apply the patch
 	cd $(PFMLIB_DIR) &&\
-	$(TAR_CMD) $(PFMLIB_TARBALL) $(PFMLIB_UNTAR_FILES) -C ./ &&\
+	$(TAR_CMD_PFMLIB) $(PFMLIB_TARBALL) $(PFMLIB_UNTAR_FILES) -C ./ &&\
 	$(PATCH) -p1 < $(PFMLIB_PATCH_FILE) &&\
 	cd -
 	# invoke libpfm build
@@ -171,6 +206,7 @@ ifeq ($(CONFIG_LIBPFM),y)
 	$(MAKE) -C $(PFMLIB_DIR) cleanlib
 	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
 endif
+	$(VERBOSE) $(RM) -rf $(ACPICA_DEST_DIR)/source
 
 # Check whether we can use kvm for qemu
 ifeq ($(SYSTEM),LINUX)
@@ -265,7 +301,7 @@ dockerimage:
 .PHONY: docker%
 docker%: dockerimage
 	@echo "running target '$(strip $(subst :,, $*))' in docker"
-	$(VERBOSE) docker run -t $(DOCKERUSERFLAGS) -e UNITTEST=$(UNITTEST) -e CONFIG_LIBPFM=$(CONFIG_LIBPFM) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
+	$(VERBOSE) docker run -t $(DOCKERUSERFLAGS) -e UNITTEST=$(UNITTEST) -e CONFIG_LIBPFM=$(CONFIG_LIBPFM) -e CONFIG_ACPICA=$(CONFIG_ACPICA) -v $(PWD):$(PWD)$(DOCKER_MOUNT_OPTS) -w $(PWD) $(DOCKERIMAGE) bash -c "make -j $(strip $(subst :,, $*))"
 
 .PHONY: onelinescan
 onelinescan:
