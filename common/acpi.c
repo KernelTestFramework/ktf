@@ -22,7 +22,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <acpi.h>
+#ifndef KTF_ACPICA
+#include <acpi_ktf.h>
 #include <errno.h>
 #include <ioapic.h>
 #include <ktf.h>
@@ -439,3 +440,75 @@ int init_acpi(unsigned bsp_cpu_id) {
 
     return process_madt_entries(bsp_cpu_id);
 }
+#else /* KTF_ACPICA */
+#include <acpi_ktf.h>
+#include <ioapic.h>
+#include <ktf.h>
+#include <percpu.h>
+
+#include "acpi.h"
+
+static unsigned nr_cpus;
+
+/* ACPI initialization and termination functions */
+
+static ACPI_STATUS InitializeFullAcpi(void) {
+    ACPI_STATUS status;
+
+    /* Initialize the ACPICA subsystem */
+    status = AcpiInitializeSubsystem();
+    if (ACPI_FAILURE(status))
+        return status;
+
+    /* Initialize the ACPICA Table Manager and get all ACPI tables */
+    status = AcpiInitializeTables(NULL, 16, true);
+    if (ACPI_FAILURE(status))
+        return status;
+
+    /* Create the ACPI namespace from ACPI tables */
+    status = AcpiLoadTables();
+    if (ACPI_FAILURE(status))
+        return status;
+
+    /* Note: Local handlers should be installed here */
+    /* Initialize the ACPI hardware */
+    status = AcpiEnableSubsystem(ACPI_FULL_INITIALIZATION);
+    if (ACPI_FAILURE(status))
+        return status;
+
+    /* Complete the ACPI namespace object initialization */
+    status = AcpiInitializeObjects(ACPI_FULL_INITIALIZATION);
+    if (ACPI_FAILURE(status))
+        return status;
+
+    return AE_OK;
+}
+
+unsigned acpi_get_nr_cpus(void) { return nr_cpus; }
+
+void *acpi_find_table(char *signature) {
+    ACPI_TABLE_HEADER *hdr;
+
+    AcpiGetTable(signature, 1, &hdr);
+    return hdr;
+}
+
+void acpi_walk_subtables(ACPI_SUBTABLE_HEADER *entry, uint32_t length,
+                         acpi_subtable_parser_t parser, void *arg) {
+    ACPI_SUBTABLE_HEADER *stop = (void *) entry + length;
+
+    while (entry < stop && entry->Length >= sizeof(*entry)) {
+        parser(entry, arg);
+        entry = ACPI_ADD_PTR(ACPI_SUBTABLE_HEADER, entry, entry->Length);
+    }
+}
+
+ACPI_STATUS init_acpi(unsigned bsp_cpu_id) {
+    ACPI_STATUS status;
+
+    printk("Initializing ACPI support\n");
+
+    status = InitializeFullAcpi();
+    return status;
+}
+#endif /* KTF_ACPICA */

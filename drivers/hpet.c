@@ -23,33 +23,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <acpi_ktf.h>
 #include <drivers/hpet.h>
 #include <ioapic.h>
 
 bool init_hpet(uint8_t dst_cpus) {
+#ifndef KTF_ACPICA
     acpi_hpet_t *hpet;
+#else
+    ACPI_TABLE_HPET *hpet;
+#endif
     mfn_t hpet_base_mfn;
     volatile acpi_hpet_timer_t *config;
     volatile acpi_hpet_general_t *general;
     volatile uint64_t *main_counter;
+    uint64_t address;
 
     printk("Initializing HPET\n");
 
+#ifndef KTF_ACPICA
     hpet = (acpi_hpet_t *) acpi_find_table(HPET_SIGNATURE);
+#else
+    hpet = (ACPI_TABLE_HPET *) acpi_find_table(ACPI_SIG_HPET);
+#endif
 
     if (!hpet) {
         printk("HPET not initialized\n");
         return false;
     }
 
-    hpet_base_mfn = paddr_to_mfn(hpet->address.address);
-    vmap_4k((uint64_t *) hpet->address.address, hpet_base_mfn, L1_PROT);
-    config = (acpi_hpet_timer_t *) (hpet->address.address +
-                                    HPET_OFFSET_TIMER_0_CONFIG_CAP_REG);
-    general =
-        (acpi_hpet_general_t *) (hpet->address.address + HPET_OFFSET_GENERAL_CAP_REG);
-    main_counter =
-        (uint64_t *) (hpet->address.address + HPET_OFFSET_GENERAL_MAIN_COUNTER_REG);
+#ifndef KTF_ACPICA
+    address = hpet->address.address;
+#else
+    address = hpet->Address.Address;
+#endif
+
+    hpet_base_mfn = paddr_to_mfn(address);
+    vmap_4k(_ptr(address), hpet_base_mfn, L1_PROT);
+    config = (acpi_hpet_timer_t *) (address + HPET_OFFSET_TIMER_0_CONFIG_CAP_REG);
+    general = (acpi_hpet_general_t *) (address + HPET_OFFSET_GENERAL_CAP_REG);
+    main_counter = (uint64_t *) (address + HPET_OFFSET_GENERAL_MAIN_COUNTER_REG);
 
     general->enabled = 0;
 

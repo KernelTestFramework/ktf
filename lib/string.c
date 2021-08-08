@@ -193,6 +193,7 @@ noconv:
     return (acc);
 }
 
+#ifndef KTF_ACPICA
 static char const hex2ascii_data[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 /*
@@ -506,3 +507,4 @@ int snprintf(char *buf, size_t size, const char *fmt, ...) {
     return retval;
 }
 /* clang-format on */
+#endif

@@ -27,12 +27,18 @@
 #ifndef KTF_HPET_H
 #define KTF_HPET_H
 
+#ifndef KTF_ACPICA
+#include <acpi_ktf.h>
+#else
 #include <acpi.h>
+#endif
 #include <drivers/pit.h>
 
-#define HPET_SIGNATURE  (('H') | ('P' << 8) | ('E' << 16) | ('T' << 24))
 #define HPET_IRQ        PIT_IRQ
 #define HPET_IRQ_OFFSET PIT_IRQ0_OFFSET
+
+#ifndef KTF_ACPICA
+#define HPET_SIGNATURE (('H') | ('P' << 8) | ('E' << 16) | ('T' << 24))
 
 struct acpi_hpet {
     acpi_table_hdr_t header;
@@ -48,6 +54,7 @@ struct acpi_hpet {
     uint8_t page_protection;
 } __packed;
 typedef struct acpi_hpet acpi_hpet_t;
+#endif
 
 struct acpi_hpet_timer {
     uint64_t resv0 : 1;

@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <acpi.h>
+#include <acpi_ktf.h>
 #include <apic.h>
 #include <cmdline.h>
 #include <console.h>
@@ -262,8 +262,15 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     init_slab();
 
-    if (init_acpi(get_bsp_cpu_id()) < 0 && init_mptables() < 0) {
-        BUG();
+    /* Try to initialize ACPI (and MADT) */
+#ifndef KTF_ACPICA
+    if (init_acpi(get_bsp_cpu_id()) < 0) {
+#else
+    if (ACPI_FAILURE(init_acpi(get_bsp_cpu_id()))) {
+#endif
+        /* Fallback to MP tables when no ACPI */
+        if (init_mptables() < 0)
+            BUG();
     }
 
     init_vga_console();
