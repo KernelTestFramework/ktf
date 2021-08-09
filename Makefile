@@ -1,6 +1,9 @@
 KTF_ROOT := $(abspath $(CURDIR))
 export KTF_ROOT
 
+CONFIG := $(KTF_ROOT)/.config
+include $(CONFIG)
+
 THIRD_PARTY := third-party
 PATCH := patch
 TOOLS_DIR := tools
@@ -52,6 +55,9 @@ LD := ld
 NM := nm
 PYTHON := python
 SHELL := bash
+RM := rm
+LN := ln
+SYMLINK := $(LN) -s -f
 
 GRUB_FILE := grub-file
 GRUB_MKIMAGE := grub-mkimage
