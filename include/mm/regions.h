@@ -104,6 +104,12 @@ static inline bool in_init_section(const void *addr) {
            (addr >= _ptr(__start_bss_init) && addr < _ptr(__end_bss_init));
 }
 
+static inline bool in_rmode_section(const void *addr) {
+    return (addr >= _ptr(__start_text_rmode) && addr < _ptr(__end_text_rmode)) ||
+           (addr >= _ptr(__start_data_rmode) && addr < _ptr(__end_data_rmode)) ||
+           (addr >= _ptr(__start_bss_rmode) && addr < _ptr(__end_bss_rmode));
+}
+
 static inline bool in_user_section(const void *addr) {
     return (addr >= _ptr(__start_text_user) && addr < _ptr(__end_text_user)) ||
            (addr >= _ptr(__start_data_user) && addr < _ptr(__end_data_user)) ||
@@ -111,10 +117,12 @@ static inline bool in_user_section(const void *addr) {
 }
 
 static inline bool in_kernel_section(const void *addr) {
-    return (addr >= _ptr(__start_text) && addr < _ptr(__end_text)) ||
+    return in_rmode_section(addr) ||
+           (addr >= _ptr(__start_text) && addr < _ptr(__end_text)) ||
            (addr >= _ptr(__start_data) && addr < _ptr(__end_data)) ||
            (addr >= _ptr(__start_bss) && addr < _ptr(__end_bss)) ||
-           (addr >= _ptr(__start_rodata) && addr < _ptr(__end_rodata));
+           (addr >= _ptr(__start_rodata) && addr < _ptr(__end_rodata)) ||
+           (addr >= _ptr(__start_symbols) && addr < _ptr(__end_symbols));
 }
 
 static inline uint32_t get_bios_ebda_addr(void) {
