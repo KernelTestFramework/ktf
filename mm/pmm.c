@@ -48,11 +48,6 @@ void display_frames_count(void) {
     }
 }
 
-static inline void display_frame(const frame_t *frame) {
-    printk("Frame: mfn: %lx, order: %u, refcnt: %u, uc: %u, free: %u\n", frame->mfn,
-           frame->order, frame->refcount, frame->uncachable, frame->free);
-}
-
 static void add_frame(paddr_t *pa, unsigned int order, bool initial) {
     frame_t *free_frame = &early_frames[free_frame_idx++];
 
@@ -61,7 +56,7 @@ static void add_frame(paddr_t *pa, unsigned int order, bool initial) {
 
     free_frame->order = order;
     free_frame->mfn = paddr_to_mfn(*pa);
-    free_frame->free = true;
+    free_frame->flags.free = true;
 
     *pa += (PAGE_SIZE << order);
 
@@ -157,8 +152,8 @@ void init_pmm(void) {
 
 static frame_t *reserve_frame(frame_t *frame, unsigned int order) {
     BUG_ON(!frame);
-    BUG_ON(!frame->free);
-    frame->free = false;
+    BUG_ON(!frame->flags.free);
+    frame->flags.free = false;
 
     BUG_ON(frame->refcount > 0);
     frame->refcount++;
@@ -231,8 +226,8 @@ void put_free_frames(mfn_t mfn, unsigned int order) {
     if (found->refcount > 0)
         return;
 
-    BUG_ON(frame->free);
-    frame->free = true;
+    BUG_ON(frame->flags.free);
+    frame->flags.free = true;
 
     list_unlink(&frame->list);
     /* FIXME: Maintain order wrt mfn value */
@@ -245,9 +240,9 @@ void map_used_memory(void) {
 
     for_each_order (order) {
         list_for_each_entry (frame, &busy_frames[order], list) {
-            if (!frame->mapped) {
+            if (!frame->flags.mapped) {
                 kmap(frame->mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
-                frame->mapped = true;
+                frame->flags.mapped = true;
             }
         }
     }
