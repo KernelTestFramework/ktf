@@ -44,6 +44,18 @@ struct frame {
 };
 typedef struct frame frame_t;
 
+struct frames_array_meta {
+    uint32_t free_count;
+} __packed;
+typedef struct frames_array_meta frames_array_meta_t;
+
+struct frames_array {
+    struct list_head list;
+    frames_array_meta_t meta;
+    frame_t frames[(PAGE_SIZE - sizeof(frames_array_meta_t)) / sizeof(frame_t)];
+} __packed;
+typedef struct frames_array frames_array_t;
+
 #define for_each_order(order) for (int order = 0; order < MAX_PAGE_ORDER + 1; order++)
 
 typedef bool (*free_frames_cond_t)(frame_t *free_frame);
@@ -83,6 +95,13 @@ static inline void display_frame(const frame_t *frame) {
 
 static inline bool is_frame_used(const frame_t *frame) {
     return frame && frame->refcount > 0;
+}
+
+static inline bool is_frame_free(const frame_t *frame) {
+    if (is_frame_used(frame))
+        return false;
+
+    return frame->flags.free;
 }
 
 #endif /* __ASSEMBLY__ */

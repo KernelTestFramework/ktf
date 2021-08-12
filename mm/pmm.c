@@ -30,11 +30,14 @@
 
 size_t total_phys_memory;
 
+static list_head_t frames;
+static unsigned long total_free_frames = 0;
+#define MIN_FREE_FRAMES_THRESHOLD 2
+#define MAX_FREE_FRAMES_THRESHOLD (2 * ARRAY_SIZE(memberof(frames_array_t, frames)))
+static frames_array_t early_frames;
+
 static list_head_t free_frames[MAX_PAGE_ORDER + 1];
 static list_head_t busy_frames[MAX_PAGE_ORDER + 1];
-
-static frame_t early_frames[2 * PAGE_SIZE];
-static unsigned int free_frame_idx;
 
 static size_t frames_count[MAX_PAGE_ORDER + 1];
 
@@ -51,15 +54,159 @@ void display_frames_count(void) {
     }
 }
 
-static inline frame_t *new_frame(mfn_t mfn, unsigned int order) {
-    frame_t *frame = &early_frames[free_frame_idx++];
+static inline void init_frame(frame_t *frame) {
+    ASSERT(frame);
 
-    if (free_frame_idx > ARRAY_SIZE(early_frames))
-        panic("Not enough initial frames for PMM allocation!\n");
+    memset(frame, 0, sizeof(*frame));
+    frame->order = PAGE_ORDER_INVALID;
+    frame->flags.free = true;
+}
+
+static inline void init_frames_array(frames_array_t *array) {
+    memset(array, 0, sizeof(*array));
+    array->meta.free_count = ARRAY_SIZE(array->frames);
+    for (unsigned i = 0; i < ARRAY_SIZE(array->frames); i++)
+        init_frame(&array->frames[i]);
+    list_add(&array->list, &frames);
+}
+
+static frames_array_t *new_frames_array(void) {
+    frame_t *frame = get_free_frame();
+    frames_array_t *array;
+
+    if (!frame)
+        panic("PMM: Unable to allocate new frame for frame array\n");
+
+    array = (frames_array_t *) mfn_to_virt_kern(frame->mfn);
+    init_frames_array(array);
+
+    dprintk("%s: allocated new frames array: %p\n", __func__, array);
+
+    total_free_frames += array->meta.free_count;
+    return array;
+}
+
+static void del_frames_array(frames_array_t *array) {
+    ASSERT(array);
+
+    list_unlink(&array->list);
+    total_free_frames -= array->meta.free_count;
+    put_free_frame(virt_to_mfn(array));
+
+    dprintk("%s: freed frames array: %p\n", __func__, array);
+}
+
+static bool is_frames_array_free(const frames_array_t *array) {
+    ASSERT(array);
+
+    if (array->meta.free_count < ARRAY_SIZE(array->frames))
+        return false;
+    else if (array->meta.free_count > ARRAY_SIZE(array->frames))
+        panic("PMM: incorrect number of free slots: %d in array: %p\n",
+              array->meta.free_count, array);
+
+    for (unsigned i = 0; i < ARRAY_SIZE(array->frames); i++) {
+        const frame_t *frame = &array->frames[i];
+
+        if (!is_frame_free(frame))
+            panic("PMM: found occupied slot in an empty array: %p\n", array);
+    }
+
+    return true;
+}
+
+static inline frames_array_t *get_frames_array(void) {
+    frames_array_t *array;
+
+    list_for_each_entry (array, &frames, list) {
+        if (array->meta.free_count > 0)
+            return array;
+    }
+
+    return new_frames_array();
+}
+
+static inline bool put_frames_array(frames_array_t *array) {
+    if (is_frames_array_free(array)) {
+        del_frames_array(array);
+        return true;
+    }
+
+    return false;
+}
+
+static inline frames_array_t *find_frames_array(const frame_t *frame) {
+    frames_array_t *array;
+    mfn_t frame_mfn = virt_to_mfn(frame);
+
+    list_for_each_entry (array, &frames, list) {
+        if (virt_to_mfn(array) == frame_mfn)
+            return array;
+    }
+
+    return NULL;
+}
+
+static inline frame_t *take_frame(frame_t *frame, frames_array_t *array) {
+    ASSERT(frame);
+
+    if (!array)
+        array = find_frames_array(frame);
+    BUG_ON(!array);
+
+    frame->flags.free = false;
+    array->meta.free_count--;
+
+    if (--total_free_frames <= MIN_FREE_FRAMES_THRESHOLD)
+        new_frames_array();
+
+    return frame;
+}
+
+static inline frame_t *put_frame(frame_t *frame, frames_array_t *array) {
+    ASSERT(!frame);
+
+    if (!array)
+        array = find_frames_array(frame);
+    BUG_ON(!array);
+
+    array->meta.free_count++;
+
+    if (++total_free_frames >= MAX_FREE_FRAMES_THRESHOLD)
+        put_frames_array(array);
+
+    init_frame(frame);
+    return frame;
+}
+
+static inline frame_t *get_frames_array_entry(void) {
+    frames_array_t *array = get_frames_array();
+
+    if (!array)
+        panic("PMM: Unable to get a free array of frames' metadata\n");
+
+    for (unsigned i = 0; i < ARRAY_SIZE(array->frames); i++) {
+        frame_t *frame = &array->frames[i];
+
+        if (is_frame_free(frame))
+            return take_frame(frame, array);
+    }
+
+    return NULL;
+}
+
+static inline void put_frames_array_entry(frame_t *frame) {
+    if (is_frame_free(frame))
+        return;
+
+    put_frame(frame, NULL);
+}
+
+static inline frame_t *new_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame = get_frames_array_entry();
 
     frame->order = order;
     frame->mfn = mfn;
-    frame->flags.free = true;
 
     frames_count[order]++;
     return frame;
@@ -158,7 +305,11 @@ void reclaim_frame(mfn_t mfn, unsigned int order) { add_frame(mfn, order); }
 void init_pmm(void) {
     printk("Initialize Physical Memory Manager\n");
 
-    BUG_ON(ARRAY_SIZE(free_frames) != ARRAY_SIZE(busy_frames));
+    BUILD_BUG_ON(sizeof(frames_array_t) > PAGE_SIZE);
+    list_init(&frames);
+    init_frames_array(&early_frames);
+
+    BUILD_BUG_ON(ARRAY_SIZE(free_frames) != ARRAY_SIZE(busy_frames));
     for_each_order (order) {
         list_init(&free_frames[order]);
         list_init(&busy_frames[order]);
