@@ -48,29 +48,30 @@ void display_frames_count(void) {
     }
 }
 
-static void add_frame(paddr_t *pa, unsigned int order, bool initial) {
-    frame_t *free_frame = &early_frames[free_frame_idx++];
+static inline frame_t *new_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame = &early_frames[free_frame_idx++];
 
     if (free_frame_idx > ARRAY_SIZE(early_frames))
         panic("Not enough initial frames for PMM allocation!\n");
 
-    free_frame->order = order;
-    free_frame->mfn = paddr_to_mfn(*pa);
-    free_frame->flags.free = true;
+    frame->order = order;
+    frame->mfn = mfn;
+    frame->flags.free = true;
 
-    *pa += (PAGE_SIZE << order);
-
-    if (initial)
-        list_add(&free_frame->list, &free_frames[order]);
-    else
-        list_add_tail(&free_frame->list, &free_frames[order]);
     frames_count[order]++;
+    return frame;
 }
 
-void reclaim_frame(mfn_t mfn, unsigned int order) {
-    paddr_t pa = mfn_to_paddr(mfn);
+static inline void add_early_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame = new_frame(mfn, order);
 
-    add_frame(&pa, order, false);
+    list_add(&frame->list, &free_frames[order]);
+}
+
+static inline void add_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame = new_frame(mfn, order);
+
+    list_add_tail(&frame->list, &free_frames[order]);
 }
 
 static size_t process_memory_range(unsigned index) {
@@ -91,24 +92,37 @@ static size_t process_memory_range(unsigned index) {
      */
 
     /* Add initial 4K frames and align to 2M. */
-    while (cur % PAGE_SIZE_2M && cur + PAGE_SIZE <= end)
-        add_frame(&cur, PAGE_ORDER_4K, true);
+    while (cur % PAGE_SIZE_2M && cur + PAGE_SIZE <= end) {
+        if (index <= 1)
+            add_early_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
+        else
+            add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
+        cur += (PAGE_SIZE << PAGE_ORDER_4K);
+    }
 
     /* Add initial 2M frames and align to 1G. */
-    while (cur % PAGE_SIZE_1G && cur + PAGE_SIZE_2M <= end)
-        add_frame(&cur, PAGE_ORDER_2M, false);
+    while (cur % PAGE_SIZE_1G && cur + PAGE_SIZE_2M <= end) {
+        add_frame(paddr_to_mfn(cur), PAGE_ORDER_2M);
+        cur += (PAGE_SIZE << PAGE_ORDER_2M);
+    }
 
     /* Add all remaining 1G frames. */
-    while (cur + PAGE_SIZE_1G <= end)
-        add_frame(&cur, PAGE_ORDER_1G, false);
+    while (cur + PAGE_SIZE_1G <= end) {
+        add_frame(paddr_to_mfn(cur), PAGE_ORDER_1G);
+        cur += (PAGE_SIZE << PAGE_ORDER_1G);
+    }
 
     /* Add all remaining 2M frames. */
-    while (cur + PAGE_SIZE_2M <= end)
-        add_frame(&cur, PAGE_ORDER_2M, false);
+    while (cur + PAGE_SIZE_2M <= end) {
+        add_frame(paddr_to_mfn(cur), PAGE_ORDER_2M);
+        cur += (PAGE_SIZE << PAGE_ORDER_2M);
+    }
 
     /* Add all remaining 4K frames. */
-    while (cur < end)
-        add_frame(&cur, PAGE_ORDER_4K, false);
+    while (cur < end) {
+        add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
+        cur += (PAGE_SIZE << PAGE_ORDER_4K);
+    }
 
     if (cur != end) {
         panic(
@@ -131,6 +145,8 @@ static inline void display_frames(void) {
         }
     }
 }
+
+void reclaim_frame(mfn_t mfn, unsigned int order) { add_frame(mfn, order); }
 
 void init_pmm(void) {
     printk("Initialize Physical Memory Manager\n");
