@@ -210,7 +210,9 @@ void put_free_frames(mfn_t mfn, unsigned int order) {
     frame_t *frame;
     frame_t *found = NULL;
 
-    if (mfn == MFN_INVALID)
+    BUG_ON(mfn_invalid(mfn));
+
+    if (order > MAX_PAGE_ORDER)
         return;
 
     list_for_each_entry (frame, &busy_frames[order], list) {
