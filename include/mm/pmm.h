@@ -48,7 +48,7 @@ extern void display_frames_count(void);
 extern void init_pmm(void);
 
 extern frame_t *get_free_frames_cond(free_frames_cond_t cb);
-extern mfn_t get_free_frames(unsigned int order);
+extern frame_t *get_free_frames(unsigned int order);
 extern void put_frame(mfn_t mfn, unsigned int order);
 extern void reclaim_frame(mfn_t mfn, unsigned int order);
 
@@ -62,7 +62,7 @@ static inline bool paddr_invalid(paddr_t pa) {
 
 static inline bool mfn_invalid(mfn_t mfn) { return paddr_invalid(mfn_to_paddr(mfn)); }
 
-static inline mfn_t get_free_frame(void) { return get_free_frames(PAGE_ORDER_4K); }
+static inline frame_t *get_free_frame(void) { return get_free_frames(PAGE_ORDER_4K); }
 
 #endif /* __ASSEMBLY__ */
 

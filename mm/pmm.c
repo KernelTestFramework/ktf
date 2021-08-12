@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Amazon.com, Inc. or its affiliates.
+ * Copyright © 2021 Amazon.com, Inc. or its affiliates.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -188,22 +188,22 @@ frame_t *get_free_frames_cond(free_frames_cond_t cb) {
     return NULL;
 }
 
-mfn_t get_free_frames(unsigned int order) {
+frame_t *get_free_frames(unsigned int order) {
     frame_t *frame;
 
     if (order > MAX_PAGE_ORDER)
-        return MFN_INVALID;
+        return NULL;
 
     if (list_is_empty(&free_frames[order])) {
         /* FIXME: Add page split */
-        return MFN_INVALID;
+        return NULL;
     }
 
     frame = list_first_entry(&free_frames[order], frame_t, list);
 
     frame = reserve_frame(frame, order);
 
-    return frame->mfn;
+    return frame;
 }
 
 void put_frame(mfn_t mfn, unsigned int order) {
