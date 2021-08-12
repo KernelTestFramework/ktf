@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Amazon.com, Inc. or its affiliates.
+ * Copyright © 2021 Amazon.com, Inc. or its affiliates.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,17 @@
 
 #include <mm/regions.h>
 
+struct frame_flags {
+    uint16_t : 11, mapped : 1, uncacheable : 1, free : 1, pagetable : 1;
+};
+typedef struct frame_flags frame_flags_t;
+
 struct frame {
     struct list_head list;
     mfn_t mfn;
     uint32_t refcount;
-    uint32_t : 23, mapped : 1, order : 6, uncachable : 1, free : 1;
+    uint16_t order;
+    frame_flags_t flags;
 };
 typedef struct frame frame_t;
 
@@ -65,6 +71,14 @@ static inline bool mfn_invalid(mfn_t mfn) { return paddr_invalid(mfn_to_paddr(mf
 static inline frame_t *get_free_frame(void) { return get_free_frames(PAGE_ORDER_4K); }
 static inline void put_free_frame(mfn_t mfn) {
     return put_free_frames(mfn, PAGE_ORDER_4K);
+}
+
+static inline void display_frame(const frame_t *frame) {
+    frame_flags_t flags = frame->flags;
+
+    printk("Frame: mfn: %lx, order: %u, refcnt: %u, uc: %u, free: %u, pt: %u\n",
+           frame->mfn, frame->order, frame->refcount, flags.uncacheable, flags.free,
+           flags.pagetable);
 }
 
 #endif /* __ASSEMBLY__ */
