@@ -206,7 +206,7 @@ frame_t *get_free_frames(unsigned int order) {
     return frame;
 }
 
-void put_frame(mfn_t mfn, unsigned int order) {
+void put_free_frames(mfn_t mfn, unsigned int order) {
     frame_t *frame;
     frame_t *found = NULL;
 

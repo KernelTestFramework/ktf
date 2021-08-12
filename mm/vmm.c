@@ -53,5 +53,5 @@ void *get_free_pages(unsigned int order, uint32_t flags) {
 void put_pages(void *page, unsigned int order) {
     /* FIXME: unmap all mappings */
     vunmap(page, order);
-    put_frame(virt_to_mfn(page), order);
+    put_free_frames(virt_to_mfn(page), order);
 }
