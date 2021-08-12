@@ -244,20 +244,20 @@ int init_slab(void) {
     memset(&meta_slab_list, 0, sizeof(meta_slab_list));
     memset(&global_meta_slab, 0, sizeof(global_meta_slab));
 
-    alloc_pages = get_free_pages(PAGE_ORDER_4K, GFP_KERNEL);
+    alloc_pages = get_free_pages(PAGE_ORDER_2M, GFP_KERNEL);
     if (NULL == alloc_pages) {
         dprintk("get_free_pages failed\n");
         return -ENOMEM;
     }
-    memset(alloc_pages, 0, PAGE_SIZE);
+    memset(alloc_pages, 0, PAGE_SIZE_2M);
 
     global_meta_slab.slab_base = alloc_pages;
-    global_meta_slab.slab_len = PAGE_SIZE;
+    global_meta_slab.slab_len = PAGE_SIZE_2M;
     global_meta_slab.slab_size = next_power_of_two(sizeof(meta_slab_t));
     ret = initialize_slab(&global_meta_slab);
     if (ret != ESUCCESS) {
         dprintk("initialize_slab failed\n");
-        put_pages(alloc_pages, PAGE_ORDER_4K);
+        put_pages(alloc_pages, PAGE_ORDER_2M);
         return ret;
     }
 
