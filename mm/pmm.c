@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <list.h>
+#include <spinlock.h>
 
 #include <mm/pmm.h>
 #include <mm/regions.h>
@@ -36,6 +37,8 @@ static frame_t early_frames[2 * PAGE_SIZE];
 static unsigned int free_frame_idx;
 
 static size_t frames_count[MAX_PAGE_ORDER + 1];
+
+static spinlock_t lock = SPINLOCK_INIT;
 
 void display_frames_count(void) {
     printk("Avail memory frames: (total size: %lu MB)\n", total_phys_memory / MB(1));
@@ -190,23 +193,26 @@ static inline frame_t *return_frame(frame_t *frame) {
     return frame;
 }
 
-/* Reserves and returns the first free frame
- * fulfilling the condition specified by
- * the callback
+/* Reserves and returns the first free frame fulfilling
+ * the condition specified by the callback
  */
 frame_t *get_free_frames_cond(free_frames_cond_t cb) {
     frame_t *frame;
 
+    spin_lock(&lock);
     for_each_order (order) {
         if (list_is_empty(&free_frames[order]))
             continue;
 
         list_for_each_entry (frame, &free_frames[order], list) {
             if (cb(frame)) {
+                spin_unlock(&lock);
                 return reserve_frame(frame);
             }
         }
     }
+    spin_unlock(&lock);
+
     return NULL;
 }
 
@@ -216,12 +222,15 @@ frame_t *get_free_frames(unsigned int order) {
     if (order > MAX_PAGE_ORDER)
         return NULL;
 
+    spin_lock(&lock);
     if (list_is_empty(&free_frames[order])) {
         /* FIXME: Add page split */
+        spin_unlock(&lock);
         return NULL;
     }
 
     frame = reserve_frame(list_first_entry(&free_frames[order], frame_t, list));
+    spin_unlock(&lock);
 
     return frame;
 }
@@ -234,14 +243,17 @@ void put_free_frames(mfn_t mfn, unsigned int order) {
     if (order > MAX_PAGE_ORDER)
         return;
 
+    spin_lock(&lock);
     list_for_each_entry (frame, &busy_frames[order], list) {
         if (frame->mfn == mfn) {
             /* FIXME: Maintain order wrt mfn value */
             /* FIXME: Add frame merge */
             return_frame(frame);
+            spin_unlock(&lock);
             return;
         }
     }
+    spin_unlock(&lock);
 
     panic("PMM: unable to find frame: %x in busy frames list\n");
 }
