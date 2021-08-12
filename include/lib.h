@@ -308,7 +308,7 @@ static inline void ud2(void) { asm volatile("ud2"); }
 
 #define BUG()                                                                            \
     do {                                                                                 \
-        ud2();                                                                           \
+        panic("BUG in %s() at line %u\n", __func__, __LINE__);                           \
     } while (true)
 #define BUG_ON(cond)                                                                     \
     do {                                                                                 \

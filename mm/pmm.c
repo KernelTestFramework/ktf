@@ -22,16 +22,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <console.h>
-#include <ktf.h>
-#include <lib.h>
 #include <list.h>
-#include <multiboot.h>
-#include <page.h>
-#include <setup.h>
 
-#include <drivers/vga.h>
 #include <mm/pmm.h>
+#include <mm/regions.h>
 
 size_t total_phys_memory;
 
@@ -42,81 +36,6 @@ static frame_t early_frames[2 * PAGE_SIZE];
 static unsigned int free_frame_idx;
 
 static size_t frames_count[MAX_PAGE_ORDER + 1];
-
-#define _RANGE(_name, _base, _flags, _start, _end)                                       \
-    {                                                                                    \
-        .name = _name, .base = (_base), .flags = (_flags), .start = _ptr(_start),        \
-        .end = _ptr(_end)                                                                \
-    }
-
-#define IDENT_RANGE(name, flags, start, end)                                             \
-    _RANGE(name, VIRT_IDENT_BASE, flags, start, end)
-
-#define USER_RANGE(name, flags, start, end)                                              \
-    _RANGE(name, VIRT_USER_BASE, flags, start, end)
-
-#define KERNEL_RANGE(name, flags, start, end)                                            \
-    _RANGE(name, VIRT_KERNEL_BASE, flags, start, end)
-
-#define VIDEO_START (VIRT_KERNEL_BASE + VGA_START_ADDR)
-#define VIDEO_END   (VIRT_KERNEL_BASE + VGA_END_ADDR)
-
-addr_range_t addr_ranges[] = {
-    /* clang-format off */
-    IDENT_RANGE( ".text.init",  L1_PROT_RO,      __start_text_init,     __end_text_init ),
-    IDENT_RANGE( ".data.init",  L1_PROT,         __start_data_init,     __end_data_init ),
-    IDENT_RANGE( ".bss.init",   L1_PROT,         __start_bss_init,      __end_bss_init  ),
-
-    IDENT_RANGE( ".text.rmode", L1_PROT_RO,      __start_text_rmode,    __end_text_rmode),
-    IDENT_RANGE( ".data.rmode", L1_PROT,         __start_data_rmode,    __end_data_rmode),
-    IDENT_RANGE( ".bss.rmode",  L1_PROT,         __start_bss_rmode,     __end_bss_rmode ),
-
-    USER_RANGE( ".text.user",   L1_PROT_USER_RO, __start_text_user,     __end_text_user ),
-    USER_RANGE( ".data.user",   L1_PROT_USER,    __start_data_user,     __end_data_user ),
-    USER_RANGE( ".bss.user",    L1_PROT_USER,    __start_bss_user,      __end_bss_user  ),
-
-    KERNEL_RANGE( ".text",      L1_PROT_RO,      __start_text,           __end_text      ),
-    KERNEL_RANGE( ".data",      L1_PROT,         __start_data,           __end_data      ),
-    KERNEL_RANGE( ".bss",       L1_PROT,         __start_bss,            __end_bss       ),
-    KERNEL_RANGE( ".rodata",    L1_PROT_RO,      __start_rodata,         __end_rodata    ),
-    KERNEL_RANGE( ".symbols",   L1_PROT_RO,      __start_symbols,        __end_symbols   ),
-    /* clang-format on */
-
-    {0x0} /* NULL array terminator */
-};
-
-void display_memory_map(void) {
-    printk("Memory Map:\n");
-
-    for_each_memory_range (r) {
-        printk("%11s: VA: [0x%016lx - 0x%016lx] PA: [0x%08lx - 0x%08lx]\n", r->name,
-               _ul(r->start), _ul(r->end), _ul(r->start - r->base),
-               _ul(r->end - r->base));
-    }
-}
-
-addr_range_t get_memory_range(paddr_t pa) {
-    addr_range_t r;
-
-    memset(&r, 0, sizeof(r));
-    if (mbi_get_memory_range(pa, &r) < 0)
-        /* FIXME: e820_lower_memory_bound() */
-        panic("Unable to get memory range for: 0x%016lx\n", pa);
-
-    return r;
-}
-
-paddr_t get_memory_range_start(paddr_t pa) {
-    addr_range_t r = get_memory_range(pa);
-
-    return _paddr(r.start);
-}
-
-paddr_t get_memory_range_end(paddr_t pa) {
-    addr_range_t r = get_memory_range(pa);
-
-    return _paddr(r.end);
-}
 
 void display_frames_count(void) {
     printk("Avail memory frames: (total size: %lu MB)\n", total_phys_memory / MB(1));
@@ -164,7 +83,7 @@ static size_t process_memory_range(unsigned index) {
     addr_range_t range;
     size_t size;
 
-    if (mbi_get_avail_memory_range(index, &range) < 0)
+    if (get_avail_memory_range(index, &range) < 0)
         return 0;
 
     cur = start = (index == 1 ? virt_to_paddr(__end_rodata) : _paddr(range.start));
@@ -205,13 +124,7 @@ static size_t process_memory_range(unsigned index) {
     return size;
 }
 
-bool paddr_invalid(paddr_t pa) {
-    return pa == PADDR_INVALID || mbi_get_memory_range(pa, NULL) < 0;
-}
-
 void init_pmm(void) {
-    unsigned num;
-
     printk("Initialize Physical Memory Manager\n");
 
     BUG_ON(ARRAY_SIZE(free_frames) != ARRAY_SIZE(busy_frames));
@@ -220,10 +133,8 @@ void init_pmm(void) {
         list_init(&busy_frames[order]);
     }
 
-    num = mbi_get_avail_memory_ranges_num();
-
     /* Skip low memory range */
-    for (unsigned int i = 1; i < num; i++)
+    for (unsigned int i = 1; i < regions_num; i++)
         total_phys_memory += process_memory_range(i);
 
     display_frames_count();
