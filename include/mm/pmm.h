@@ -81,6 +81,10 @@ static inline void display_frame(const frame_t *frame) {
            flags.pagetable);
 }
 
+static inline bool is_frame_used(const frame_t *frame) {
+    return frame && frame->refcount > 0;
+}
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PMM_H */
