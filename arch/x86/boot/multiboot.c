@@ -23,9 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
-#include <ktf.h>
 #include <multiboot.h>
-#include <string.h>
 
 static multiboot_info_t *multiboot_info;
 

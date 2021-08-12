@@ -43,6 +43,7 @@
 #include <traps.h>
 
 #include <mm/pmm.h>
+#include <mm/regions.h>
 #include <mm/slab.h>
 #include <mm/vmm.h>
 #include <smp/mptables.h>
@@ -228,6 +229,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     cmdline_parse(kernel_cmdline);
 
     /* Initialize Physical Memory Manager */
+    init_regions();
     init_pmm();
 
     /* Setup final pagetables */
