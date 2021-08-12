@@ -42,7 +42,8 @@
 #define PAGE_MASK_1G  (~(PAGE_SIZE_1G - 1))
 #define PAGE_ORDER_1G 18
 
-#define MAX_PAGE_ORDER PAGE_ORDER_1G
+#define MAX_PAGE_ORDER     PAGE_ORDER_1G
+#define PAGE_ORDER_INVALID (-1)
 
 #define _PAGE_PRESENT  0x0001
 #define _PAGE_RW       0x0002
