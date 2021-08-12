@@ -124,6 +124,19 @@ static size_t process_memory_range(unsigned index) {
     return size;
 }
 
+static inline void display_frames(void) {
+    printk("List of frames:\n");
+    for_each_order (order) {
+        if (!list_is_empty(&free_frames[order])) {
+            frame_t *frame;
+
+            printk("Order: %u\n", order);
+            list_for_each_entry (frame, &free_frames[order], list)
+                display_frame(frame);
+        }
+    }
+}
+
 void init_pmm(void) {
     printk("Initialize Physical Memory Manager\n");
 
@@ -138,20 +151,8 @@ void init_pmm(void) {
         total_phys_memory += process_memory_range(i);
 
     display_frames_count();
-
-    if (opt_debug) {
-        frame_t *frame;
-
-        printk("List of frames:\n");
-        for_each_order (order) {
-            if (list_is_empty(&free_frames[order]))
-                continue;
-
-            printk("Order: %u\n", order);
-            list_for_each_entry (frame, &free_frames[order], list)
-                display_frame(frame);
-        }
-    }
+    if (opt_debug)
+        display_frames();
 }
 
 static frame_t *reserve_frame(frame_t *frame, unsigned int order) {
