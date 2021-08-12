@@ -150,16 +150,26 @@ void init_pmm(void) {
         display_frames();
 }
 
-static frame_t *reserve_frame(frame_t *frame, unsigned int order) {
-    BUG_ON(!frame);
-    BUG_ON(!frame->flags.free);
-    frame->flags.free = false;
+static inline frame_t *reserve_frame(frame_t *frame) {
+    if (!frame)
+        return NULL;
 
-    BUG_ON(frame->refcount > 0);
-    frame->refcount++;
+    if (frame->refcount++ == 0) {
+        list_unlink(&frame->list);
+        list_add(&frame->list, &busy_frames[frame->order]);
+    }
 
-    list_unlink(&frame->list);
-    list_add(&frame->list, &busy_frames[order]);
+    return frame;
+}
+
+static inline frame_t *return_frame(frame_t *frame) {
+    if (!is_frame_used(frame))
+        panic("PMM: trying to return unused frame: %p\n", frame);
+
+    if (--frame->refcount == 0) {
+        list_unlink(&frame->list);
+        list_add(&frame->list, &free_frames[frame->order]);
+    }
 
     return frame;
 }
@@ -177,7 +187,7 @@ frame_t *get_free_frames_cond(free_frames_cond_t cb) {
 
         list_for_each_entry (frame, &free_frames[order], list) {
             if (cb(frame)) {
-                return reserve_frame(frame, order);
+                return reserve_frame(frame);
             }
         }
     }
@@ -195,16 +205,13 @@ frame_t *get_free_frames(unsigned int order) {
         return NULL;
     }
 
-    frame = list_first_entry(&free_frames[order], frame_t, list);
-
-    frame = reserve_frame(frame, order);
+    frame = reserve_frame(list_first_entry(&free_frames[order], frame_t, list));
 
     return frame;
 }
 
 void put_free_frames(mfn_t mfn, unsigned int order) {
     frame_t *frame;
-    frame_t *found = NULL;
 
     BUG_ON(mfn_invalid(mfn));
 
@@ -213,26 +220,14 @@ void put_free_frames(mfn_t mfn, unsigned int order) {
 
     list_for_each_entry (frame, &busy_frames[order], list) {
         if (frame->mfn == mfn) {
-            found = frame;
-            break;
+            /* FIXME: Maintain order wrt mfn value */
+            /* FIXME: Add frame merge */
+            return_frame(frame);
+            return;
         }
     }
 
-    BUG_ON(!found);
-
-    BUG_ON(frame->refcount == 0);
-    frame->refcount--;
-
-    if (found->refcount > 0)
-        return;
-
-    BUG_ON(frame->flags.free);
-    frame->flags.free = true;
-
-    list_unlink(&frame->list);
-    /* FIXME: Maintain order wrt mfn value */
-    list_add(&frame->list, &free_frames[order]);
-    /* FIXME: Add frame merge */
+    panic("PMM: unable to find frame: %x in busy frames list\n");
 }
 
 void map_used_memory(void) {
