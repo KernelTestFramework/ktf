@@ -30,11 +30,14 @@
 #include <mm/vmm.h>
 
 void *get_free_pages(unsigned int order, uint32_t flags) {
-    mfn_t mfn = get_free_frames(order);
+    frame_t *frame = get_free_frames(order);
     void *va = NULL;
+    mfn_t mfn;
 
-    if (mfn_invalid(mfn))
+    if (!frame)
         return NULL;
+
+    mfn = frame->mfn;
 
     if (flags & GFP_IDENT)
         va = vmap(mfn_to_virt(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
@@ -50,5 +53,5 @@ void *get_free_pages(unsigned int order, uint32_t flags) {
 void put_pages(void *page, unsigned int order) {
     /* FIXME: unmap all mappings */
     vunmap(page, order);
-    put_frame(virt_to_mfn(page), order);
+    put_free_frames(virt_to_mfn(page), order);
 }

@@ -241,15 +241,19 @@ static int process_madt_entries(unsigned bsp_cpu_id) {
         switch (entry->type) {
         case ACPI_MADT_TYPE_LAPIC: {
             acpi_madt_processor_t *madt_cpu = (acpi_madt_processor_t *) entry->data;
-            percpu_t *percpu = get_percpu_page(madt_cpu->apic_proc_id);
+            percpu_t *percpu;
+            bool enabled;
 
+            /* Some systems report all CPUs, marked as disabled */
+            enabled = !!(madt_cpu->flags & 0x1);
+            if (!enabled)
+                break;
+
+            percpu = get_percpu_page(madt_cpu->apic_proc_id);
             percpu->cpu_id = madt_cpu->apic_proc_id;
             percpu->apic_id = madt_cpu->apic_id;
             percpu->bsp = !!(madt_cpu->apic_proc_id == bsp_cpu_id);
-            percpu->enabled = !!(madt_cpu->flags & 0x1);
-
-            if (!percpu->enabled)
-                continue;
+            percpu->enabled = enabled;
 
             nr_cpus++;
             printk("ACPI: [MADT] APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n",
