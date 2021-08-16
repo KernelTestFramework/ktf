@@ -35,10 +35,16 @@
 
 #include <mm/pmm.h>
 
+struct boot_flags {
+    uint64_t virt : 1, rsvd : 63;
+};
+typedef struct boot_flags boot_flags_t;
+
 extern io_port_t com_ports[2];
 
 extern const char *kernel_cmdline;
 extern char cpu_identifier[49];
+extern boot_flags_t boot_flags;
 
 /* Static declarations */
 

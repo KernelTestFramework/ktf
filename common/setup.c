@@ -72,6 +72,8 @@ bool_cmd("hpet", opt_hpet);
 
 io_port_t __data_rmode com_ports[2] = {COM1_PORT, COM2_PORT};
 
+boot_flags_t boot_flags;
+
 static unsigned bsp_cpu_id = 0;
 
 const char *kernel_cmdline;
@@ -240,6 +242,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     map_vga_area();
 
     write_cr3(cr3.paddr);
+    boot_flags.virt = true;
+
     WRITE_SP(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
     if (opt_debug)
         dump_pagetables();
