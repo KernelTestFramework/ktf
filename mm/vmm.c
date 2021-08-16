@@ -25,6 +25,7 @@
 #include <ktf.h>
 #include <lib.h>
 #include <page.h>
+#include <setup.h>
 
 #include <mm/pmm.h>
 #include <mm/vmm.h>
@@ -33,6 +34,9 @@ void *get_free_pages(unsigned int order, uint32_t flags) {
     frame_t *frame = get_free_frames(order);
     void *va = NULL;
     mfn_t mfn;
+
+    if (!boot_flags.virt)
+        panic("Unable to use %s() before final page tables are set\n", __func__);
 
     if (!frame)
         return NULL;
