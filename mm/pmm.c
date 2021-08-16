@@ -99,7 +99,7 @@ static size_t process_memory_range(unsigned index) {
      */
 
     /* Add initial 4K frames and align to 2M. */
-    while (cur % PAGE_SIZE_2M && cur + PAGE_SIZE <= end) {
+    while ((cur < MB(EARLY_VIRT_MEM) || cur % PAGE_SIZE_2M) && cur + PAGE_SIZE <= end) {
         if (index <= 1)
             add_early_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
         else
@@ -169,6 +169,11 @@ void init_pmm(void) {
         total_phys_memory += process_memory_range(i);
 
     display_frames_count();
+
+    if (frames_count[PAGE_ORDER_4K] < (MB(EARLY_VIRT_MEM) / PAGE_SIZE))
+        panic("Not enough early frames: %u missing\n",
+              (MB(EARLY_VIRT_MEM) / PAGE_SIZE) - frames_count[PAGE_ORDER_4K]);
+
     if (opt_debug)
         display_frames();
 }
