@@ -125,6 +125,12 @@ static inline bool in_kernel_section(const void *addr) {
            (addr >= _ptr(__start_symbols) && addr < _ptr(__end_symbols));
 }
 
+static inline bool in_free_region(paddr_t pa) {
+    return !in_kernel_section(paddr_to_virt_kern(pa)) &&
+           !in_user_section(paddr_to_virt_user(pa)) &&
+           !in_init_section(paddr_to_virt(pa));
+}
+
 static inline uint32_t get_bios_ebda_addr(void) {
     return (*(uint16_t *) paddr_to_virt_kern(EBDA_ADDR_ENTRY)) << 4;
 }
