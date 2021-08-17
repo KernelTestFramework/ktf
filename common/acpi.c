@@ -235,7 +235,7 @@ static int process_fadt(void) {
 static int process_madt_entries(unsigned bsp_cpu_id) {
     acpi_madt_t *madt = (acpi_madt_t *) acpi_find_table(MADT_SIGNATURE);
     acpi_madt_entry_t *entry;
-    bus_t *isa_bus;
+    bus_t *isa_bus = NULL;
 
     if (!madt)
         return -ENOENT;
@@ -243,10 +243,12 @@ static int process_madt_entries(unsigned bsp_cpu_id) {
     printk("ACPI: [MADT] LAPIC Addr: %p, Flags: %08x\n", _ptr(madt->lapic_addr),
            madt->flags);
 
-    isa_bus =
-        add_system_bus(ACPI_MADT_INT_BUS_ISA, madt_int_bus_names[ACPI_MADT_INT_BUS_ISA],
-                       strlen(madt_int_bus_names[ACPI_MADT_INT_BUS_ISA]));
-    BUG_ON(!isa_bus);
+    if (boot_flags.legacy_devs) {
+        isa_bus = add_system_bus(ACPI_MADT_INT_BUS_ISA,
+                                 madt_int_bus_names[ACPI_MADT_INT_BUS_ISA],
+                                 strlen(madt_int_bus_names[ACPI_MADT_INT_BUS_ISA]));
+        BUG_ON(!isa_bus);
+    }
 
     for (void *addr = madt->entry; addr < (_ptr(madt) + madt->header.length);
          addr += entry->len) {
