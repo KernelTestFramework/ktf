@@ -28,6 +28,7 @@
 #include <drivers/vga.h>
 #include <ioapic.h>
 #include <lib.h>
+#include <setup.h>
 #include <string.h>
 
 /* clang-format off */
@@ -62,6 +63,11 @@ typedef struct keyboard_state keyboard_state_t;
 static keyboard_state_t keyboard_state;
 
 void init_keyboard(uint8_t dst_cpus) {
+    if (!boot_flags.i8042) {
+        printk("No i8042 microcontroller detected\n");
+        return;
+    }
+
     printk("Initializing keyboard driver\n");
 
     /* Disable devices */

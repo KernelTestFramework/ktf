@@ -58,7 +58,7 @@
 bool opt_debug = false;
 bool_cmd("debug", opt_debug);
 
-bool opt_keyboard = false;
+bool opt_keyboard = true;
 bool_cmd("keyboard", opt_keyboard);
 
 bool opt_pit = false;
