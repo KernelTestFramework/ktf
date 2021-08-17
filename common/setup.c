@@ -157,9 +157,7 @@ static void __text_init init_console(void) {
     get_com_ports();
 
     uart_init(com_ports[0], DEFAULT_BAUD_SPEED);
-
     register_console_callback(serial_console_write);
-    register_console_callback(vga_console_write);
 
     printk("COM1: %x, COM2: %x\n", com_ports[0], com_ports[1]);
 }
@@ -183,7 +181,7 @@ void zap_boot_mappings(void) {
     }
 }
 
-static void map_bios_area(void) {
+static void __text_init map_bios_area(void) {
     vmap_4k(paddr_to_virt(BDA_ADDR_START), paddr_to_mfn(BDA_ADDR_START), L1_PROT_RO);
     kmap_4k(paddr_to_mfn(BDA_ADDR_START), L1_PROT_RO);
 
@@ -194,6 +192,15 @@ static void map_bios_area(void) {
     for (mfn_t bios_mfn = paddr_to_mfn(BIOS_ACPI_ROM_START);
          bios_mfn < paddr_to_mfn(BIOS_ACPI_ROM_STOP); bios_mfn++)
         kmap_4k(bios_mfn, L1_PROT_RO);
+}
+
+static void __text_init init_vga_console(void) {
+    if (!boot_flags.vga)
+        return;
+
+    printk("Enabling VGA support\n");
+    map_vga_area();
+    register_console_callback(vga_console_write);
 }
 
 void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
@@ -239,7 +246,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     map_multiboot_areas();
     map_bios_area();
-    map_vga_area();
 
     write_cr3(cr3.paddr);
     boot_flags.virt = true;
@@ -259,6 +265,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     if (init_acpi(get_bsp_cpu_id()) < 0 && init_mptables() < 0) {
         BUG();
     }
+
+    init_vga_console();
 
     init_apic(get_bsp_cpu_id(), APIC_MODE_XAPIC);
 
