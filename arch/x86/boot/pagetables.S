@@ -26,41 +26,52 @@
 #include <asm-macros.h>
 #include <page.h>
 
+#define EARLY_PT_NUM (EARLY_VIRT_MEM / 2)
+#define PT_NAME(x) l1_pt_entries ## x
+
+#if EARLY_PT_NUM > L2_PT_ENTRIES
+#error "Unable to cover more than 1GB of early address space"
+#endif
+
+#define FIRST_PT_IDX 0
+
+/* Each single l1_pt_entry covers a 4K of virtual addr range */
+.macro alloc_l1_pt idx
+    GLOBAL(PT_NAME(\idx))
+        .rept L1_PT_ENTRIES
+        .long PT_PADDR(PT_NAME(0), L1_PT_SHIFT) + L1_PROT, 0
+        .endr
+    END_OBJECT(PT_NAME(\idx))
+.endm
+
+.macro l2_pt_entry idx
+    .long PT_NAME(\idx) + L2_PROT, 0
+.endm
+
+.altmacro
+
 /* Initial identity map page tables */
 SECTION(.data.init, "aw", PAGE_SIZE)
 
-/* Each single l1_pt_entry covers a 4K of virtual addr range */
-
-/* First 2M range 0-2M */
-GLOBAL(l1_pt_entries1)
-    .rept L1_PT_ENTRIES
-    .long PT_PADDR(l1_pt_entries1, L1_PT_SHIFT) + L1_PROT, 0
-    .endr
-END_OBJECT(l1_pt_entries1)
-
-/* Second 2M range 2M-4M */
-GLOBAL(l1_pt_entries2)
-    .rept L1_PT_ENTRIES
-    .long PT_PADDR(l1_pt_entries1, L1_PT_SHIFT) + L1_PROT, 0
-    .endr
-END_OBJECT(l1_pt_entries2)
-
-/* Third 2M range 4M-6M */
-GLOBAL(l1_pt_entries3)
-    .rept L1_PT_ENTRIES
-    .long PT_PADDR(l1_pt_entries1, L1_PT_SHIFT) + L1_PROT, 0
-    .endr
-END_OBJECT(l1_pt_entries3)
+/* Allocate L1 page tables */
+.set i, FIRST_PT_IDX
+.rept EARLY_PT_NUM
+    alloc_l1_pt %i
+    .set i, i + 1
+.endr
 
 /* 
  * Each single l2_pt_entry points to l1_pt_entry table and 
  * thus a single l2_pt_entry covers a 2M of virtual addr range 
  */
 GLOBAL(l2_pt_entries)
-    .long l1_pt_entries1 + L2_PROT, 0           /* Covers 0-2M */
-    .long l1_pt_entries2 + L2_PROT, 0           /* Covers 2M-4M */
-    .long l1_pt_entries3 + L2_PROT, 0           /* Covers 4M-6M */
-    .fill (L2_PT_ENTRIES - 3), PTE_SIZE, 0      /* 3 entries used, rests all are zeroed */
+    /* Assign L1 page tables to their L2 table */
+    .set i, FIRST_PT_IDX
+    .rept EARLY_PT_NUM
+        l2_pt_entry %i
+        .set i, i + 1
+    .endr
+    .fill (L2_PT_ENTRIES - EARLY_PT_NUM), PTE_SIZE, 0      /* EARLY_PT_NUM entries used, rests all are zeroed */
 END_OBJECT(l2_pt_entries)
 
 /* 
@@ -99,3 +110,5 @@ GLOBAL(l4_pt_entries)
     .long l3_pt_entries + L4_PROT, 0
 END_OBJECT(l4_pt_entries)
 #endif
+
+.noaltmacro

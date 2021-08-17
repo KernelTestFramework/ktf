@@ -239,7 +239,11 @@ static size_t process_memory_range(unsigned index) {
     if (get_avail_memory_range(index, &range) < 0)
         return 0;
 
-    cur = start = (index == 1 ? virt_to_paddr(__end_rodata) : _paddr(range.start));
+    /* Find unused beginning of the region */
+    for (start = _paddr(range.start); !in_free_region(start); start += PAGE_SIZE)
+        ;
+
+    cur = start;
     end = _paddr(range.end);
     size = end - start;
 
@@ -249,7 +253,7 @@ static size_t process_memory_range(unsigned index) {
      */
 
     /* Add initial 4K frames and align to 2M. */
-    while (cur % PAGE_SIZE_2M && cur + PAGE_SIZE <= end) {
+    while ((cur < MB(EARLY_VIRT_MEM) || cur % PAGE_SIZE_2M) && cur + PAGE_SIZE <= end) {
         if (index <= 1)
             add_early_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
         else
@@ -323,6 +327,11 @@ void init_pmm(void) {
         total_phys_memory += process_memory_range(i);
 
     display_frames_count();
+
+    if (frames_count[PAGE_ORDER_4K] < (MB(EARLY_VIRT_MEM) / PAGE_SIZE))
+        panic("Not enough early frames: %u missing\n",
+              (MB(EARLY_VIRT_MEM) / PAGE_SIZE) - frames_count[PAGE_ORDER_4K]);
+
     if (opt_debug)
         display_frames();
 }
