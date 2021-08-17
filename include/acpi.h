@@ -34,6 +34,7 @@
 #define RSDT_SIGNATURE (('R') | ('S' << 8) | ('D' << 16) | ('T' << 24))
 #define XSDT_SIGNATURE (('X') | ('S' << 8) | ('D' << 16) | ('T' << 24))
 #define MADT_SIGNATURE (('A') | ('P' << 8) | ('I' << 16) | ('C' << 24))
+#define FADT_SIGNATURE (('F') | ('A' << 8) | ('C' << 16) | ('P' << 24))
 
 /* ACPI common table header */
 struct acpi_table_hdr {
@@ -87,18 +88,28 @@ struct acpi_table {
 } __packed;
 typedef struct acpi_table acpi_table_t;
 
+/* Generic Address Structure */
+struct acpi_gas {
+    uint8_t address_space;
+    uint8_t bit_width;
+    uint8_t bit_offset;
+    uint8_t access_size;
+    uint64_t address;
+} __packed;
+typedef struct acpi_gas acpi_gas_t;
+
 struct acpi_fadt_rev1 {
     acpi_table_hdr_t header;
     uint32_t firmware_ctrl; /* Physical address of FACS */
     uint32_t dsdt;          /* Physical address of DSDT */
     uint8_t model;
-    uint8_t rsvd1;
+    uint8_t preferred_profile;
     uint16_t sci_int; /* SCI interrupt vector */
     uint32_t smi_cmd; /* SMI command port address */
     uint8_t acpi_enable;
     uint8_t acpi_disable;
     uint8_t S4bios_req;
-    uint8_t rsvd2; /* Must be zero */
+    uint8_t pstate_ctrl;
     uint32_t pm1a_evt_blk;
     uint32_t pm1b_evt_blk;
     uint32_t pm1a_ctrl_blk;
@@ -114,7 +125,7 @@ struct acpi_fadt_rev1 {
     uint8_t gpe0_blk_len;
     uint8_t gpe1_blk_len;
     uint8_t gpe1_base;
-    uint8_t rsvd3;
+    uint8_t cst_ctrl;
     uint16_t plvl2_lat;
     uint16_t plvl3_lat;
     uint16_t flush_size;
@@ -124,19 +135,15 @@ struct acpi_fadt_rev1 {
     uint8_t day_alrm;
     uint8_t mon_alrm;
     uint8_t century;
-    uint8_t rsvd4[3];
+    uint16_t boot_flags;
+    uint8_t rsvd;
+    uint32_t flags;
+    acpi_gas_t reset_reg;
+    uint8_t reset_val;
+    uint16_t arm_boot_flags;
+    uint8_t minor_rev;
 } __packed;
 typedef struct acpi_fadt_rev1 acpi_fadt_rev1_t;
-
-/* Generic Address Structure */
-struct acpi_gas {
-    uint8_t address_space;
-    uint8_t bit_width;
-    uint8_t bit_offset;
-    uint8_t access_size;
-    uint64_t address;
-} __packed;
-typedef struct acpi_gas acpi_gas_t;
 
 struct acpi_fadt_rev2 {
     acpi_fadt_rev1_t rev1;
@@ -152,6 +159,16 @@ struct acpi_fadt_rev2 {
     acpi_gas_t x_gpe1_blk;
 } __packed;
 typedef struct acpi_fadt_rev2 acpi_fadt_rev2_t;
+
+enum acpi_fadt_boot_flags {
+    ACPI_FADT_LEGACY_DEVICES = 1,
+    ACPI_FADT_8042 = 2,
+    ACPI_FADT_NO_VGA = 4,
+    ACPI_FADT_NO_MSI = 8,
+    ACPI_FADT_NO_ASPM = 16,
+    ACPI_FADT_NO_CMOS_RTC = 32,
+};
+typedef enum acpi_fadt_boot_flags acpi_fadt_boot_flags_t;
 
 struct acpi_madt_entry {
     uint8_t type;
