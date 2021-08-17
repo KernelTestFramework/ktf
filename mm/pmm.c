@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Amazon.com, Inc. or its affiliates.
+ * Copyright © 2021 Amazon.com, Inc. or its affiliates.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <list.h>
+#include <spinlock.h>
 
 #include <mm/pmm.h>
 #include <mm/regions.h>
@@ -37,6 +38,8 @@ static unsigned int free_frame_idx;
 
 static size_t frames_count[MAX_PAGE_ORDER + 1];
 
+static spinlock_t lock = SPINLOCK_INIT;
+
 void display_frames_count(void) {
     printk("Avail memory frames: (total size: %lu MB)\n", total_phys_memory / MB(1));
 
@@ -48,34 +51,30 @@ void display_frames_count(void) {
     }
 }
 
-static inline void display_frame(const frame_t *frame) {
-    printk("Frame: mfn: %lx, order: %u, refcnt: %u, uc: %u, free: %u\n", frame->mfn,
-           frame->order, frame->refcount, frame->uncachable, frame->free);
-}
-
-static void add_frame(paddr_t *pa, unsigned int order, bool initial) {
-    frame_t *free_frame = &early_frames[free_frame_idx++];
+static inline frame_t *new_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame = &early_frames[free_frame_idx++];
 
     if (free_frame_idx > ARRAY_SIZE(early_frames))
         panic("Not enough initial frames for PMM allocation!\n");
 
-    free_frame->order = order;
-    free_frame->mfn = paddr_to_mfn(*pa);
-    free_frame->free = true;
+    frame->order = order;
+    frame->mfn = mfn;
+    frame->flags.free = true;
 
-    *pa += (PAGE_SIZE << order);
-
-    if (initial)
-        list_add(&free_frame->list, &free_frames[order]);
-    else
-        list_add_tail(&free_frame->list, &free_frames[order]);
     frames_count[order]++;
+    return frame;
 }
 
-void reclaim_frame(mfn_t mfn, unsigned int order) {
-    paddr_t pa = mfn_to_paddr(mfn);
+static inline void add_early_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame = new_frame(mfn, order);
 
-    add_frame(&pa, order, false);
+    list_add(&frame->list, &free_frames[order]);
+}
+
+static inline void add_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame = new_frame(mfn, order);
+
+    list_add_tail(&frame->list, &free_frames[order]);
 }
 
 static size_t process_memory_range(unsigned index) {
@@ -96,24 +95,37 @@ static size_t process_memory_range(unsigned index) {
      */
 
     /* Add initial 4K frames and align to 2M. */
-    while (cur % PAGE_SIZE_2M && cur + PAGE_SIZE <= end)
-        add_frame(&cur, PAGE_ORDER_4K, true);
+    while (cur % PAGE_SIZE_2M && cur + PAGE_SIZE <= end) {
+        if (index <= 1)
+            add_early_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
+        else
+            add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
+        cur += (PAGE_SIZE << PAGE_ORDER_4K);
+    }
 
     /* Add initial 2M frames and align to 1G. */
-    while (cur % PAGE_SIZE_1G && cur + PAGE_SIZE_2M <= end)
-        add_frame(&cur, PAGE_ORDER_2M, false);
+    while (cur % PAGE_SIZE_1G && cur + PAGE_SIZE_2M <= end) {
+        add_frame(paddr_to_mfn(cur), PAGE_ORDER_2M);
+        cur += (PAGE_SIZE << PAGE_ORDER_2M);
+    }
 
     /* Add all remaining 1G frames. */
-    while (cur + PAGE_SIZE_1G <= end)
-        add_frame(&cur, PAGE_ORDER_1G, false);
+    while (cur + PAGE_SIZE_1G <= end) {
+        add_frame(paddr_to_mfn(cur), PAGE_ORDER_1G);
+        cur += (PAGE_SIZE << PAGE_ORDER_1G);
+    }
 
     /* Add all remaining 2M frames. */
-    while (cur + PAGE_SIZE_2M <= end)
-        add_frame(&cur, PAGE_ORDER_2M, false);
+    while (cur + PAGE_SIZE_2M <= end) {
+        add_frame(paddr_to_mfn(cur), PAGE_ORDER_2M);
+        cur += (PAGE_SIZE << PAGE_ORDER_2M);
+    }
 
     /* Add all remaining 4K frames. */
-    while (cur < end)
-        add_frame(&cur, PAGE_ORDER_4K, false);
+    while (cur < end) {
+        add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
+        cur += (PAGE_SIZE << PAGE_ORDER_4K);
+    }
 
     if (cur != end) {
         panic(
@@ -123,6 +135,21 @@ static size_t process_memory_range(unsigned index) {
 
     return size;
 }
+
+static inline void display_frames(void) {
+    printk("List of frames:\n");
+    for_each_order (order) {
+        if (!list_is_empty(&free_frames[order])) {
+            frame_t *frame;
+
+            printk("Order: %u\n", order);
+            list_for_each_entry (frame, &free_frames[order], list)
+                display_frame(frame);
+        }
+    }
+}
+
+void reclaim_frame(mfn_t mfn, unsigned int order) { add_frame(mfn, order); }
 
 void init_pmm(void) {
     printk("Initialize Physical Memory Manager\n");
@@ -138,103 +165,97 @@ void init_pmm(void) {
         total_phys_memory += process_memory_range(i);
 
     display_frames_count();
-
-    if (opt_debug) {
-        frame_t *frame;
-
-        printk("List of frames:\n");
-        for_each_order (order) {
-            if (list_is_empty(&free_frames[order]))
-                continue;
-
-            printk("Order: %u\n", order);
-            list_for_each_entry (frame, &free_frames[order], list)
-                display_frame(frame);
-        }
-    }
+    if (opt_debug)
+        display_frames();
 }
 
-static frame_t *reserve_frame(frame_t *frame, unsigned int order) {
-    BUG_ON(!frame);
-    BUG_ON(!frame->free);
-    frame->free = false;
+static inline frame_t *reserve_frame(frame_t *frame) {
+    if (!frame)
+        return NULL;
 
-    BUG_ON(frame->refcount > 0);
-    frame->refcount++;
-
-    list_unlink(&frame->list);
-    list_add(&frame->list, &busy_frames[order]);
+    if (frame->refcount++ == 0) {
+        list_unlink(&frame->list);
+        list_add(&frame->list, &busy_frames[frame->order]);
+    }
 
     return frame;
 }
 
-/* Reserves and returns the first free frame
- * fulfilling the condition specified by
- * the callback
+static inline frame_t *return_frame(frame_t *frame) {
+    if (!is_frame_used(frame))
+        panic("PMM: trying to return unused frame: %p\n", frame);
+
+    if (--frame->refcount == 0) {
+        list_unlink(&frame->list);
+        list_add(&frame->list, &free_frames[frame->order]);
+    }
+
+    return frame;
+}
+
+/* Reserves and returns the first free frame fulfilling
+ * the condition specified by the callback
  */
 frame_t *get_free_frames_cond(free_frames_cond_t cb) {
     frame_t *frame;
 
+    spin_lock(&lock);
     for_each_order (order) {
         if (list_is_empty(&free_frames[order]))
             continue;
 
         list_for_each_entry (frame, &free_frames[order], list) {
             if (cb(frame)) {
-                return reserve_frame(frame, order);
+                spin_unlock(&lock);
+                return reserve_frame(frame);
             }
         }
     }
+    spin_unlock(&lock);
+
     return NULL;
 }
 
-mfn_t get_free_frames(unsigned int order) {
+frame_t *get_free_frames(unsigned int order) {
     frame_t *frame;
 
     if (order > MAX_PAGE_ORDER)
-        return MFN_INVALID;
+        return NULL;
 
+    spin_lock(&lock);
     if (list_is_empty(&free_frames[order])) {
         /* FIXME: Add page split */
-        return MFN_INVALID;
+        spin_unlock(&lock);
+        return NULL;
     }
 
-    frame = list_first_entry(&free_frames[order], frame_t, list);
+    frame = reserve_frame(list_first_entry(&free_frames[order], frame_t, list));
+    spin_unlock(&lock);
 
-    frame = reserve_frame(frame, order);
-
-    return frame->mfn;
+    return frame;
 }
 
-void put_frame(mfn_t mfn, unsigned int order) {
+void put_free_frames(mfn_t mfn, unsigned int order) {
     frame_t *frame;
-    frame_t *found = NULL;
 
-    if (mfn == MFN_INVALID)
+    BUG_ON(mfn_invalid(mfn));
+
+    if (order > MAX_PAGE_ORDER)
         return;
 
+    spin_lock(&lock);
     list_for_each_entry (frame, &busy_frames[order], list) {
         if (frame->mfn == mfn) {
-            found = frame;
-            break;
+            /* FIXME: Maintain order wrt mfn value */
+            /* FIXME: Add frame merge */
+            return_frame(frame);
+            spin_unlock(&lock);
+            return;
         }
     }
+    spin_unlock(&lock);
 
-    BUG_ON(!found);
-
-    BUG_ON(frame->refcount == 0);
-    frame->refcount--;
-
-    if (found->refcount > 0)
-        return;
-
-    BUG_ON(frame->free);
-    frame->free = true;
-
-    list_unlink(&frame->list);
-    /* FIXME: Maintain order wrt mfn value */
-    list_add(&frame->list, &free_frames[order]);
-    /* FIXME: Add frame merge */
+    panic("PMM: unable to find frame: %x in busy frames list\n");
 }
 
 void map_used_memory(void) {
@@ -242,9 +263,9 @@ void map_used_memory(void) {
 
     for_each_order (order) {
         list_for_each_entry (frame, &busy_frames[order], list) {
-            if (!frame->mapped) {
+            if (!frame->flags.mapped) {
                 kmap(frame->mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
-                frame->mapped = true;
+                frame->flags.mapped = true;
             }
         }
     }

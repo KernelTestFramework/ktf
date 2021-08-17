@@ -69,7 +69,7 @@ void init_keyboard(uint8_t dst_cpus) {
     outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_2);
 
     /* Flush output buffer */
-    while (inb(KEYBOARD_PORT_DATA) & KEYBOARD_STATUS_OUT_FULL)
+    while (inb(KEYBOARD_PORT_CMD) & KEYBOARD_STATUS_OUT_FULL)
         ; /* discard leftover bytes */
 
     /* Controller configuration */

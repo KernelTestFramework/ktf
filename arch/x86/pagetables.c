@@ -118,7 +118,10 @@ static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
     void *cr3_mapped = NULL;
 
     if (mfn_invalid(cr3_entry->mfn)) {
-        cr3_entry->mfn = get_free_frame();
+        frame_t *frame = get_free_frame();
+        BUG_ON(!frame);
+
+        cr3_entry->mfn = frame->mfn;
         cr3_mapped = init_map_mfn(cr3_entry->mfn);
         memset(cr3_mapped, 0, PAGE_SIZE);
     }
@@ -137,7 +140,10 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
 
     mfn = mfn_from_pgentry(*entry);
     if (mfn_invalid(mfn)) {
-        set_pgentry(entry, get_free_frame(), flags);
+        frame_t *frame = get_free_frame();
+        BUG_ON(!frame);
+
+        set_pgentry(entry, frame->mfn, flags);
         mfn = mfn_from_pgentry(*entry);
         tab = init_map_mfn(mfn);
         memset(tab, 0, PAGE_SIZE);
