@@ -690,6 +690,19 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
     }
 }
 
+static ACPI_STATUS init_fadt(void) {
+    ACPI_TABLE_FADT *fadt = acpi_find_table(ACPI_SIG_FADT);
+
+    if (!fadt)
+        return AE_ERROR;
+
+    boot_flags.legacy_devs = !!(fadt->BootFlags & ACPI_FADT_LEGACY_DEVICES);
+    boot_flags.i8042 = !!(fadt->BootFlags & ACPI_FADT_8042);
+    boot_flags.vga = !(fadt->BootFlags & ACPI_FADT_NO_VGA);
+
+    return AE_OK;
+}
+
 static ACPI_STATUS init_madt(unsigned bsp_cpu_id) {
     ACPI_TABLE_MADT *madt = acpi_find_table(ACPI_SIG_MADT);
     ACPI_SUBTABLE_HEADER *subtbl = (void *) madt + sizeof(*madt);
@@ -725,6 +738,10 @@ ACPI_STATUS init_acpi(unsigned bsp_cpu_id) {
     printk("Initializing ACPI support\n");
 
     status = InitializeFullAcpi();
+    if (status != AE_OK)
+        return status;
+
+    status = init_fadt();
     if (status != AE_OK)
         return status;
 
