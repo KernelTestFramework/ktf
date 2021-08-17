@@ -36,7 +36,8 @@
 #include <mm/pmm.h>
 
 struct boot_flags {
-    uint64_t virt : 1, rsvd : 63;
+    uint64_t virt : 1, legacy_devs : 1, i8042 : 1, vga : 1, msi : 1, aspm : 1, rtc : 1,
+        rsvd : 57;
 };
 typedef struct boot_flags boot_flags_t;
 

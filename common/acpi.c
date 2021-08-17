@@ -31,6 +31,7 @@
 #include <page.h>
 #include <pagetable.h>
 #include <percpu.h>
+#include <setup.h>
 #include <string.h>
 
 acpi_table_t *acpi_tables[128];
@@ -218,6 +219,19 @@ static const char *madt_int_trigger_names[] = {
     [ACPI_MADT_INT_TRIGGER_LT] = "Level",
 };
 
+static int process_fadt(void) {
+    acpi_fadt_rev1_t *fadt = (acpi_fadt_rev1_t *) acpi_find_table(FADT_SIGNATURE);
+
+    if (!fadt)
+        return -1;
+
+    boot_flags.legacy_devs = !!(fadt->boot_flags & ACPI_FADT_LEGACY_DEVICES);
+    boot_flags.i8042 = !!(fadt->boot_flags & ACPI_FADT_8042);
+    boot_flags.vga = !(fadt->boot_flags & ACPI_FADT_NO_VGA);
+
+    return 0;
+}
+
 static int process_madt_entries(unsigned bsp_cpu_id) {
     acpi_madt_t *madt = (acpi_madt_t *) acpi_find_table(MADT_SIGNATURE);
     acpi_madt_entry_t *entry;
@@ -371,6 +385,7 @@ int init_acpi(unsigned bsp_cpu_id) {
     unsigned acpi_nr_tables;
     rsdt_t *rsdt = NULL;
     xsdt_t *xsdt = NULL;
+    int rc;
 
     printk("Initializing ACPI support\n");
 
@@ -415,5 +430,10 @@ int init_acpi(unsigned bsp_cpu_id) {
     }
 
     acpi_dump_tables();
+
+    rc = process_fadt();
+    if (rc < 0)
+        return rc;
+
     return process_madt_entries(bsp_cpu_id);
 }
