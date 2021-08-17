@@ -23,10 +23,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <list.h>
+#include <setup.h>
 #include <spinlock.h>
 
 #include <mm/pmm.h>
 #include <mm/regions.h>
+#include <mm/vmm.h>
 
 size_t total_phys_memory;
 
@@ -71,16 +73,21 @@ static inline void init_frames_array(frames_array_t *array) {
 }
 
 static frames_array_t *new_frames_array(void) {
-    frame_t *frame = get_free_frame();
     frames_array_t *array;
 
-    if (!frame)
-        panic("PMM: Unable to allocate new frame for frame array\n");
+    if (!boot_flags.virt) {
+        frame_t *frame = get_free_frame();
+        array = (frames_array_t *) mfn_to_virt_kern(frame->mfn);
+    }
+    else
+        array = get_free_page(GFP_KERNEL);
 
-    array = (frames_array_t *) mfn_to_virt_kern(frame->mfn);
-    init_frames_array(array);
+    if (!array)
+        panic("PMM: Unable to allocate new page for frame array\n");
 
     dprintk("%s: allocated new frames array: %p\n", __func__, array);
+
+    init_frames_array(array);
 
     total_free_frames += array->meta.free_count;
     return array;
