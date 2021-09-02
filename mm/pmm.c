@@ -30,6 +30,8 @@
 #include <mm/regions.h>
 #include <mm/vmm.h>
 
+#define PMM_FIRST_AVAIL_REGION 1
+
 size_t total_phys_memory;
 
 static list_head_t frames;
@@ -239,10 +241,7 @@ static size_t process_memory_range(unsigned index) {
     if (get_avail_memory_range(index, &range) < 0)
         return 0;
 
-    /* Find unused beginning of the region */
-    for (start = _paddr(range.start); !in_free_region(start); start += PAGE_SIZE)
-        ;
-
+    start = get_region_free_start(range.start);
     cur = start;
     end = _paddr(range.end);
     size = end - start;
@@ -254,7 +253,7 @@ static size_t process_memory_range(unsigned index) {
 
     /* Add initial 4K frames and align to 2M. */
     while ((cur < MB(EARLY_VIRT_MEM) || cur % PAGE_SIZE_2M) && cur + PAGE_SIZE <= end) {
-        if (index <= 1)
+        if (index <= PMM_FIRST_AVAIL_REGION)
             add_early_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
         else
             add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
@@ -309,6 +308,21 @@ static inline void display_frames(void) {
 
 void reclaim_frame(mfn_t mfn, unsigned int order) { add_frame(mfn, order); }
 
+static inline void check_early_frames(void) {
+    unsigned early_frames_cnt;
+    addr_range_t range;
+
+    if (get_avail_memory_range(PMM_FIRST_AVAIL_REGION, &range) < 0)
+        panic("PMM: Cannot obtain first available physical memory address range\n");
+
+    early_frames_cnt =
+        (MB(EARLY_VIRT_MEM) - get_region_free_start(range.start)) / PAGE_SIZE;
+    if (frames_count[PAGE_ORDER_4K] < early_frames_cnt) {
+        panic("Not enough early frames: %u missing\n",
+              early_frames_cnt - frames_count[PAGE_ORDER_4K]);
+    }
+}
+
 void init_pmm(void) {
     printk("Initialize Physical Memory Manager\n");
 
@@ -323,14 +337,12 @@ void init_pmm(void) {
     }
 
     /* Skip low memory range */
-    for (unsigned int i = 1; i < regions_num; i++)
+    for (unsigned int i = PMM_FIRST_AVAIL_REGION; i < regions_num; i++)
         total_phys_memory += process_memory_range(i);
 
     display_frames_count();
 
-    if (frames_count[PAGE_ORDER_4K] < (MB(EARLY_VIRT_MEM) / PAGE_SIZE))
-        panic("Not enough early frames: %u missing\n",
-              (MB(EARLY_VIRT_MEM) / PAGE_SIZE) - frames_count[PAGE_ORDER_4K]);
+    check_early_frames();
 
     if (opt_debug)
         display_frames();

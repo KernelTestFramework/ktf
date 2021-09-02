@@ -135,6 +135,16 @@ static inline uint32_t get_bios_ebda_addr(void) {
     return (*(uint16_t *) paddr_to_virt_kern(EBDA_ADDR_ENTRY)) << 4;
 }
 
+static inline paddr_t get_region_free_start(void *from) {
+    paddr_t start = _paddr(from);
+
+    /* Find unused beginning of the region */
+    while (!in_free_region(start))
+        start += PAGE_SIZE;
+
+    return start;
+}
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_REGIONS_H */
