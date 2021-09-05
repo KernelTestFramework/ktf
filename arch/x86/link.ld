@@ -170,6 +170,14 @@ SECTIONS
         __end_data = .;
     } :kernel
 
+    .extables BLOCK(4K) : ALIGN(4K)
+    {
+        __start_extables = .;
+            *(.extables)
+        . = ALIGN(4K);
+        __end_extables = .;
+    } :kernel
+
     .bss BLOCK(4K) : ALIGN(4K)
     {
         . = ALIGN(4K);

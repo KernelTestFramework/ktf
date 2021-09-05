@@ -47,6 +47,9 @@
 
 #define PT_PADDR(table, shift) (((.- (table)) / PTE_SIZE) << (shift))
 
+#define PUSHSECTION(name) ".pushsection " STR(name) " ;\n"
+#define POPSECTION        ".popsection;\n"
+
 #ifdef __ASSEMBLY__
 
 /* clang-format off */

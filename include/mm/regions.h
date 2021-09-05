@@ -38,6 +38,7 @@
 
 #ifndef __ASSEMBLY__
 #include <cmdline.h>
+#include <extables.h>
 #include <page.h>
 #include <string.h>
 
@@ -56,6 +57,7 @@ extern unsigned long __start_bss_init[], __end_bss_init[];
 
 extern unsigned long __start_text_rmode[], __end_text_rmode[];
 extern unsigned long __start_data_rmode[], __end_data_rmode[];
+extern struct extable_entry __start_extables[], __end_extables[];
 extern unsigned long __start_bss_rmode[], __end_bss_rmode[];
 
 extern struct ktf_param __start_cmdline[], __end_cmdline[];
