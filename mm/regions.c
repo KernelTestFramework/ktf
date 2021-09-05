@@ -60,6 +60,7 @@ addr_range_t addr_ranges[] = {
 
     KERNEL_RANGE( ".text",      L1_PROT_RO,      __start_text,           __end_text      ),
     KERNEL_RANGE( ".data",      L1_PROT,         __start_data,           __end_data      ),
+    KERNEL_RANGE( ".extables",  L1_PROT_RO,      __start_extables,       __end_extables  ),
     KERNEL_RANGE( ".bss",       L1_PROT,         __start_bss,            __end_bss       ),
     KERNEL_RANGE( ".rodata",    L1_PROT_RO,      __start_rodata,         __end_rodata    ),
     KERNEL_RANGE( ".symbols",   L1_PROT_RO,      __start_symbols,        __end_symbols   ),

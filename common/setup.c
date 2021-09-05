@@ -254,11 +254,11 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     if (opt_debug)
         dump_pagetables();
 
-    /* TODO: Exception tables */
-
     init_percpu();
 
     init_traps(get_bsp_cpu_id());
+
+    init_extables();
 
     init_slab();
 
