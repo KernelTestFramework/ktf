@@ -434,4 +434,7 @@ extern void srand(unsigned s);
 
 extern int rand(void);
 
+extern bool wrmsr_safe(uint32_t msr_idx, uint64_t value);
+extern bool rdmsr_safe(uint32_t msr_idx, uint64_t *value);
+
 #endif /* KTF_LIB_H */
