@@ -207,11 +207,44 @@ void *AcpiOsAllocate(ACPI_SIZE Size) { return kmalloc(Size); }
 
 void AcpiOsFree(void *Memory) { kfree(Memory); }
 
-/* FIXME: Check if pages are mapped (with exception tables) */
-BOOLEAN AcpiOsReadable(void *Memory, ACPI_SIZE Length) { return true; }
+BOOLEAN AcpiOsReadable(void *Memory, ACPI_SIZE Length) {
+    volatile bool success = false;
+    char *mem;
 
-/* FIXME: Check if pages are mapped and writeable (with exception tables) */
-BOOLEAN AcpiOsWriteable(void *Memory, ACPI_SIZE Length) { return true; }
+    for (mfn_t mfn = virt_to_mfn(Memory); mfn <= virt_to_mfn((char *) Memory + Length);
+         ++mfn) {
+        success = false;
+        mem = mfn_to_virt_kern(mfn);
+        asm volatile("1: movq ( %[mem] ), %%rax; movq $1, %[success];"
+                     "2:" ASM_EXTABLE(1b, 2b)
+                     : [ success ] "=m"(success)
+                     : [ mem ] "r"(mem)
+                     : "rax", "memory");
+        if (!success)
+            return false;
+    }
+    return success;
+}
+
+BOOLEAN AcpiOsWriteable(void *Memory, ACPI_SIZE Length) {
+    volatile bool success = false;
+    char *mem;
+
+    for (mfn_t mfn = virt_to_mfn(Memory); mfn <= virt_to_mfn((char *) Memory + Length);
+         ++mfn) {
+        success = false;
+        mem = mfn_to_virt_kern(mfn);
+        asm volatile("1: orq $0, ( %[mem] ); movq $1, %[success];"
+                     "2:" ASM_EXTABLE(1b, 2b)
+                     : [ success ] "=m"(success), [ mem ] "=r"(mem)
+                     :
+                     : "memory");
+        if (!success)
+            return false;
+    }
+
+    return success;
+}
 
 void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     unsigned offset = PhysicalAddress & ~PAGE_MASK;
