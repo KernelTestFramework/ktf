@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Amazon.com, Inc. or its affiliates.
+ * Copyright © 2021 Amazon.com, Inc. or its affiliates.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +25,8 @@
 #include <ktf.h>
 #include <lib.h>
 
+#include <extables.h>
+
 void __noreturn halt(void) {
     cli();
 
@@ -41,4 +43,34 @@ void srand(unsigned s) { seed = s - 1; }
 int rand(void) {
     seed = 6364136223846793005ULL * seed + 1;
     return seed >> 33;
+}
+
+/*
+ * read the msr_idx msr into value; the result is valid iff the returned value is true
+ */
+bool rdmsr_safe(uint32_t msr_idx, uint64_t *value) {
+    volatile bool success = false;
+    uint32_t low, high;
+
+    asm volatile("1: rdmsr; movb $1, %[success];"
+                 "2:" ASM_EXTABLE(1b, 2b)
+                 : "=a"(low), "=d"(high), [ success ] "=m"(success)
+                 : "c"(msr_idx)
+                 : "memory");
+    *value = (((uint64_t) high) << 32) | low;
+    return success;
+}
+
+/*
+ * write to the msr_idx msr; the result is valid iff the returned value is true
+ */
+bool wrmsr_safe(uint32_t msr_idx, uint64_t value) {
+    volatile bool success = false;
+
+    asm volatile("1: wrmsr; movq $1, %[success];"
+                 "2:" ASM_EXTABLE(1b, 2b)
+                 : [ success ] "=m"(success)
+                 : "c"(msr_idx), "a"((uint32_t) value), "d"((uint32_t)(value >> 32))
+                 : "memory");
+    return success;
 }
