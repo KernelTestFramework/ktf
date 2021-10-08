@@ -212,6 +212,12 @@ make onelinescan
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
+## Community
+
+Maintainers and users of KTF communicate in Slack. We set up a Slack workspace
+and we're actively sharing ideas, bugs and anything related to KTF there. Feel free to join us:
+[Slack invite link](https://join.slack.com/t/ktfhq/shared_invite/zt-x48h3oy9-vPEN9_b3lmY93v9QpV5LRw)
+
 ## License
 
 ![GitHub](https://img.shields.io/github/license/awslabs/ktf)
