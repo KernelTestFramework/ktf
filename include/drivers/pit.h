@@ -37,24 +37,24 @@
 #define PIT_DATA_PORT_CH0 0x40
 #define PIT_COMMAND_PORT  0x43
 
-#define PIT_CHANNEL_0        (~((1 << 7) | (1 << 6)))
+#define PIT_CHANNEL_0        0
 #define PIT_ACCESS_MODE_LOW  (1 << 4)
 #define PIT_ACCESS_MODE_HIGH (1 << 5)
 #define PIT_ACCESS_MODE_LH   (PIT_ACCESS_MODE_LOW | PIT_ACCESS_MODE_HIGH)
 
 enum pit_operational_mode {
-    PIT_OP_MODE_COUNT = 0x00,     /* interrupt on terminal count */
-    PIT_OP_MODE_ONE_SHOT = 0x01,  /* hardware re-triggerable one-shot */
-    PIT_OP_MODE_RATE = 0x02,      /* rate generator */
-    PIT_OP_MODE_WAVE = 0x03,      /* square wave generator */
-    PIT_OP_MODE_SW_STROBE = 0x04, /* software triggered strobe */
-    PIT_OP_MODE_HW_STROBE = 0x05, /* hardware triggered strobe */
-    PIT_OP_MODE_RATE_6 = 0x06,    /* rate generator */
-    PIT_OP_MODE_WAVE_7 = 0x07     /* square wave generator */
+    PIT_OP_MODE_COUNT = 0x00 << 1,     /* interrupt on terminal count */
+    PIT_OP_MODE_ONE_SHOT = 0x01 << 1,  /* hardware re-triggerable one-shot */
+    PIT_OP_MODE_RATE = 0x02 << 1,      /* rate generator */
+    PIT_OP_MODE_WAVE = 0x03 << 1,      /* square wave generator */
+    PIT_OP_MODE_SW_STROBE = 0x04 << 1, /* software triggered strobe */
+    PIT_OP_MODE_HW_STROBE = 0x05 << 1, /* hardware triggered strobe */
+    PIT_OP_MODE_RATE_6 = 0x06 << 1,    /* rate generator */
+    PIT_OP_MODE_WAVE_7 = 0x07 << 1     /* square wave generator */
 };
 typedef enum pit_operational_mode pit_operational_mode_t;
 
-#define PIT_BCD_MODE (~(1 << 0))
+#define PIT_BCD_MODE 1
 
 extern void init_pit(uint8_t dst_cpus);
 extern void pit_disable(void);
