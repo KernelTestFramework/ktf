@@ -159,7 +159,7 @@ endif
 $(PREP_LINK_SCRIPT) : $(LINK_SCRIPT)
 	$(VERBOSE) $(CC) $(AFLAGS) -E -P -C -x c $< -o $@
 
-$(TARGET): $(PFMLIB_ARCHIVE) $(OBJS) $(PREP_LINK_SCRIPT)
+$(TARGET): $(OBJS) $(PREP_LINK_SCRIPT)
 	@echo "LD " $@
 	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(PFMLIB_LINKER_FLAGS)
 	@echo "GEN " $(SYMBOLS_NAME).S
@@ -185,7 +185,7 @@ $(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
 	@echo "AS " $@
 	$(VERBOSE) $(CC) -c -o $@ $(AFLAGS) $<
 
-%.o: %.c
+%.o: %.c $(PFMLIB_ARCHIVE)
 	@echo "CC " $@
 	$(VERBOSE) $(CC) -c -o $@ $(CFLAGS) $<
 
