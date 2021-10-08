@@ -74,6 +74,9 @@ bool_cmd("apic_timer", opt_apic_timer);
 bool opt_hpet = false;
 bool_cmd("hpet", opt_hpet);
 
+bool opt_fpu = false;
+bool_cmd("fpu", opt_fpu);
+
 io_port_t __data_rmode com_ports[2] = {COM1_PORT, COM2_PORT};
 
 boot_flags_t boot_flags;
@@ -302,6 +305,11 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     /* Initialize keyboard */
     if (opt_keyboard)
         init_keyboard(get_bsp_cpu_id());
+
+    if (opt_fpu) {
+        printk("Enabling FPU instructions support\n");
+        enable_fpu();
+    }
 
 #ifdef KTF_PMU
     printk("Initializing PFM library\n");
