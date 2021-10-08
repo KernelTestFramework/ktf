@@ -1,6 +1,3 @@
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/config.mk b/./config.mk
-index cc9a6d9..5fdf575 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/config.mk
 +++ b/./config.mk
 @@ -28,8 +28,15 @@
  # It is included by every Makefile
@@ -64,9 +61,7 @@ index cc9a6d9..5fdf575 100644
  CTAGS?=ctags
  
  #
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/include/perfmon/err.h b/./include/perfmon/err.h
 index 2f2c116..aca8b1d 100755
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/include/perfmon/err.h
 +++ b/./include/perfmon/err.h
 @@ -22,6 +22,8 @@
  #define __PFM_ERR_H__
@@ -77,9 +72,6 @@ index 2f2c116..aca8b1d 100755
  #include <err.h>
  #else /* PFMLIB_WINDOWS */
  #define warnx(...) do { \
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/include/perfmon/perf_event.h b/./include/perfmon/perf_event.h
-index fcce242..4ae97cd 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/include/perfmon/perf_event.h
 +++ b/./include/perfmon/perf_event.h
 @@ -24,12 +24,12 @@
  
@@ -117,9 +109,6 @@ index fcce242..4ae97cd 100644
  
  /*
   * compensate for some distros which do not
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/include/perfmon/pfmlib.h b/./include/perfmon/pfmlib.h
-index 0edb59c..e3bd34b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/include/perfmon/pfmlib.h
 +++ b/./include/perfmon/pfmlib.h
 @@ -31,10 +31,12 @@
  #ifdef __cplusplus
@@ -137,9 +126,6 @@ index 0edb59c..e3bd34b 100644
  
  #define LIBPFM_VERSION		(4 << 16 | 0)
  #define PFM_MAJ_VERSION(v)	((v)>>16)
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/include/perfmon/pfmlib_perf_event.h b/./include/perfmon/pfmlib_perf_event.h
-index 0516277..f9ba8a5 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/include/perfmon/pfmlib_perf_event.h
 +++ b/./include/perfmon/pfmlib_perf_event.h
 @@ -22,6 +22,8 @@
  #ifndef __PFMLIB_PERF_EVENTS_H__
@@ -150,9 +136,6 @@ index 0516277..f9ba8a5 100644
  #include <perfmon/pfmlib.h>
  #include <perfmon/perf_event.h>
  
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64.c b/./lib/pfmlib_amd64.c
-index f093e20..483ad2b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64.c
 +++ b/./lib/pfmlib_amd64.c
 @@ -26,9 +26,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -210,9 +193,6 @@ index f093e20..483ad2b 100644
  	pfm_amd64_cfg.family = (a >> 8) & 0x0000000f;  // bits 11 - 8
  	pfm_amd64_cfg.model  = (a >> 4) & 0x0000000f;  // Bits  7 - 4
  	if (pfm_amd64_cfg.family == 0xf) {
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam10h.c b/./lib/pfmlib_amd64_fam10h.c
-index 60df01d..43cc653 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam10h.c
 +++ b/./lib/pfmlib_amd64_fam10h.c
 @@ -24,6 +24,8 @@
   */
@@ -223,9 +203,6 @@ index 60df01d..43cc653 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
  #include "events/amd64_events_fam10h.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam11h.c b/./lib/pfmlib_amd64_fam11h.c
-index 6917e9c..509589f 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam11h.c
 +++ b/./lib/pfmlib_amd64_fam11h.c
 @@ -24,6 +24,8 @@
   */
@@ -236,9 +213,6 @@ index 6917e9c..509589f 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
  #include "events/amd64_events_fam11h.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam12h.c b/./lib/pfmlib_amd64_fam12h.c
-index bd84167..e3c4d70 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam12h.c
 +++ b/./lib/pfmlib_amd64_fam12h.c
 @@ -24,6 +24,8 @@
   */
@@ -249,9 +223,6 @@ index bd84167..e3c4d70 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
  #include "events/amd64_events_fam12h.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam14h.c b/./lib/pfmlib_amd64_fam14h.c
-index 2f1fcb8..0578137 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam14h.c
 +++ b/./lib/pfmlib_amd64_fam14h.c
 @@ -24,6 +24,8 @@
   */
@@ -262,9 +233,6 @@ index 2f1fcb8..0578137 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
  #include "events/amd64_events_fam14h.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam15h.c b/./lib/pfmlib_amd64_fam15h.c
-index 4d14f46..a4a459b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam15h.c
 +++ b/./lib/pfmlib_amd64_fam15h.c
 @@ -24,6 +24,8 @@
   */
@@ -275,9 +243,6 @@ index 4d14f46..a4a459b 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
  #include "events/amd64_events_fam15h.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam16h.c b/./lib/pfmlib_amd64_fam16h.c
-index 3ee1ba7..578a66d 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam16h.c
 +++ b/./lib/pfmlib_amd64_fam16h.c
 @@ -23,6 +23,8 @@
   */
@@ -288,9 +253,6 @@ index 3ee1ba7..578a66d 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
  #include "events/amd64_events_fam16h.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam17h.c b/./lib/pfmlib_amd64_fam17h.c
-index 443b25f..649b4b9 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_fam17h.c
 +++ b/./lib/pfmlib_amd64_fam17h.c
 @@ -24,6 +24,8 @@
   */
@@ -301,9 +263,6 @@ index 443b25f..649b4b9 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
  #include "events/amd64_events_fam17h.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_k7.c b/./lib/pfmlib_amd64_k7.c
-index 1601ad2..41e414f 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_k7.c
 +++ b/./lib/pfmlib_amd64_k7.c
 @@ -24,6 +24,8 @@
   */
@@ -314,9 +273,6 @@ index 1601ad2..41e414f 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
  #include "events/amd64_events_k7.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_k8.c b/./lib/pfmlib_amd64_k8.c
-index 9c2872b..73cbddb 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_k8.c
 +++ b/./lib/pfmlib_amd64_k8.c
 @@ -24,6 +24,8 @@
   */
@@ -327,9 +283,6 @@ index 9c2872b..73cbddb 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
  #include "events/amd64_events_k8.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_perf_event.c b/./lib/pfmlib_amd64_perf_event.c
-index e210328..d5c84d7 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_amd64_perf_event.c
 +++ b/./lib/pfmlib_amd64_perf_event.c
 @@ -21,10 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -344,9 +297,6 @@ index e210328..d5c84d7 100644
  
  /* private headers */
  #include "pfmlib_priv.h"		/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm.c b/./lib/pfmlib_arm.c
-index 91c35c6..be49af7 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm.c
 +++ b/./lib/pfmlib_arm.c
 @@ -23,11 +23,9 @@
   * 
@@ -362,9 +312,6 @@ index 91c35c6..be49af7 100644
  
  /* private headers */
  #include "pfmlib_priv.h"			/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm_armv6.c b/./lib/pfmlib_arm_armv6.c
-index d59b402..760d912 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm_armv6.c
 +++ b/./lib/pfmlib_arm_armv6.c
 @@ -22,11 +22,9 @@
   *
@@ -380,9 +327,6 @@ index d59b402..760d912 100644
  
  /* private headers */
  #include "pfmlib_priv.h"			/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm_armv7_pmuv1.c b/./lib/pfmlib_arm_armv7_pmuv1.c
-index c930781..f4e347b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm_armv7_pmuv1.c
 +++ b/./lib/pfmlib_arm_armv7_pmuv1.c
 @@ -23,11 +23,9 @@
   * 
@@ -398,9 +342,6 @@ index c930781..f4e347b 100644
  
  /* private headers */
  #include "pfmlib_priv.h"			/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm_armv8.c b/./lib/pfmlib_arm_armv8.c
-index 0a3313f..5f4c596 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm_armv8.c
 +++ b/./lib/pfmlib_arm_armv8.c
 @@ -22,9 +22,9 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -414,9 +355,6 @@ index 0a3313f..5f4c596 100644
  
  /* private headers */
  #include "pfmlib_priv.h"			/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm_perf_event.c b/./lib/pfmlib_arm_perf_event.c
-index c19df5f..c7a88c0 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_arm_perf_event.c
 +++ b/./lib/pfmlib_arm_perf_event.c
 @@ -21,9 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -430,9 +368,6 @@ index c19df5f..c7a88c0 100644
  
  /* private headers */
  #include "pfmlib_priv.h"		/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_cell.c b/./lib/pfmlib_cell.c
-index 07f7446..d42ec26 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_cell.c
 +++ b/./lib/pfmlib_cell.c
 @@ -22,11 +22,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -448,9 +383,6 @@ index 07f7446..d42ec26 100644
  
  /* public headers */
  #include <perfmon/pfmlib_cell.h>
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_common.c b/./lib/pfmlib_common.c
-index ca93d72..26834b7 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_common.c
 +++ b/./lib/pfmlib_common.c
 @@ -25,18 +25,18 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -633,9 +565,6 @@ index ca93d72..26834b7 100644
  }
  
  static int
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_gen_ia64.c b/./lib/pfmlib_gen_ia64.c
-index 9a9789f..a1092b5 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_gen_ia64.c
 +++ b/./lib/pfmlib_gen_ia64.c
 @@ -21,10 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -650,9 +579,6 @@ index 9a9789f..a1092b5 100644
  
  #include <perfmon/pfmlib.h>
  #include <perfmon/pfmlib_gen_ia64.h>
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_atom.c b/./lib/pfmlib_intel_atom.c
-index 5ce95a3..1c9aeea 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_atom.c
 +++ b/./lib/pfmlib_intel_atom.c
 @@ -33,6 +33,8 @@
   * Intel Atom = architectural v3 + PEBS
@@ -663,9 +589,6 @@ index 5ce95a3..1c9aeea 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_atom_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdw.c b/./lib/pfmlib_intel_bdw.c
-index 1de8438..d50e23c 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdw.c
 +++ b/./lib/pfmlib_intel_bdw.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -676,9 +599,6 @@ index 1de8438..d50e23c 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_bdw_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_cbo.c b/./lib/pfmlib_intel_bdx_unc_cbo.c
-index d1ff970..fcf0d67 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_cbo.c
 +++ b/./lib/pfmlib_intel_bdx_unc_cbo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -694,9 +614,6 @@ index d1ff970..fcf0d67 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_ha.c b/./lib/pfmlib_intel_bdx_unc_ha.c
-index d928ba0..7a1dd7c 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_ha.c
 +++ b/./lib/pfmlib_intel_bdx_unc_ha.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -712,9 +629,6 @@ index d928ba0..7a1dd7c 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_imc.c b/./lib/pfmlib_intel_bdx_unc_imc.c
-index 462f547..7f6258c 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_imc.c
 +++ b/./lib/pfmlib_intel_bdx_unc_imc.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -730,9 +644,6 @@ index 462f547..7f6258c 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_irp.c b/./lib/pfmlib_intel_bdx_unc_irp.c
-index 14e010b..66bf0f4 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_irp.c
 +++ b/./lib/pfmlib_intel_bdx_unc_irp.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -748,9 +659,6 @@ index 14e010b..66bf0f4 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_pcu.c b/./lib/pfmlib_intel_bdx_unc_pcu.c
-index f2ffe7f..c51fc7c 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_pcu.c
 +++ b/./lib/pfmlib_intel_bdx_unc_pcu.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -766,9 +674,6 @@ index f2ffe7f..c51fc7c 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_qpi.c b/./lib/pfmlib_intel_bdx_unc_qpi.c
-index e3fba3d..89a81db 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_qpi.c
 +++ b/./lib/pfmlib_intel_bdx_unc_qpi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -784,9 +689,6 @@ index e3fba3d..89a81db 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_r2pcie.c b/./lib/pfmlib_intel_bdx_unc_r2pcie.c
-index 18bed6c..e8373ac 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_r2pcie.c
 +++ b/./lib/pfmlib_intel_bdx_unc_r2pcie.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -802,9 +704,6 @@ index 18bed6c..e8373ac 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_r3qpi.c b/./lib/pfmlib_intel_bdx_unc_r3qpi.c
-index 89ba498..8c8451d 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_r3qpi.c
 +++ b/./lib/pfmlib_intel_bdx_unc_r3qpi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -820,9 +719,6 @@ index 89ba498..8c8451d 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_sbo.c b/./lib/pfmlib_intel_bdx_unc_sbo.c
-index a2be8bc..f29beb4 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_sbo.c
 +++ b/./lib/pfmlib_intel_bdx_unc_sbo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -838,9 +734,6 @@ index a2be8bc..f29beb4 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_ubo.c b/./lib/pfmlib_intel_bdx_unc_ubo.c
-index f0d058a..dbe110e 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_bdx_unc_ubo.c
 +++ b/./lib/pfmlib_intel_bdx_unc_ubo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -856,9 +749,6 @@ index f0d058a..dbe110e 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_core.c b/./lib/pfmlib_intel_core.c
-index 2eb42fa..d70f9d6 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_core.c
 +++ b/./lib/pfmlib_intel_core.c
 @@ -29,6 +29,8 @@
   */
@@ -869,9 +759,6 @@ index 2eb42fa..d70f9d6 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_core_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_coreduo.c b/./lib/pfmlib_intel_coreduo.c
-index d538bbe..65b22d0 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_coreduo.c
 +++ b/./lib/pfmlib_intel_coreduo.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -882,9 +769,6 @@ index d538bbe..65b22d0 100644
  #include "pfmlib_priv.h"			/* library private */
  #include "pfmlib_intel_x86_priv.h"		/* architecture private */
  #include "events/intel_coreduo_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_glm.c b/./lib/pfmlib_intel_glm.c
-index 0b8bd9d..a746a38 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_glm.c
 +++ b/./lib/pfmlib_intel_glm.c
 @@ -23,6 +23,8 @@
   */
@@ -895,9 +779,6 @@ index 0b8bd9d..a746a38 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_glm_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hsw.c b/./lib/pfmlib_intel_hsw.c
-index f0c280d..37c1894 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hsw.c
 +++ b/./lib/pfmlib_intel_hsw.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -908,9 +789,6 @@ index f0c280d..37c1894 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_hsw_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_cbo.c b/./lib/pfmlib_intel_hswep_unc_cbo.c
-index f5bbeb3..5c7f3f6 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_cbo.c
 +++ b/./lib/pfmlib_intel_hswep_unc_cbo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -926,9 +804,6 @@ index f5bbeb3..5c7f3f6 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_ha.c b/./lib/pfmlib_intel_hswep_unc_ha.c
-index f5073bb..73fb435 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_ha.c
 +++ b/./lib/pfmlib_intel_hswep_unc_ha.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -944,9 +819,6 @@ index f5073bb..73fb435 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_imc.c b/./lib/pfmlib_intel_hswep_unc_imc.c
-index 9d7efa9..2610210 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_imc.c
 +++ b/./lib/pfmlib_intel_hswep_unc_imc.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -962,9 +834,6 @@ index 9d7efa9..2610210 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_irp.c b/./lib/pfmlib_intel_hswep_unc_irp.c
-index 0a390b6..43f5827 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_irp.c
 +++ b/./lib/pfmlib_intel_hswep_unc_irp.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -980,9 +849,6 @@ index 0a390b6..43f5827 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_pcu.c b/./lib/pfmlib_intel_hswep_unc_pcu.c
-index 91fe13e..40da578 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_pcu.c
 +++ b/./lib/pfmlib_intel_hswep_unc_pcu.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -998,9 +864,6 @@ index 91fe13e..40da578 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_qpi.c b/./lib/pfmlib_intel_hswep_unc_qpi.c
-index 7cedcef..0df6391 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_qpi.c
 +++ b/./lib/pfmlib_intel_hswep_unc_qpi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1016,9 +879,6 @@ index 7cedcef..0df6391 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_r2pcie.c b/./lib/pfmlib_intel_hswep_unc_r2pcie.c
-index f3f82d6..e171c47 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_r2pcie.c
 +++ b/./lib/pfmlib_intel_hswep_unc_r2pcie.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1034,9 +894,6 @@ index f3f82d6..e171c47 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_r3qpi.c b/./lib/pfmlib_intel_hswep_unc_r3qpi.c
-index 8861901..2dcef9b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_r3qpi.c
 +++ b/./lib/pfmlib_intel_hswep_unc_r3qpi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1052,9 +909,6 @@ index 8861901..2dcef9b 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_sbo.c b/./lib/pfmlib_intel_hswep_unc_sbo.c
-index e99f599..2710419 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_sbo.c
 +++ b/./lib/pfmlib_intel_hswep_unc_sbo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1070,9 +924,6 @@ index e99f599..2710419 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_ubo.c b/./lib/pfmlib_intel_hswep_unc_ubo.c
-index b161b25..7526a2f 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_hswep_unc_ubo.c
 +++ b/./lib/pfmlib_intel_hswep_unc_ubo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1088,9 +939,6 @@ index b161b25..7526a2f 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivb.c b/./lib/pfmlib_intel_ivb.c
-index 696c88b..75b8668 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivb.c
 +++ b/./lib/pfmlib_intel_ivb.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1101,9 +949,6 @@ index 696c88b..75b8668 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_ivb_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivb_unc.c b/./lib/pfmlib_intel_ivb_unc.c
-index d3160d2..d9e70ad 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivb_unc.c
 +++ b/./lib/pfmlib_intel_ivb_unc.c
 @@ -21,6 +21,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1114,9 +959,6 @@ index d3160d2..d9e70ad 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_cbo.c b/./lib/pfmlib_intel_ivbep_unc_cbo.c
-index 6053aa5..70f3ce7 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_cbo.c
 +++ b/./lib/pfmlib_intel_ivbep_unc_cbo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1132,9 +974,6 @@ index 6053aa5..70f3ce7 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_ha.c b/./lib/pfmlib_intel_ivbep_unc_ha.c
-index d4bd6f9..a10db13 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_ha.c
 +++ b/./lib/pfmlib_intel_ivbep_unc_ha.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1150,9 +989,6 @@ index d4bd6f9..a10db13 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_imc.c b/./lib/pfmlib_intel_ivbep_unc_imc.c
-index aa7d3a8..023a25c 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_imc.c
 +++ b/./lib/pfmlib_intel_ivbep_unc_imc.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1168,9 +1004,6 @@ index aa7d3a8..023a25c 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_irp.c b/./lib/pfmlib_intel_ivbep_unc_irp.c
-index 84fc22f..712cd9b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_irp.c
 +++ b/./lib/pfmlib_intel_ivbep_unc_irp.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1186,9 +1019,6 @@ index 84fc22f..712cd9b 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_pcu.c b/./lib/pfmlib_intel_ivbep_unc_pcu.c
-index 222ed45..51c6333 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_pcu.c
 +++ b/./lib/pfmlib_intel_ivbep_unc_pcu.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1204,9 +1034,6 @@ index 222ed45..51c6333 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_qpi.c b/./lib/pfmlib_intel_ivbep_unc_qpi.c
-index e68eb75..59e1b0b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_qpi.c
 +++ b/./lib/pfmlib_intel_ivbep_unc_qpi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1222,9 +1049,6 @@ index e68eb75..59e1b0b 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_r2pcie.c b/./lib/pfmlib_intel_ivbep_unc_r2pcie.c
-index 87c680c..6ace068 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_r2pcie.c
 +++ b/./lib/pfmlib_intel_ivbep_unc_r2pcie.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1240,9 +1064,6 @@ index 87c680c..6ace068 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_r3qpi.c b/./lib/pfmlib_intel_ivbep_unc_r3qpi.c
-index 5ed7e4d..bbd8e24 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_r3qpi.c
 +++ b/./lib/pfmlib_intel_ivbep_unc_r3qpi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1258,9 +1079,6 @@ index 5ed7e4d..bbd8e24 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_ubo.c b/./lib/pfmlib_intel_ivbep_unc_ubo.c
-index db7f629..06e2d19 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_ivbep_unc_ubo.c
 +++ b/./lib/pfmlib_intel_ivbep_unc_ubo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1276,9 +1094,6 @@ index db7f629..06e2d19 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knc.c b/./lib/pfmlib_intel_knc.c
-index e65667e..7a348da 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knc.c
 +++ b/./lib/pfmlib_intel_knc.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1289,9 +1104,6 @@ index e65667e..7a348da 100644
  #include "pfmlib_priv.h"			/* library private */
  #include "pfmlib_intel_x86_priv.h"		/* architecture private */
  #include "events/intel_knc_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl.c b/./lib/pfmlib_intel_knl.c
-index 5cfd545..d93486b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl.c
 +++ b/./lib/pfmlib_intel_knl.c
 @@ -29,6 +29,8 @@
   */
@@ -1302,9 +1114,6 @@ index 5cfd545..d93486b 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_knl_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl_unc_cha.c b/./lib/pfmlib_intel_knl_unc_cha.c
-index 6ea446c..b55c7d9 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl_unc_cha.c
 +++ b/./lib/pfmlib_intel_knl_unc_cha.c
 @@ -25,11 +25,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1320,9 +1129,6 @@ index 6ea446c..b55c7d9 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl_unc_edc.c b/./lib/pfmlib_intel_knl_unc_edc.c
-index 1e28638..0d4c8ba 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl_unc_edc.c
 +++ b/./lib/pfmlib_intel_knl_unc_edc.c
 @@ -25,11 +25,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1338,9 +1144,6 @@ index 1e28638..0d4c8ba 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl_unc_imc.c b/./lib/pfmlib_intel_knl_unc_imc.c
-index 02280f3..27b6737 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl_unc_imc.c
 +++ b/./lib/pfmlib_intel_knl_unc_imc.c
 @@ -25,11 +25,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1356,9 +1159,6 @@ index 02280f3..27b6737 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl_unc_m2pcie.c b/./lib/pfmlib_intel_knl_unc_m2pcie.c
-index fafc6ec..bf9ac5c 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_knl_unc_m2pcie.c
 +++ b/./lib/pfmlib_intel_knl_unc_m2pcie.c
 @@ -25,11 +25,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1374,9 +1174,6 @@ index fafc6ec..bf9ac5c 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_netburst.c b/./lib/pfmlib_intel_netburst.c
-index 9b49605..1b092cc 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_netburst.c
 +++ b/./lib/pfmlib_intel_netburst.c
 @@ -26,6 +26,8 @@
   * Support for the Pentium4/Xeon/EM64T processor family (family=15).
@@ -1387,9 +1184,6 @@ index 9b49605..1b092cc 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_netburst_priv.h"
  #include "pfmlib_intel_x86_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_netburst_perf_event.c b/./lib/pfmlib_intel_netburst_perf_event.c
-index a2f32eb..4f259c5 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_netburst_perf_event.c
 +++ b/./lib/pfmlib_intel_netburst_perf_event.c
 @@ -22,11 +22,9 @@
   *
@@ -1405,9 +1199,6 @@ index a2f32eb..4f259c5 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_nhm.c b/./lib/pfmlib_intel_nhm.c
-index 87ce5cf..a1bd588 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_nhm.c
 +++ b/./lib/pfmlib_intel_nhm.c
 @@ -24,6 +24,8 @@
   * Nehalem PMU = architectural perfmon v3 + OFFCORE + PEBS v2 + LBR
@@ -1418,9 +1209,6 @@ index 87ce5cf..a1bd588 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_nhm_unc.c b/./lib/pfmlib_intel_nhm_unc.c
-index e9bae3d..d286c22 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_nhm_unc.c
 +++ b/./lib/pfmlib_intel_nhm_unc.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1436,9 +1224,6 @@ index e9bae3d..d286c22 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_p6.c b/./lib/pfmlib_intel_p6.c
-index fa33874..5062746 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_p6.c
 +++ b/./lib/pfmlib_intel_p6.c
 @@ -23,6 +23,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1449,9 +1234,6 @@ index fa33874..5062746 100644
  #include "pfmlib_priv.h"			/* library private */
  #include "pfmlib_intel_x86_priv.h"		/* architecture private */
  #include "events/intel_p6_events.h"		/* generic P6 (PIII) */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_rapl.c b/./lib/pfmlib_intel_rapl.c
-index 8a04079..f38cf16 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_rapl.c
 +++ b/./lib/pfmlib_intel_rapl.c
 @@ -29,6 +29,8 @@
   */
@@ -1462,9 +1244,6 @@ index 8a04079..f38cf16 100644
  #include "pfmlib_priv.h"
  /*
   * for now, we reuse the x86 table entry format and callback to avoid duplicating
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skl.c b/./lib/pfmlib_intel_skl.c
-index 1754310..e76da93 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skl.c
 +++ b/./lib/pfmlib_intel_skl.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1475,9 +1254,6 @@ index 1754310..e76da93 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_skl_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_cha.c b/./lib/pfmlib_intel_skx_unc_cha.c
-index c5f8141..0dc6786 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_cha.c
 +++ b/./lib/pfmlib_intel_skx_unc_cha.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1493,9 +1269,6 @@ index c5f8141..0dc6786 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_iio.c b/./lib/pfmlib_intel_skx_unc_iio.c
-index ad6ca88..9ef5bac 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_iio.c
 +++ b/./lib/pfmlib_intel_skx_unc_iio.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1511,9 +1284,6 @@ index ad6ca88..9ef5bac 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_imc.c b/./lib/pfmlib_intel_skx_unc_imc.c
-index 8dea562..965df6c 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_imc.c
 +++ b/./lib/pfmlib_intel_skx_unc_imc.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1529,9 +1299,6 @@ index 8dea562..965df6c 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_irp.c b/./lib/pfmlib_intel_skx_unc_irp.c
-index efebe46..b92f84d 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_irp.c
 +++ b/./lib/pfmlib_intel_skx_unc_irp.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1547,9 +1314,6 @@ index efebe46..b92f84d 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_m2m.c b/./lib/pfmlib_intel_skx_unc_m2m.c
-index effc642..532ab99 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_m2m.c
 +++ b/./lib/pfmlib_intel_skx_unc_m2m.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1565,9 +1329,6 @@ index effc642..532ab99 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_m3upi.c b/./lib/pfmlib_intel_skx_unc_m3upi.c
-index 97e54c3..d06b54b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_m3upi.c
 +++ b/./lib/pfmlib_intel_skx_unc_m3upi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1583,9 +1344,6 @@ index 97e54c3..d06b54b 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_pcu.c b/./lib/pfmlib_intel_skx_unc_pcu.c
-index 5607479..6f02783 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_pcu.c
 +++ b/./lib/pfmlib_intel_skx_unc_pcu.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1601,9 +1359,6 @@ index 5607479..6f02783 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_ubo.c b/./lib/pfmlib_intel_skx_unc_ubo.c
-index eaa4edb..a053976 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_ubo.c
 +++ b/./lib/pfmlib_intel_skx_unc_ubo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1619,9 +1374,6 @@ index eaa4edb..a053976 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_upi.c b/./lib/pfmlib_intel_skx_unc_upi.c
-index c2345f6..5f1b908 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_skx_unc_upi.c
 +++ b/./lib/pfmlib_intel_skx_unc_upi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1637,9 +1389,6 @@ index c2345f6..5f1b908 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_slm.c b/./lib/pfmlib_intel_slm.c
-index bf2560d..edb0a26 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_slm.c
 +++ b/./lib/pfmlib_intel_slm.c
 @@ -25,6 +25,8 @@
   */
@@ -1650,9 +1399,6 @@ index bf2560d..edb0a26 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_slm_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snb.c b/./lib/pfmlib_intel_snb.c
-index b458994..b34fb3e 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snb.c
 +++ b/./lib/pfmlib_intel_snb.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1663,9 +1409,6 @@ index b458994..b34fb3e 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_snb_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snb_unc.c b/./lib/pfmlib_intel_snb_unc.c
-index edae361..de189dc 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snb_unc.c
 +++ b/./lib/pfmlib_intel_snb_unc.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1676,9 +1419,6 @@ index edae361..de189dc 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc.c b/./lib/pfmlib_intel_snbep_unc.c
-index d4adc51..de6b149 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc.c
 +++ b/./lib/pfmlib_intel_snbep_unc.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1694,9 +1434,6 @@ index d4adc51..de6b149 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_cbo.c b/./lib/pfmlib_intel_snbep_unc_cbo.c
-index b1dd1d0..4db2b1c 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_cbo.c
 +++ b/./lib/pfmlib_intel_snbep_unc_cbo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1712,9 +1449,6 @@ index b1dd1d0..4db2b1c 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_ha.c b/./lib/pfmlib_intel_snbep_unc_ha.c
-index 28e6b71..a20f8e3 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_ha.c
 +++ b/./lib/pfmlib_intel_snbep_unc_ha.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1730,9 +1464,6 @@ index 28e6b71..a20f8e3 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_imc.c b/./lib/pfmlib_intel_snbep_unc_imc.c
-index c0cc0e1..7c86a26 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_imc.c
 +++ b/./lib/pfmlib_intel_snbep_unc_imc.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1748,9 +1479,6 @@ index c0cc0e1..7c86a26 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_pcu.c b/./lib/pfmlib_intel_snbep_unc_pcu.c
-index 5d4dd47..759222e 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_pcu.c
 +++ b/./lib/pfmlib_intel_snbep_unc_pcu.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1766,9 +1494,6 @@ index 5d4dd47..759222e 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_perf_event.c b/./lib/pfmlib_intel_snbep_unc_perf_event.c
-index c8ce0cb..48515dd 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_perf_event.c
 +++ b/./lib/pfmlib_intel_snbep_unc_perf_event.c
 @@ -20,12 +20,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1785,9 +1510,6 @@ index c8ce0cb..48515dd 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_qpi.c b/./lib/pfmlib_intel_snbep_unc_qpi.c
-index 9cc4bac..04b56f1 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_qpi.c
 +++ b/./lib/pfmlib_intel_snbep_unc_qpi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1803,9 +1525,6 @@ index 9cc4bac..04b56f1 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_r2pcie.c b/./lib/pfmlib_intel_snbep_unc_r2pcie.c
-index c6a64b9..0c11345 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_r2pcie.c
 +++ b/./lib/pfmlib_intel_snbep_unc_r2pcie.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1821,9 +1540,6 @@ index c6a64b9..0c11345 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_r3qpi.c b/./lib/pfmlib_intel_snbep_unc_r3qpi.c
-index 28bb83a..81a4604 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_r3qpi.c
 +++ b/./lib/pfmlib_intel_snbep_unc_r3qpi.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1839,9 +1555,6 @@ index 28bb83a..81a4604 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_ubo.c b/./lib/pfmlib_intel_snbep_unc_ubo.c
-index 3b8abff..d032a54 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_snbep_unc_ubo.c
 +++ b/./lib/pfmlib_intel_snbep_unc_ubo.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1857,9 +1570,6 @@ index 3b8abff..d032a54 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_wsm.c b/./lib/pfmlib_intel_wsm.c
-index 2b581b4..46a1ad8 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_wsm.c
 +++ b/./lib/pfmlib_intel_wsm.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1870,9 +1580,6 @@ index 2b581b4..46a1ad8 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_intel_x86_priv.h"
  #include "events/intel_wsm_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_x86.c b/./lib/pfmlib_intel_x86.c
-index 34a3148..442f2b6 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_x86.c
 +++ b/./lib/pfmlib_intel_x86.c
 @@ -22,11 +22,9 @@
   *
@@ -1942,9 +1649,6 @@ index 34a3148..442f2b6 100644
  
  	pfm_intel_x86_cfg.family = (a >> 8) & 0xf;  // bits 11 - 8
  	pfm_intel_x86_cfg.model  = (a >> 4) & 0xf;  // Bits  7 - 4
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_x86_arch.c b/./lib/pfmlib_intel_x86_arch.c
-index e3af3f4..f7a6062 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_x86_arch.c
 +++ b/./lib/pfmlib_intel_x86_arch.c
 @@ -28,11 +28,9 @@
   * 	"IA-32 Intel Architecture Software Developer's Manual - Volume 3B: System
@@ -2038,9 +1742,6 @@ index e3af3f4..f7a6062 100644
  		intel_x86_arch_support.num_cntrs = eax.eax.num_cnt;
  		intel_x86_arch_support.num_fixed_cntrs = edx.edx.num_cnt;
  	} else {
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_x86_perf_event.c b/./lib/pfmlib_intel_x86_perf_event.c
-index 83c0294..e9e7279 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_intel_x86_perf_event.c
 +++ b/./lib/pfmlib_intel_x86_perf_event.c
 @@ -20,12 +20,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2057,9 +1758,6 @@ index 83c0294..e9e7279 100644
  
  /* private headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_itanium.c b/./lib/pfmlib_itanium.c
-index 28e245a..d020f5a 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_itanium.c
 +++ b/./lib/pfmlib_itanium.c
 @@ -21,10 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2074,9 +1772,6 @@ index 28e245a..d020f5a 100644
  
  /* public headers */
  #include <perfmon/pfmlib_itanium.h>
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_itanium2.c b/./lib/pfmlib_itanium2.c
-index 0ecd123..463c5d2 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_itanium2.c
 +++ b/./lib/pfmlib_itanium2.c
 @@ -21,10 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2091,9 +1786,6 @@ index 0ecd123..463c5d2 100644
  
  /* public headers */
  #include <perfmon/pfmlib_itanium2.h>
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_mips.c b/./lib/pfmlib_mips.c
-index 61db613..5945159 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_mips.c
 +++ b/./lib/pfmlib_mips.c
 @@ -23,11 +23,9 @@
   *
@@ -2109,9 +1801,6 @@ index 61db613..5945159 100644
  
  /* private headers */
  #include "pfmlib_priv.h"			/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_mips_74k.c b/./lib/pfmlib_mips_74k.c
-index 6620f62..0696e50 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_mips_74k.c
 +++ b/./lib/pfmlib_mips_74k.c
 @@ -22,7 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -2123,9 +1812,6 @@ index 6620f62..0696e50 100644
  #include <string.h>
  #include "pfmlib_priv.h"		/* library private */
  #include "pfmlib_mips_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_mips_perf_event.c b/./lib/pfmlib_mips_perf_event.c
-index 0c3b442..907470e 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_mips_perf_event.c
 +++ b/./lib/pfmlib_mips_perf_event.c
 @@ -21,9 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2139,9 +1825,6 @@ index 0c3b442..907470e 100644
  
  #include "pfmlib_priv.h"
  #include "pfmlib_mips_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_montecito.c b/./lib/pfmlib_montecito.c
-index 88fa0b3..edda1ab 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_montecito.c
 +++ b/./lib/pfmlib_montecito.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2157,9 +1840,6 @@ index 88fa0b3..edda1ab 100644
  
  /* public headers */
  #include <perfmon/pfmlib_montecito.h>
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_perf_event.c b/./lib/pfmlib_perf_event.c
-index 6a56af5..6dc95d0 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_perf_event.c
 +++ b/./lib/pfmlib_perf_event.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2175,9 +1855,6 @@ index 6a56af5..6dc95d0 100644
  #include <perfmon/pfmlib_perf_event.h>
  
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_perf_event_pmu.c b/./lib/pfmlib_perf_event_pmu.c
-index 6f890a9..ce93e66 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_perf_event_pmu.c
 +++ b/./lib/pfmlib_perf_event_pmu.c
 @@ -21,16 +21,12 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2198,9 +1875,6 @@ index 6f890a9..ce93e66 100644
  #include <sys/param.h>
  #endif
  
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_perf_event_priv.h b/./lib/pfmlib_perf_event_priv.h
-index 31e9d0f..eac7635 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_perf_event_priv.h
 +++ b/./lib/pfmlib_perf_event_priv.h
 @@ -23,6 +23,8 @@
   */
@@ -2211,9 +1885,6 @@ index 31e9d0f..eac7635 100644
  #include "pfmlib_priv.h"
  #include "perfmon/pfmlib_perf_event.h"
  
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_perf_event_raw.c b/./lib/pfmlib_perf_event_raw.c
-index 71d9443..5c33bb8 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_perf_event_raw.c
 +++ b/./lib/pfmlib_perf_event_raw.c
 @@ -21,12 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2230,9 +1901,6 @@ index 71d9443..5c33bb8 100644
  
  #include "pfmlib_priv.h"
  #include "pfmlib_perf_event_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power4.c b/./lib/pfmlib_power4.c
-index 238e978..0ddf6ea 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power4.c
 +++ b/./lib/pfmlib_power4.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -2243,9 +1911,6 @@ index 238e978..0ddf6ea 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_power_priv.h"
  #include "events/power4_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power5.c b/./lib/pfmlib_power5.c
-index cea2981..5aef5bd 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power5.c
 +++ b/./lib/pfmlib_power5.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -2256,9 +1921,6 @@ index cea2981..5aef5bd 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_power_priv.h"
  #include "events/power5_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power6.c b/./lib/pfmlib_power6.c
-index 7df06cd..006883c 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power6.c
 +++ b/./lib/pfmlib_power6.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -2269,9 +1931,6 @@ index 7df06cd..006883c 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_power_priv.h"
  #include "events/power6_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power7.c b/./lib/pfmlib_power7.c
-index a32977c..5779c5a 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power7.c
 +++ b/./lib/pfmlib_power7.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -2282,9 +1941,6 @@ index a32977c..5779c5a 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_power_priv.h"
  #include "events/power7_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power8.c b/./lib/pfmlib_power8.c
-index d30f036..07e9592 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power8.c
 +++ b/./lib/pfmlib_power8.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -2295,9 +1951,6 @@ index d30f036..07e9592 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_power_priv.h"
  #include "events/power8_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power9.c b/./lib/pfmlib_power9.c
-index b3807da..1140fd5 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_power9.c
 +++ b/./lib/pfmlib_power9.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -2308,9 +1961,6 @@ index b3807da..1140fd5 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_power_priv.h"
  #include "events/power9_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_powerpc.c b/./lib/pfmlib_powerpc.c
-index f32080d..e154bac 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_powerpc.c
 +++ b/./lib/pfmlib_powerpc.c
 @@ -25,7 +25,8 @@
   * Support for libpfm4 for the PowerPC 970, 970MP, Power4,4+,5,5+,6,7 processors.
@@ -2322,9 +1972,6 @@ index f32080d..e154bac 100644
  #include <string.h>
  
  
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_powerpc_nest.c b/./lib/pfmlib_powerpc_nest.c
-index 8a8bf5b..d435f98 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_powerpc_nest.c
 +++ b/./lib/pfmlib_powerpc_nest.c
 @@ -2,6 +2,8 @@
   * pfmlib_powerpc_nest.c
@@ -2335,9 +1982,6 @@ index 8a8bf5b..d435f98 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_power_priv.h"
  #include "events/powerpc_nest_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_powerpc_perf_event.c b/./lib/pfmlib_powerpc_perf_event.c
-index 642439b..6ca18ec 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_powerpc_perf_event.c
 +++ b/./lib/pfmlib_powerpc_perf_event.c
 @@ -21,10 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2352,9 +1996,6 @@ index 642439b..6ca18ec 100644
  
  /* private headers */
  #include "pfmlib_priv.h"		/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_ppc970.c b/./lib/pfmlib_ppc970.c
-index da3d8d6..787c90b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_ppc970.c
 +++ b/./lib/pfmlib_ppc970.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -2365,9 +2006,6 @@ index da3d8d6..787c90b 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_power_priv.h"
  #include "events/ppc970_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_priv.h b/./lib/pfmlib_priv.h
-index c1d874f..74eda46 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_priv.h
 +++ b/./lib/pfmlib_priv.h
 @@ -24,6 +24,8 @@
   */
@@ -2397,9 +2035,6 @@ index c1d874f..74eda46 100644
 +#endif
 +
  #endif /* __PFMLIB_PRIV_H__ */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_s390x_cpumf.c b/./lib/pfmlib_s390x_cpumf.c
-index 4e03fc4..d1ca33b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_s390x_cpumf.c
 +++ b/./lib/pfmlib_s390x_cpumf.c
 @@ -21,11 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2415,9 +2050,6 @@ index 4e03fc4..d1ca33b 100644
  
  /* private library and arch headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_s390x_perf_event.c b/./lib/pfmlib_s390x_perf_event.c
-index fb75892..e50b2ff 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_s390x_perf_event.c
 +++ b/./lib/pfmlib_s390x_perf_event.c
 @@ -21,9 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2431,9 +2063,6 @@ index fb75892..e50b2ff 100644
  
  /* private library and arch headers */
  #include "pfmlib_priv.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sicortex.c b/./lib/pfmlib_sicortex.c
-index b9d2cad..0f099a7 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sicortex.c
 +++ b/./lib/pfmlib_sicortex.c
 @@ -22,12 +22,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2450,9 +2079,6 @@ index b9d2cad..0f099a7 100644
  #include <sys/stat.h>
  #include <fcntl.h>
  #include <malloc.h>
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sicortex_priv.h b/./lib/pfmlib_sicortex_priv.h
-index 809fae1..7b87909 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sicortex_priv.h
 +++ b/./lib/pfmlib_sicortex_priv.h
 @@ -25,6 +25,8 @@
   */
@@ -2463,9 +2089,6 @@ index 809fae1..7b87909 100644
  #include "pfmlib_gen_mips64_priv.h"
  
  #define PFMLIB_SICORTEX_MAX_UMASK 5
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc.c b/./lib/pfmlib_sparc.c
-index fe8da06..807a046 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc.c
 +++ b/./lib/pfmlib_sparc.c
 @@ -23,11 +23,9 @@
   * IN THE SOFTWARE.
@@ -2481,9 +2104,6 @@ index fe8da06..807a046 100644
  
  /* private headers */
  #include "pfmlib_priv.h"			/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_niagara.c b/./lib/pfmlib_sparc_niagara.c
-index d0a90ba..ad934d3 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_niagara.c
 +++ b/./lib/pfmlib_sparc_niagara.c
 @@ -25,6 +25,8 @@
   */
@@ -2494,9 +2114,6 @@ index d0a90ba..ad934d3 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_sparc_priv.h"
  #include "events/sparc_niagara1_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_perf_event.c b/./lib/pfmlib_sparc_perf_event.c
-index 93c4b83..62f5b25 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_perf_event.c
 +++ b/./lib/pfmlib_sparc_perf_event.c
 @@ -21,9 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -2510,9 +2127,6 @@ index 93c4b83..62f5b25 100644
  
  /* private headers */
  #include "pfmlib_priv.h"		/* library private */
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_ultra12.c b/./lib/pfmlib_sparc_ultra12.c
-index 06afaaa..8798268 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_ultra12.c
 +++ b/./lib/pfmlib_sparc_ultra12.c
 @@ -25,6 +25,8 @@
   */
@@ -2523,9 +2137,6 @@ index 06afaaa..8798268 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_sparc_priv.h"
  #include "events/sparc_ultra12_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_ultra3.c b/./lib/pfmlib_sparc_ultra3.c
-index 7af936a..1299713 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_ultra3.c
 +++ b/./lib/pfmlib_sparc_ultra3.c
 @@ -25,6 +25,8 @@
   */
@@ -2536,9 +2147,6 @@ index 7af936a..1299713 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_sparc_priv.h"
  #include "events/sparc_ultra3_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_ultra4.c b/./lib/pfmlib_sparc_ultra4.c
-index 5d9e9bb..17fdb44 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_sparc_ultra4.c
 +++ b/./lib/pfmlib_sparc_ultra4.c
 @@ -23,6 +23,8 @@
   */
@@ -2549,9 +2157,6 @@ index 5d9e9bb..17fdb44 100644
  #include "pfmlib_priv.h"
  #include "pfmlib_sparc_priv.h"
  #include "events/sparc_ultra4plus_events.h"
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_torrent.c b/./lib/pfmlib_torrent.c
-index 72991e7..96bb02a 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/lib/pfmlib_torrent.c
 +++ b/./lib/pfmlib_torrent.c
 @@ -21,7 +21,8 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
