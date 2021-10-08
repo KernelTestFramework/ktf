@@ -312,7 +312,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 #endif
 
     /* Jump from .text.init section to .text */
-    asm volatile("push %0; ret" ::"r"(&kernel_main));
+    asm volatile("jmp kernel_main");
 
     UNREACHABLE();
 }
