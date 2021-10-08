@@ -32,8 +32,7 @@
 
 void init_pit(uint8_t dst_cpus) {
     printk("Initializing PIT\n");
-    outb(PIT_COMMAND_PORT,
-         PIT_CHANNEL_0 & PIT_ACCESS_MODE_LH & PIT_OP_MODE_RATE & PIT_BCD_MODE);
+    outb(PIT_COMMAND_PORT, PIT_CHANNEL_0 | PIT_ACCESS_MODE_LH | PIT_OP_MODE_RATE);
     outb(PIT_DATA_PORT_CH0, PIT_FREQUENCY & 0xFF);          /* send low byte */
     outb(PIT_DATA_PORT_CH0, (PIT_FREQUENCY & 0xFF00) >> 8); /* send high byte */
     configure_isa_irq(PIT_IRQ, PIT_IRQ0_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
