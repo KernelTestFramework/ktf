@@ -33,8 +33,8 @@ static inline void pic_outb(io_port_t port, unsigned char value) {
 
 void init_pic(void) {
     /* Cascade mode initialization sequence */
-    pic_outb(PIC1_PORT_CMD, PIC_ICW1_INIT | PIC_ICW1_LEVEL | PIC_ICW1_ICW4);
-    pic_outb(PIC2_PORT_CMD, PIC_ICW1_INIT | PIC_ICW1_LEVEL | PIC_ICW1_ICW4);
+    pic_outb(PIC1_PORT_CMD, PIC_ICW1_INIT | PIC_ICW1_ICW4);
+    pic_outb(PIC2_PORT_CMD, PIC_ICW1_INIT | PIC_ICW1_ICW4);
 
     /* Remap PICs interrupt vectors */
     pic_outb(PIC1_PORT_DATA, PIC_IRQ0_OFFSET);
