@@ -60,13 +60,13 @@ void __naked kernel_main(void) {
     display_memory_map();
     display_multiboot_mmap();
 
-#ifdef KTF_PMU
-    pfm_initialize();
-#endif
-
     test_main();
 
     printk("All tasks done.\n");
+
+#ifdef KTF_PMU
+    pfm_terminate();
+#endif
 
 #ifdef KTF_ACPICA
     acpi_power_off();
