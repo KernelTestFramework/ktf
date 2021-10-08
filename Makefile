@@ -32,7 +32,7 @@ PFMLIB_TARBALL := $(PFMLIB_DIR)/$(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz
 ifeq ($(CONFIG_LIBPFM),y)
 KTF_PFMLIB_COMPILE := 1
 export KTF_PFMLIB_COMPILE
-TAR_CMD_PFMLIB := tar --exclude=.git --exclude=.gitignore --strip-components=1 -xvf
+TAR_CMD_PFMLIB := tar --exclude=.git --exclude=.gitignore --strip-components=1 -xf
 PFMLIB_TOOLS_DIR := $(KTF_ROOT)/$(TOOLS_DIR)/$(PFMLIB_NAME)
 PFMLIB_ARCHIVE := $(PFMLIB_DIR)/$(PFMLIB_NAME).a
 PFMLIB_UNTAR_FILES := $(PFMLIB_NAME)-$(PFMLIB_VER)/lib
@@ -171,16 +171,15 @@ $(TARGET): $(PFMLIB_ARCHIVE) $(OBJS) $(PREP_LINK_SCRIPT)
 	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(PFMLIB_LINKER_FLAGS) $(SYMBOLS_NAME).o
 
 $(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
-	@echo "UNTAR pfmlib"
-	# untar tarball and apply the patch
-	cd $(PFMLIB_DIR) &&\
+	@echo "UNTAR libpfm"
+	$(VERBOSE) cd $(PFMLIB_DIR) &&\
 	$(TAR_CMD_PFMLIB) $(PFMLIB_TARBALL) $(PFMLIB_UNTAR_FILES) -C ./ &&\
-	$(PATCH) -p1 < $(PFMLIB_PATCH_FILE) &&\
+	$(PATCH) -s -p1 < $(PFMLIB_PATCH_FILE) &&\
 	cd -
-	# invoke libpfm build
-	$(MAKE) -C $(PFMLIB_DIR) lib &&\
-	cp $(PFMLIB_DIR)/lib/$(PFMLIB_NAME).a $(PFMLIB_DIR)/
-	find $(PFMLIB_DIR) -name \*.c -delete
+	@echo "BUILD libpfm"
+	$(VERBOSE) $(MAKE) -C $(PFMLIB_DIR) lib
+	$(VERBOSE) cp $(PFMLIB_DIR)/lib/$(PFMLIB_NAME).a $(PFMLIB_DIR)/
+	$(VERBOSE) find $(PFMLIB_DIR) -name \*.c -delete
 
 %.o: %.S
 	@echo "AS " $@
