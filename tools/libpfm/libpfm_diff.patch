@@ -1,17 +1,3 @@
-diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/Makefile b/./Makefile
-index 440249f..5a32b1b 100644
---- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/Makefile
-+++ b/./Makefile
-@@ -51,6 +51,9 @@ all:
- lib:
- 	$(MAKE) -C lib
- 
-+cleanlib:
-+	@set -e; $(MAKE) -C lib clean; done
-+
- clean: 
- 	@set -e ; for d in $(DIRS) ; do $(MAKE) -C $$d $@ ; done
- 
 diff --git a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/config.mk b/./config.mk
 index cc9a6d9..5fdf575 100644
 --- a/home/ANT.AMAZON.COM/dkgupta/data_drive1/sources/libpfm_fresh/libpfm-4.10.1/config.mk
