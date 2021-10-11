@@ -154,6 +154,7 @@ SECTIONS
         . = ALIGN(4K);
         __start_text = .;
             *(.text)
+            *(.text.*)
         . = ALIGN(4K);
         __end_text = .;
     } :kernel
@@ -163,6 +164,7 @@ SECTIONS
         . = ALIGN(4K);
         __start_data = .;
             *(.data)
+            *(.data.*)
         __start_cmdline = .;
             *(.cmdline)
         __end_cmdline = .;
@@ -184,6 +186,7 @@ SECTIONS
         __start_bss = .;
             *(COMMON)
             *(.bss)
+            *(.bss.*)
         . = ALIGN(4K);
         __end_bss = .;
     } :kernel
