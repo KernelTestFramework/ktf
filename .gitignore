@@ -5,6 +5,7 @@
 cscope.*
 *.iso
 *.img
+*.debug
 Makeconf.local
 .DS_Store
 drivers/acpi/acpica/source/
