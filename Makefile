@@ -79,6 +79,13 @@ SHELL := bash
 RM := rm
 LN := ln
 SYMLINK := $(LN) -s -f
+OBJCOPY := objcopy
+STRIP := strip
+ifeq ($(SYSTEM), MACOS)
+STRIP_OPTS := -S
+else
+STRIP_OPTS := -s
+endif
 
 GRUB_FILE := grub-file
 GRUB_MKIMAGE := grub-mkimage
@@ -146,6 +153,7 @@ OBJS := $(SOURCES:%.c=%.o)
 OBJS += $(ASM_SOURCES:%.S=%.o)
 
 TARGET := kernel64.bin
+TARGET_DEBUG := $(TARGET).debug
 
 # On Linux systems, we build directly. On non-Linux, we rely on the 'docker%'
 # rule below to create an Ubuntu container and perform the Linux-specific build
@@ -169,6 +177,9 @@ $(TARGET): $(OBJS) $(PREP_LINK_SCRIPT)
 	$(VERBOSE) rm -rf $(SYMBOLS_NAME).S
 	@echo "LD " $(TARGET) $(SYMBOLS_NAME).o
 	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(PFMLIB_LINKER_FLAGS) $(SYMBOLS_NAME).o
+	@echo "STRIP"
+	$(VERBOSE) $(OBJCOPY) --only-keep-debug $(TARGET) $(TARGET_DEBUG)
+	$(VERBOSE) $(STRIP) $(STRIP_OPTS) $(TARGET)
 
 $(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
 	@echo "UNTAR libpfm"
@@ -203,6 +214,7 @@ clean:
 	$(VERBOSE) find $(KTF_ROOT) -name cscope.\* -delete
 	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
 	$(VERBOSE) $(RM) -rf $(ACPICA_DEST_DIR)/source
+	$(VERBOSE) $(RM) -f $(TARGET_DEBUG)
 
 # Check whether we can use kvm for qemu
 ifeq ($(SYSTEM),LINUX)
