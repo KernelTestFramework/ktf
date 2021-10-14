@@ -26,6 +26,7 @@
 #define KTF_CMDLINE_H
 
 #ifndef __ASSEMBLY__
+#include <compiler.h>
 
 #define PARAM_MAX_LENGTH 32
 

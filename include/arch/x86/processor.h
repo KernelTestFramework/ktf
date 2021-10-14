@@ -173,6 +173,9 @@
 #define X86_EX_SEL_TLB_IDT2 0x11
 
 #ifndef __ASSEMBLY__
+#include <stdbool.h>
+#include <stdint.h>
+
 union x86_ex_error_code {
     uint32_t error_code;
     struct __packed {
