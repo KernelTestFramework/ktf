@@ -176,6 +176,7 @@ SECTIONS
     {
         __start_extables = .;
             *(.extables)
+        __stop_extables = .;
         . = ALIGN(4K);
         __end_extables = .;
     } :kernel
