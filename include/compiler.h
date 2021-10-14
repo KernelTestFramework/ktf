@@ -49,6 +49,8 @@
 #define GHZ(x) (MHZ(x) * 1000)
 
 #ifndef __ASSEMBLY__
+#include <inttypes.h>
+
 typedef uint64_t off_t;
 #define _ptr(val) ((void *) (unsigned long) (val))
 #define _ul(val)  ((unsigned long) (val))
