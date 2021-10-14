@@ -289,29 +289,27 @@ void print_callstack(const void *sp, const void *ip) {
     printk("\n");
 }
 
-static inline void use_extables(struct cpu_regs *regs) {
+static bool extables_fixup(struct cpu_regs *regs) {
     for (extable_entry_t *cur = __start_extables; cur < __end_extables; ++cur) {
-        if (regs->_ASM_IP == cur->fault_addr) {
-            if (cur->fixup) {
-                regs->_ASM_IP = cur->fixup;
-            }
-            if (cur->cb) {
-                cur->cb(regs);
-            }
-            if (cur->fixup || cur->cb) {
-                return;
-            }
-            else {
-                panic("fixup or cb must be set in the extable_entry\n");
-            }
-        }
+        if (regs->_ASM_IP != cur->fault_addr)
+            continue;
+
+        if (cur->fixup)
+            regs->_ASM_IP = cur->fixup;
+        else if (cur->cb)
+            cur->cb(regs);
+
+        return true;
     }
+
+    return false;
 }
 
 void do_exception(struct cpu_regs *regs) {
     static char ec_str[32], panic_str[128];
 
-    use_extables(regs);
+    if (extables_fixup(regs))
+        return;
 
     dump_regs(regs);
     print_callstack(_ptr(regs->_ASM_SP), _ptr(regs->_ASM_IP));
