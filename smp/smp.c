@@ -47,7 +47,7 @@ static __data_init bool ap_callin;
 static __data_init void *ap_new_sp;
 cr3_t __data_init ap_cr3;
 
-void __noreturn __naked ap_startup(void) {
+void __noreturn ap_startup(void) {
     WRITE_SP(ap_new_sp);
 
     init_traps(ap_cpuid);
