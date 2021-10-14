@@ -57,7 +57,8 @@ extern unsigned char __start_bss_init[], __end_bss_init[];
 
 extern unsigned char __start_text_rmode[], __end_text_rmode[];
 extern unsigned char __start_data_rmode[], __end_data_rmode[];
-extern struct extable_entry __start_extables[], __end_extables[];
+extern struct extable_entry __start_extables[], __stop_extables[];
+extern unsigned char __end_extables[];
 extern unsigned char __start_bss_rmode[], __end_bss_rmode[];
 
 extern struct ktf_param __start_cmdline[], __end_cmdline[];

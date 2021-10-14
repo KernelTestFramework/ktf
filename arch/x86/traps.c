@@ -290,7 +290,7 @@ void print_callstack(const void *sp, const void *ip) {
 }
 
 static bool extables_fixup(struct cpu_regs *regs) {
-    for (extable_entry_t *cur = __start_extables; cur < __end_extables; ++cur) {
+    for (extable_entry_t *cur = __start_extables; cur < __stop_extables; ++cur) {
         if (regs->_ASM_IP != cur->fault_addr)
             continue;
 
