@@ -33,32 +33,30 @@
 SECTION(.text.init, "ax", 16)
 GLOBAL(_start)
     /* Save multiboot bootloader magic */
-    mov %eax, %edi
-    mov %ebx, %esi
+    mov   %eax, %edi
+    mov   %ebx, %esi
 
     mov   %cs, %ax
     mov   %ax, %ds
 
     lgdt  boot_gdt_ptr
 
-    xor   %ax, %ax
-    inc   %ax
-    lmsw  %ax
+    mov   $X86_CR0_PE, %eax
+    mov   %eax, %cr0
 
     ljmp  $__KERN_CS32, $.Lprot_mode
 
 .Lprot_mode:
-    mov   $__KERN_DS32, %eax
-    mov   %eax, %ds
-    mov   %eax, %es
-    mov   %eax, %gs
-    mov   %eax, %fs
-    mov   %eax, %ss
+    mov   $__KERN_DS32, %ax
+    mov   %ax, %ds
+    mov   %ax, %es
+    mov   %ax, %gs
+    mov   %ax, %fs
+    mov   %ax, %ss
     mov   $_boot_stack_top, %esp
     mov   %esp, %ebp
 
-    mov   %cr4, %eax
-    or    $(X86_CR4_PAE | X86_CR4_PSE), %eax
+    mov   $(X86_CR4_PAE | X86_CR4_PSE), %eax
     mov   %eax, %cr4
 
     mov   $l4_pt_entries, %eax
@@ -100,17 +98,15 @@ END_FUNC(prot_to_real)
 
 .code64
 .Llong_mode:
-    xor %rax, %rax
-    mov %rax, %ds
-    mov %rax, %es
-    mov %rax, %fs
-    mov %rax, %gs
-    mov %rax, %ss
+    xor   %eax, %eax
+    mov   %ax, %ds
+    mov   %ax, %es
+    mov   %ax, %fs
+    mov   %ax, %gs
+    mov   %ax, %ss
 
-    push $X86_EFLAGS_MBS
-    popf
-
-    cld
+    pushq $X86_EFLAGS_MBS
+    popfq
 
     jmp kernel_start
 
