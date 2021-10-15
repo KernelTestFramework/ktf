@@ -42,27 +42,28 @@
 #include <page.h>
 #include <string.h>
 
-extern unsigned long __start_text[], __end_text[];
-extern unsigned long __start_data[], __end_data[];
-extern unsigned long __start_bss[], __end_bss[];
-extern unsigned long __start_rodata[], __end_rodata[];
+extern unsigned char __start_text[], __end_text[];
+extern unsigned char __start_data[], __end_data[];
+extern unsigned char __start_bss[], __end_bss[];
+extern unsigned char __start_rodata[], __end_rodata[];
 
-extern unsigned long __start_text_user[], __end_text_user[];
-extern unsigned long __start_data_user[], __end_data_user[];
-extern unsigned long __start_bss_user[], __end_bss_user[];
+extern unsigned char __start_text_user[], __end_text_user[];
+extern unsigned char __start_data_user[], __end_data_user[];
+extern unsigned char __start_bss_user[], __end_bss_user[];
 
-extern unsigned long __start_text_init[], __end_text_init[];
-extern unsigned long __start_data_init[], __end_data_init[];
-extern unsigned long __start_bss_init[], __end_bss_init[];
+extern unsigned char __start_text_init[], __end_text_init[];
+extern unsigned char __start_data_init[], __end_data_init[];
+extern unsigned char __start_bss_init[], __end_bss_init[];
 
-extern unsigned long __start_text_rmode[], __end_text_rmode[];
-extern unsigned long __start_data_rmode[], __end_data_rmode[];
-extern struct extable_entry __start_extables[], __end_extables[];
-extern unsigned long __start_bss_rmode[], __end_bss_rmode[];
+extern unsigned char __start_text_rmode[], __end_text_rmode[];
+extern unsigned char __start_data_rmode[], __end_data_rmode[];
+extern struct extable_entry __start_extables[], __stop_extables[];
+extern unsigned char __end_extables[];
+extern unsigned char __start_bss_rmode[], __end_bss_rmode[];
 
 extern struct ktf_param __start_cmdline[], __end_cmdline[];
 
-extern unsigned long __weak __start_symbols[], __end_symbols[];
+extern unsigned char __weak __start_symbols[], __end_symbols[];
 
 struct addr_range {
     const char *name;

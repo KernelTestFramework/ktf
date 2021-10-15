@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Amazon.com, Inc. or its affiliates.
+ * Copyright (c) 2021 Open Source Security, Inc.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,5 +24,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-void init_extables(void) { /* no-op */
+#include <mm/regions.h>
+
+void init_extables(void) {
+    for (extable_entry_t *cur = __start_extables; cur < __stop_extables; ++cur) {
+        if (!cur->fixup && !cur->cb)
+            panic("extable entry #%d for addr 0x%lx lacks fixup and callback!\n",
+                  cur - __start_extables, cur->fault_addr);
+    }
 }

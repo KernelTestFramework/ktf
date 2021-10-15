@@ -55,6 +55,10 @@
 #include <drivers/serial.h>
 #include <drivers/vga.h>
 
+#ifdef KTF_PMU
+#include <perfmon/pfmlib.h>
+#endif
+
 bool opt_debug = false;
 bool_cmd("debug", opt_debug);
 
@@ -69,6 +73,9 @@ bool_cmd("apic_timer", opt_apic_timer);
 
 bool opt_hpet = false;
 bool_cmd("hpet", opt_hpet);
+
+bool opt_fpu = false;
+bool_cmd("fpu", opt_fpu);
 
 io_port_t __data_rmode com_ports[2] = {COM1_PORT, COM2_PORT};
 
@@ -299,8 +306,21 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     if (opt_keyboard)
         init_keyboard(get_bsp_cpu_id());
 
+    if (opt_fpu) {
+        printk("Enabling FPU instructions support\n");
+        enable_fpu();
+    }
+
+#ifdef KTF_PMU
+    printk("Initializing PFM library\n");
+
+    int ret = pfm_initialize();
+    if (ret != PFM_SUCCESS)
+        printk("Warning: PFM library initialization failed: %d\n", ret);
+#endif
+
     /* Jump from .text.init section to .text */
-    asm volatile("push %0; ret" ::"r"(&kernel_main));
+    asm volatile("jmp kernel_main");
 
     UNREACHABLE();
 }

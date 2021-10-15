@@ -43,14 +43,14 @@ int usermode_call(user_func_t fn, void *fn_arg) {
                              PERCPU_OFFSET(user_stack));
 }
 
-static void echo_loop(void) {
+static void __noreturn echo_loop(void) {
     while (1) {
         io_delay();
         keyboard_process_keys();
     }
 }
 
-void __naked kernel_main(void) {
+void kernel_main(void) {
     printk("\nKTF - Kernel Test Framework!\n\n");
 
     if (kernel_cmdline)
@@ -60,13 +60,13 @@ void __naked kernel_main(void) {
     display_memory_map();
     display_multiboot_mmap();
 
-#ifdef KTF_PMU
-    pfm_initialize();
-#endif
-
     test_main();
 
     printk("All tasks done.\n");
+
+#ifdef KTF_PMU
+    pfm_terminate();
+#endif
 
 #ifdef KTF_ACPICA
     acpi_power_off();

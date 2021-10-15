@@ -5,6 +5,15 @@
 cscope.*
 *.iso
 *.img
+*.debug
 Makeconf.local
 .DS_Store
 drivers/acpi/acpica/source/
+third-party/libpfm/COPYING
+third-party/libpfm/Makefile
+third-party/libpfm/README
+third-party/libpfm/config.mk
+third-party/libpfm/include/
+third-party/libpfm/lib/
+third-party/libpfm/libpfm.a
+third-party/libpfm/rules.mk

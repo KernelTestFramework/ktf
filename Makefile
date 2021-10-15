@@ -25,16 +25,16 @@ endif
 PFMLIB_ARCHIVE :=
 PFMLIB_LINKER_FLAGS :=
 PFMLIB_INCLUDE :=
+PFMLIB_NAME := libpfm
+PFMLIB_VER := 4.10.1
+PFMLIB_DIR := $(KTF_ROOT)/$(THIRD_PARTY)/$(PFMLIB_NAME)
+PFMLIB_TARBALL := $(PFMLIB_DIR)/$(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz
 ifeq ($(CONFIG_LIBPFM),y)
 KTF_PFMLIB_COMPILE := 1
 export KTF_PFMLIB_COMPILE
-TAR_CMD_PFMLIB := tar --exclude=.git --exclude=.gitignore --strip-components=1 -xvf
-PFMLIB_VER := 4.10.1
-PFMLIB_NAME := libpfm
-PFMLIB_DIR := $(KTF_ROOT)/$(THIRD_PARTY)/$(PFMLIB_NAME)
+TAR_CMD_PFMLIB := tar --exclude=.git --exclude=.gitignore --strip-components=1 -xf
 PFMLIB_TOOLS_DIR := $(KTF_ROOT)/$(TOOLS_DIR)/$(PFMLIB_NAME)
 PFMLIB_ARCHIVE := $(PFMLIB_DIR)/$(PFMLIB_NAME).a
-PFMLIB_TARBALL := $(PFMLIB_DIR)/$(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz
 PFMLIB_UNTAR_FILES := $(PFMLIB_NAME)-$(PFMLIB_VER)/lib
 PFMLIB_UNTAR_FILES += $(PFMLIB_NAME)-$(PFMLIB_VER)/include
 PFMLIB_UNTAR_FILES += $(PFMLIB_NAME)-$(PFMLIB_VER)/rules.mk
@@ -79,6 +79,13 @@ SHELL := bash
 RM := rm
 LN := ln
 SYMLINK := $(LN) -s -f
+OBJCOPY := objcopy
+STRIP := strip
+ifeq ($(SYSTEM), MACOS)
+STRIP_OPTS := -S
+else
+STRIP_OPTS := -s
+endif
 
 GRUB_FILE := grub-file
 GRUB_MKIMAGE := grub-mkimage
@@ -146,6 +153,7 @@ OBJS := $(SOURCES:%.c=%.o)
 OBJS += $(ASM_SOURCES:%.S=%.o)
 
 TARGET := kernel64.bin
+TARGET_DEBUG := $(TARGET).debug
 
 # On Linux systems, we build directly. On non-Linux, we rely on the 'docker%'
 # rule below to create an Ubuntu container and perform the Linux-specific build
@@ -159,7 +167,7 @@ endif
 $(PREP_LINK_SCRIPT) : $(LINK_SCRIPT)
 	$(VERBOSE) $(CC) $(AFLAGS) -E -P -C -x c $< -o $@
 
-$(TARGET): $(PFMLIB_ARCHIVE) $(OBJS) $(PREP_LINK_SCRIPT)
+$(TARGET): $(OBJS) $(PREP_LINK_SCRIPT)
 	@echo "LD " $@
 	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(PFMLIB_LINKER_FLAGS)
 	@echo "GEN " $(SYMBOLS_NAME).S
@@ -169,24 +177,26 @@ $(TARGET): $(PFMLIB_ARCHIVE) $(OBJS) $(PREP_LINK_SCRIPT)
 	$(VERBOSE) rm -rf $(SYMBOLS_NAME).S
 	@echo "LD " $(TARGET) $(SYMBOLS_NAME).o
 	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(PFMLIB_LINKER_FLAGS) $(SYMBOLS_NAME).o
+	@echo "STRIP"
+	$(VERBOSE) $(OBJCOPY) --only-keep-debug $(TARGET) $(TARGET_DEBUG)
+	$(VERBOSE) $(STRIP) $(STRIP_OPTS) $(TARGET)
 
 $(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
-	@echo "UNTAR pfmlib"
-	# untar tarball and apply the patch
-	cd $(PFMLIB_DIR) &&\
+	@echo "UNTAR libpfm"
+	$(VERBOSE) cd $(PFMLIB_DIR) &&\
 	$(TAR_CMD_PFMLIB) $(PFMLIB_TARBALL) $(PFMLIB_UNTAR_FILES) -C ./ &&\
-	$(PATCH) -p1 < $(PFMLIB_PATCH_FILE) &&\
+	$(PATCH) -s -p1 < $(PFMLIB_PATCH_FILE) &&\
 	cd -
-	# invoke libpfm build
-	$(MAKE) -C $(PFMLIB_DIR) lib &&\
-	cp $(PFMLIB_DIR)/lib/$(PFMLIB_NAME).a $(PFMLIB_DIR)/
-	find $(PFMLIB_DIR) -name \*.c -delete
+	@echo "BUILD libpfm"
+	$(VERBOSE) $(MAKE) -C $(PFMLIB_DIR) lib
+	$(VERBOSE) cp $(PFMLIB_DIR)/lib/$(PFMLIB_NAME).a $(PFMLIB_DIR)/
+	$(VERBOSE) find $(PFMLIB_DIR) -name \*.c -delete
 
 %.o: %.S
 	@echo "AS " $@
 	$(VERBOSE) $(CC) -c -o $@ $(AFLAGS) $<
 
-%.o: %.c
+%.o: %.c $(PFMLIB_ARCHIVE)
 	@echo "CC " $@
 	$(VERBOSE) $(CC) -c -o $@ $(CFLAGS) $<
 
@@ -202,11 +212,9 @@ clean:
 	$(VERBOSE) find $(KTF_ROOT) -name \*.iso -delete
 	$(VERBOSE) find $(KTF_ROOT) -name \*.img -delete
 	$(VERBOSE) find $(KTF_ROOT) -name cscope.\* -delete
-ifeq ($(CONFIG_LIBPFM),y)
-	$(MAKE) -C $(PFMLIB_DIR) cleanlib
 	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
-endif
 	$(VERBOSE) $(RM) -rf $(ACPICA_DEST_DIR)/source
+	$(VERBOSE) $(RM) -f $(TARGET_DEBUG)
 
 # Check whether we can use kvm for qemu
 ifeq ($(SYSTEM),LINUX)
