@@ -79,6 +79,7 @@ static frames_array_t *new_frames_array(void) {
 
     if (!boot_flags.virt) {
         frame_t *frame = get_free_frame();
+        BUG_ON(!frame);
         array = (frames_array_t *) mfn_to_virt_kern(frame->mfn);
     }
     else
@@ -206,6 +207,7 @@ static inline frame_t *get_frames_array_entry(void) {
 
 static inline frame_t *new_frame(mfn_t mfn, unsigned int order) {
     frame_t *frame = get_frames_array_entry();
+    BUG_ON(!frame);
 
     frame->order = order;
     frame->mfn = mfn;
