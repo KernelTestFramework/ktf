@@ -204,13 +204,6 @@ static inline frame_t *get_frames_array_entry(void) {
     return NULL;
 }
 
-static inline void put_frames_array_entry(frame_t *frame) {
-    if (is_frame_free(frame))
-        return;
-
-    put_frame(frame, NULL);
-}
-
 static inline frame_t *new_frame(mfn_t mfn, unsigned int order) {
     frame_t *frame = get_frames_array_entry();
 
