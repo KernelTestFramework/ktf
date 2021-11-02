@@ -45,6 +45,8 @@
         _a > _b ? _a : _b;                                                               \
     })
 
+#define div_round_up(n, d) ((((n) + (d)) - 1) / (d))
+
 static inline unsigned int log2(unsigned int value) {
     return value == 0 ? 0 : (31 - __builtin_clz(value));
 }
