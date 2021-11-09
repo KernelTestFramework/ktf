@@ -194,7 +194,7 @@ static inline void *vmap_1g(void *va, mfn_t mfn, unsigned long l3_flags) {
 }
 
 static inline void *vmap_2m(void *va, mfn_t mfn, unsigned long l2_flags) {
-    return vmap(va, mfn, PAGE_ORDER_2M, L4_PROT_USER, L3_PROT_USER, PT_NO_FLAGS,
+    return vmap(va, mfn, PAGE_ORDER_2M, L4_PROT_USER, L3_PROT_USER, l2_flags,
                 PT_NO_FLAGS);
 }
 
