@@ -706,10 +706,11 @@ static ACPI_STATUS init_fadt(void) {
 static ACPI_STATUS init_madt(unsigned bsp_cpu_id) {
     ACPI_TABLE_MADT *madt = acpi_find_table(ACPI_SIG_MADT);
     ACPI_SUBTABLE_HEADER *subtbl = (void *) madt + sizeof(*madt);
-    uint32_t length = madt->Header.Length - sizeof(*madt);
 
     if (!madt || !subtbl)
         return AE_ERROR;
+
+    uint32_t length = madt->Header.Length - sizeof(*madt);
 
     acpi_walk_subtables(subtbl, length, madt_parser, (void *) _ul(bsp_cpu_id));
     return AE_OK;
