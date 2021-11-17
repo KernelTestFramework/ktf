@@ -27,9 +27,12 @@
 
 #include <ktf.h>
 #include <lib.h>
+#include <spinlock.h>
 
 #define PCI_IO_PORT_ADDRESS 0xcf8
 #define PCI_IO_PORT_DATA    0xcfc
+
+extern spinlock_t pci_cfg_lock;
 
 union pci_cfg_addr {
     struct {
@@ -56,42 +59,79 @@ static inline void pci_cfg_set_addr(uint8_t bus, uint8_t dev, uint8_t func, uint
     addr.fn = func;
     addr.dev = dev;
     addr.bus = bus;
+    addr.ecsm = 1;
 
     outd(PCI_IO_PORT_ADDRESS, addr.val);
 }
 
 static inline uint8_t pci_cfg_read8(uint8_t bus, uint8_t dev, uint8_t func, uint8_t reg) {
+    uint8_t ret;
+
+    spin_lock(&pci_cfg_lock);
+
     pci_cfg_set_addr(bus, dev, func, reg);
-    return inb(PCI_IO_PORT_DATA);
+    ret = inb(PCI_IO_PORT_DATA);
+
+    spin_unlock(&pci_cfg_lock);
+
+    return ret;
 }
 
 static inline void pci_cfg_write8(uint8_t bus, uint8_t dev, uint8_t func, uint8_t reg,
                                   uint8_t value) {
+    spin_lock(&pci_cfg_lock);
+
     pci_cfg_set_addr(bus, dev, func, reg);
     outb(PCI_IO_PORT_DATA, value);
+
+    spin_unlock(&pci_cfg_lock);
 }
 
 static inline uint16_t pci_cfg_read16(uint8_t bus, uint8_t dev, uint8_t func,
                                       uint8_t reg) {
+    uint16_t ret;
+
+    spin_lock(&pci_cfg_lock);
+
     pci_cfg_set_addr(bus, dev, func, reg);
-    return inw(PCI_IO_PORT_DATA);
+    ret = inw(PCI_IO_PORT_DATA);
+
+    spin_unlock(&pci_cfg_lock);
+
+    return ret;
 }
 
 static inline void pci_cfg_write16(uint8_t bus, uint8_t dev, uint8_t func, uint8_t reg,
                                    uint16_t value) {
+    spin_lock(&pci_cfg_lock);
+
     pci_cfg_set_addr(bus, dev, func, reg);
     outw(PCI_IO_PORT_DATA, value);
+
+    spin_unlock(&pci_cfg_lock);
 }
 
 static inline uint32_t pci_cfg_read(uint8_t bus, uint8_t dev, uint8_t func, uint8_t reg) {
+    uint32_t ret;
+
+    spin_lock(&pci_cfg_lock);
+
     pci_cfg_set_addr(bus, dev, func, reg);
-    return ind(PCI_IO_PORT_DATA);
+    ret = ind(PCI_IO_PORT_DATA);
+
+    spin_unlock(&pci_cfg_lock);
+
+    return ret;
 }
 
 static inline void pci_cfg_write(uint8_t bus, uint8_t dev, uint8_t func, uint8_t reg,
                                  uint32_t value) {
+    spin_lock(&pci_cfg_lock);
+
     pci_cfg_set_addr(bus, dev, func, reg);
     outd(PCI_IO_PORT_DATA, value);
+
+    spin_unlock(&pci_cfg_lock);
 }
 
 /* External declarations */
