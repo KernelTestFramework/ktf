@@ -97,7 +97,7 @@ static void *slab_alloc(meta_slab_t *slab) {
     /* TODO: Below should be done in thread-safe manner */
     next_free = list_first_entry(&slab->slab_head, slab_t, list);
     list_unlink(&next_free->list);
-
+    increment_slab_allocs(slab);
     return next_free;
 }
 
@@ -111,19 +111,20 @@ static void slab_free(meta_slab_t *slab, void *ptr) {
     new_slab = (slab_t *) ptr;
     /* TODO: eventually below should be done in thread-safe manner */
     list_add_tail(&new_slab->list, &slab->slab_head);
+    decrement_slab_allocs(slab);
 }
 
 /*
  * Round up to nearest power of 2
  * If greater than max size or less than min size, return null
  */
-static void *ktf_alloc(unsigned int size) {
-    unsigned int size_power2 = 0, temp = 0, order_index = 0;
+static void *ktf_alloc(size_t size) {
+    size_t size_power2 = 0, temp = 0, order_index = 0;
     meta_slab_t *slab = NULL, *meta_slab = NULL;
     void *alloc = NULL, *free_page = NULL;
     int ret = 0;
 
-    if (size == 0)
+    if (size <= 0)
         return NULL;
 
     if (size < SLAB_SIZE_MIN)
@@ -148,8 +149,10 @@ static void *ktf_alloc(unsigned int size) {
     /* Go through list of meta_slab_t and try to allocate a free slab */
     list_for_each_entry (slab, &meta_slab_list[order_index], list) {
         alloc = slab_alloc(slab);
-        if (alloc != NULL)
+        if (alloc != NULL) {
+            dprintk("Allocating from %p\n", slab);
             return alloc;
+        }
         /*
          * TODO: add debug prints for diaganostics that we didn't get free slab
          * and trying next page in the list
@@ -184,6 +187,7 @@ static void *ktf_alloc(unsigned int size) {
     meta_slab->slab_base = free_page;
     meta_slab->slab_len = PAGE_SIZE;
     meta_slab->slab_size = size_power2;
+    meta_slab->slab_allocs = 0;
     ret = initialize_slab(meta_slab);
 
     if (ret != ESUCCESS) {
@@ -223,6 +227,17 @@ static void ktf_free(void *ptr) {
             if ((_ul(ptr) >= (_ul(slab->slab_base))) &&
                 (_ul(ptr) < (_ul(slab->slab_base) + _ul(slab->slab_len)))) {
                 slab_free(slab, ptr);
+                if (slab_is_empty(slab)) {
+                    dprintk("freeing slab %p of slab size %d and base address %p\n", 
+                            slab, slab->slab_size, slab->slab_base);
+                    /*
+                    * Order is important here. First unlink from order list
+                    * Then only slab_free because list will be used to link back into meta slab free
+                    */                            
+                    list_unlink(&slab->list);
+                    put_pages(slab->slab_base, PAGE_ORDER_4K);
+                    slab_free(&global_meta_slab, slab);
+                }
                 return;
             }
         }
@@ -254,6 +269,7 @@ int init_slab(void) {
     global_meta_slab.slab_base = alloc_pages;
     global_meta_slab.slab_len = PAGE_SIZE_2M;
     global_meta_slab.slab_size = next_power_of_two(sizeof(meta_slab_t));
+    global_meta_slab.slab_allocs = 0;
     ret = initialize_slab(&global_meta_slab);
     if (ret != ESUCCESS) {
         dprintk("initialize_slab failed\n");
