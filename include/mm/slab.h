@@ -81,11 +81,11 @@ struct meta_slab {
 */
     unsigned int slab_size : 12;
 /*
-* slab_allocs is tracking number of allocations currently in this slab. 
+* slab_allocs is tracking number of allocations currently in this slab.
 * At max this can go 4096/16 = 256 slabs. Thus 10 bits are enough
-*/    
+*/
     unsigned int slab_allocs : 10;
-    unsigned int reserved : ((sizeof(unsigned int)*8) - 22);
+    unsigned int reserved : ((sizeof(unsigned int) * 8) - 22);
 };
 
 typedef struct meta_slab meta_slab_t;
@@ -93,7 +93,7 @@ typedef struct meta_slab meta_slab_t;
 static inline void increment_slab_allocs(meta_slab_t *slab) {
     ASSERT(slab != NULL);
     ASSERT((slab->slab_allocs < MAX_SLAB_ALLOC_COUNT));
-    ASSERT((slab->slab_allocs < (PAGE_SIZE/slab->slab_size)));
+    ASSERT((slab->slab_allocs < (slab->slab_len / slab->slab_size)));
 
     slab->slab_allocs++;
 }

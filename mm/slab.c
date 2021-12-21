@@ -40,7 +40,7 @@
 /* List of meta slab pointers of each order */
 static list_head_t meta_slab_list[SLAB_ORDER_MAX];
 
-meta_slab_t global_meta_slab;
+static list_head_t meta_slab_page_list;
 
 static int initialize_slab(meta_slab_t *slab) {
     int ret = 0;
@@ -114,6 +114,62 @@ static void slab_free(meta_slab_t *slab, void *ptr) {
     decrement_slab_allocs(slab);
 }
 
+meta_slab_t *slab_meta_alloc() {
+    meta_slab_t *meta_slab_page = NULL;
+    meta_slab_t *meta_slab = NULL;
+    void *free_page = NULL;
+    size_t meta_slab_size = 0;
+    int ret = 0;
+
+    list_for_each_entry (meta_slab_page, &meta_slab_page_list, list) {
+        meta_slab = slab_alloc(meta_slab_page);
+        if (meta_slab != NULL) {
+            dprintk("Allocating meta_slab from meta slab page %p\n", meta_slab_page);
+            return meta_slab;
+        }
+    }
+
+    /*
+     * If we're here then we've ran out of meta slab pages
+     * Allocate a 4K page
+     */
+    free_page = get_free_pages(PAGE_ORDER_4K, GFP_KERNEL);
+    if (free_page == NULL) {
+        dprintk("slab_meta_alloc failed, not enough free pages\n");
+        return NULL;
+    }
+    memset(free_page, 0, PAGE_SIZE);
+
+    /*
+     * First entry in free page is special meta_slab
+     * pointing to rest of meta_slabs
+     */
+    meta_slab_size = next_power_of_two(sizeof(meta_slab_t));
+    meta_slab_page = (meta_slab_t *) free_page;
+    meta_slab_page->slab_base = (void *) (_ul(meta_slab_page) + meta_slab_size);
+    meta_slab_page->slab_len = PAGE_SIZE - meta_slab_size;
+    meta_slab_page->slab_size = meta_slab_size;
+    meta_slab_page->slab_allocs = 0;
+    ret = initialize_slab(meta_slab_page);
+    if (ret != ESUCCESS) {
+        dprintk("initialize_slab in slab_meta_alloc failed\n");
+        put_pages(free_page, PAGE_ORDER_4K);
+        return NULL;
+    }
+
+    dprintk("Allocated a new meta page slab %p\n", meta_slab_page);
+    /*
+     * add meta_slab_page to global list of meta slab pages
+     */
+    list_add(&meta_slab_page->list, &meta_slab_page_list);
+
+    /*
+     * Now allocate a meta slab from meta slab page
+     */
+    meta_slab = slab_alloc(meta_slab_page);
+
+    return meta_slab;
+}
 /*
  * Round up to nearest power of 2
  * If greater than max size or less than min size, return null
@@ -163,7 +219,7 @@ static void *ktf_alloc(size_t size) {
      * If we reached here that means it's time to allocate a new meta_slab_t entry
      * and a new page to hold base address
      */
-    meta_slab = slab_alloc(&global_meta_slab);
+    meta_slab = slab_meta_alloc();
     if (meta_slab == NULL) {
         dprintk("failed, not enough free pages\n");
         return NULL;
@@ -179,7 +235,7 @@ static void *ktf_alloc(size_t size) {
     free_page = get_free_pages(PAGE_ORDER_4K, GFP_KERNEL);
     if (free_page == NULL) {
         dprintk("ktf_alloc failed, not enough free pages\n");
-        slab_free(&global_meta_slab, meta_slab);
+        slab_free((meta_slab_t *) (_ul(meta_slab) & PAGE_MASK), meta_slab);
         return NULL;
     }
     memset(free_page, 0, PAGE_SIZE);
@@ -220,6 +276,7 @@ void *kzalloc(size_t size) {
 static void ktf_free(void *ptr) {
     int alloc_order;
     meta_slab_t *slab = NULL;
+    meta_slab_t *meta_slab_page = NULL;
 
     for (alloc_order = SLAB_ORDER_16; alloc_order < SLAB_ORDER_MAX; alloc_order++) {
         /* Go through list of meta_slab_t and try to allocate a free slab */
@@ -228,15 +285,30 @@ static void ktf_free(void *ptr) {
                 (_ul(ptr) < (_ul(slab->slab_base) + _ul(slab->slab_len)))) {
                 slab_free(slab, ptr);
                 if (slab_is_empty(slab)) {
-                    dprintk("freeing slab %p of slab size %d and base address %p\n", 
-                            slab, slab->slab_size, slab->slab_base);
+                    dprintk("freeing slab %p of slab size %d and base address %p\n", slab,
+                            slab->slab_size, slab->slab_base);
                     /*
-                    * Order is important here. First unlink from order list
-                    * Then only slab_free because list will be used to link back into meta slab free
-                    */                            
+                     * Order is important here. First unlink from order list
+                     * Then only slab_free because list will be used to link back into
+                     * meta slab free
+                     */
                     list_unlink(&slab->list);
                     put_pages(slab->slab_base, PAGE_ORDER_4K);
-                    slab_free(&global_meta_slab, slab);
+                    meta_slab_page = (meta_slab_t *) (_ul(slab) & PAGE_MASK);
+                    slab_free(meta_slab_page, slab);
+                    /*
+                     * If page holding meta slabs is empty due to this operation, we
+                     * should free up meta slab page entirely
+                     */
+                    if (slab_is_empty(meta_slab_page)) {
+                        dprintk("freeing meta page slab %p of slab size %d and base "
+                                "address %p\n",
+                                meta_slab_page, meta_slab_page->slab_size,
+                                meta_slab_page->slab_base);
+                        list_unlink(&meta_slab_page->list);
+                        memset(meta_slab_page, 0, PAGE_SIZE);
+                        put_pages(meta_slab_page, PAGE_ORDER_4K);
+                    }
                 }
                 return;
             }
@@ -253,30 +325,12 @@ void kfree(void *ptr) { ktf_free(ptr); }
 int init_slab(void) {
     int ret = 0;
     int i = 0;
-    void *alloc_pages = NULL;
 
     printk("Initialize SLAB\n");
     memset(&meta_slab_list, 0, sizeof(meta_slab_list));
-    memset(&global_meta_slab, 0, sizeof(global_meta_slab));
+    memset(&meta_slab_page_list, 0, sizeof(meta_slab_page_list));
 
-    alloc_pages = get_free_pages(PAGE_ORDER_2M, GFP_KERNEL);
-    if (NULL == alloc_pages) {
-        dprintk("get_free_pages failed\n");
-        return -ENOMEM;
-    }
-    memset(alloc_pages, 0, PAGE_SIZE_2M);
-
-    global_meta_slab.slab_base = alloc_pages;
-    global_meta_slab.slab_len = PAGE_SIZE_2M;
-    global_meta_slab.slab_size = next_power_of_two(sizeof(meta_slab_t));
-    global_meta_slab.slab_allocs = 0;
-    ret = initialize_slab(&global_meta_slab);
-    if (ret != ESUCCESS) {
-        dprintk("initialize_slab failed\n");
-        put_pages(alloc_pages, PAGE_ORDER_2M);
-        return ret;
-    }
-
+    list_init(&meta_slab_page_list);
     for (i = SLAB_ORDER_16; i < SLAB_ORDER_MAX; i++) {
         list_init(&meta_slab_list[i]);
     }
