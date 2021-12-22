@@ -79,6 +79,7 @@ SHELL := bash
 RM := rm
 LN := ln
 SYMLINK := $(LN) -s -f
+HARDLINK := $(LN) -f
 OBJCOPY := objcopy
 STRIP := strip
 ifeq ($(SYSTEM), MACOS)
@@ -135,7 +136,7 @@ ifeq ($(CONFIG_ACPICA),y)
 ACPICA_INSTALL := $(shell [ -d $(ACPICA_DEST_DIR)/source ] ||                         \
                           $(TAR_CMD_ACPICA) $(ACPICA_TARBALL) $(ACPICA_UNTAR_DIRS) && \
                           $(PATCH) -p0 < $(ACPICA_PATCH) &&                           \
-                          $(SYMLINK) $(ACPICA_DEST_DIR)/acktf.h $(ACPICA_DEST_DIR)/source/include/platform/acktf.h)
+                          $(HARDLINK) $(ACPICA_DEST_DIR)/acktf.h $(ACPICA_INCLUDE)/platform/acktf.h)
 endif
 
 SOURCES     := $(shell find . -name \*.c)
