@@ -199,7 +199,7 @@ static void *ktf_alloc(size_t size) {
      */
     order_index -= 4;
 
-    dprintk("Alloc size %u, powerof 2 size %u, order %u\n", size, size_power2,
+    dprintk("Alloc size %zu, powerof 2 size %zu, order %zu\n", size, size_power2,
             order_index);
     spin_lock(&slab_mm_lock);
     /* Go through list of meta_slab_t and try to allocate a free slab */
