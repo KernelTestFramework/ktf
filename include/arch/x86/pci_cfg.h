@@ -45,7 +45,7 @@ typedef union pci_cfg_addr pci_cfg_addr_t;
 union pci_cfg_value {
     uint8_t byte[4];
     uint16_t word[2];
-    uint16_t dword;
+    uint32_t dword;
 };
 typedef union pci_cfg_value pci_cfg_value_t;
 
