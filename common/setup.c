@@ -34,6 +34,7 @@
 #include <multiboot.h>
 #include <page.h>
 #include <pagetable.h>
+#include <pci.h>
 #include <percpu.h>
 #include <real_mode.h>
 #include <sched.h>
@@ -289,6 +290,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_smp();
 
     init_ioapic();
+
+    init_pci();
 
     /* Initialize console input */
     uart_input_init(get_bsp_cpu_id());
