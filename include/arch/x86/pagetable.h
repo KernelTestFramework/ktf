@@ -240,28 +240,28 @@ static inline pte_t *get_l1_table(const void *va) {
 /* Return the virtual address of the PT entry mapping this virtual address.
  * The entry is assumed to be mapped
  */
-static inline pgentry_t *get_pte(const void *va) {
+static inline pte_t *get_pte(const void *va) {
     pte_t *l1t = get_l1_table(va);
     pte_t *l1e = l1_table_entry(l1t, va);
-    return &(l1e->entry);
+    return (pte_t *) &(l1e->entry);
 }
 
 /* Return the virtual address of the PD entry mapping this virtual address.
  * The entry is assumed to be mapped
  */
-static inline pgentry_t *get_pde(const void *va) {
+static inline pde_t *get_pde(const void *va) {
     pde_t *l2t = get_l2_table(va);
     pde_t *l2e = l2_table_entry(l2t, va);
-    return &(l2e->entry);
+    return (pde_t *) &(l2e->entry);
 }
 
 /* Return the virtual address of the PDP entry mapping this virtual address.
  * The entry is assumed to be mapped
  */
-static inline pgentry_t *get_pdpe(const void *va) {
+static inline pdpe_t *get_pdpe(const void *va) {
     pdpe_t *l3t = get_l3_table(va);
     pdpe_t *l3e = l3_table_entry(l3t, va);
-    return &(l3e->entry);
+    return (pdpe_t *) &(l3e->entry);
 }
 
 static inline void set_pgentry(pgentry_t *e, mfn_t mfn, unsigned long flags) {
