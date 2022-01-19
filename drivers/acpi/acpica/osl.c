@@ -36,17 +36,33 @@
 
 #include "acpi.h"
 
+struct mapped_frame {
+    struct list_head list;
+    mfn_t mfn;
+    uint64_t refcount;
+};
+typedef struct mapped_frame mapped_frame_t;
+
+static list_head_t mapped_frames;
+
 /* General OS functions */
 
 ACPI_STATUS AcpiOsInitialize(void) {
     dprintk("ACPI OS Initialization:\n");
 
+    list_init(&mapped_frames);
     return AE_OK;
 }
 
 ACPI_STATUS AcpiOsTerminate(void) {
+    mapped_frame_t *frame;
+
     dprintk("ACPI OS Termination:\n");
 
+    list_for_each_entry (frame, &mapped_frames, list) {
+        list_unlink(&frame->list);
+        kfree(frame);
+    }
     return AE_OK;
 }
 
@@ -246,6 +262,24 @@ BOOLEAN AcpiOsWriteable(void *Memory, ACPI_SIZE Length) {
     return success;
 }
 
+static inline mapped_frame_t *find_mapped_frame(mfn_t mfn) {
+    mapped_frame_t *frame;
+
+    list_for_each_entry (frame, &mapped_frames, list) {
+        if (frame->mfn == mfn)
+            return frame;
+    }
+
+    return NULL;
+}
+
+static inline void new_mapped_frame(mfn_t mfn) {
+    mapped_frame_t *frame = kzalloc(sizeof(*frame));
+    frame->mfn = mfn;
+    frame->refcount = 1;
+    list_add(&frame->list, &mapped_frames);
+}
+
 void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     unsigned offset = PhysicalAddress & ~PAGE_MASK;
     unsigned num_pages = ((offset + Length) / PAGE_SIZE) + 1;
@@ -253,9 +287,19 @@ void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     void *va = NULL;
 
     for (unsigned i = 0; i < num_pages; i++, mfn++) {
-        void *_va = mmap_4k(mfn, L1_PROT);
-        if (!_va)
-            return NULL;
+        mapped_frame_t *frame = find_mapped_frame(mfn);
+        void *_va;
+
+        if (!frame) {
+            _va = mmap_4k(mfn, L1_PROT);
+            if (!_va)
+                return NULL;
+            new_mapped_frame(mfn);
+        }
+        else {
+            frame->refcount++;
+            _va = mfn_to_virt_map(mfn);
+        }
 
         if (!va)
             va = _ptr(_ul(_va) + offset);
@@ -269,8 +313,17 @@ void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
     unsigned num_pages = ((offset + Length) / PAGE_SIZE) + 1;
     mfn_t mfn = virt_to_mfn(LogicalAddress);
 
-    for (unsigned i = 0; i < num_pages; i++, mfn++)
+    for (unsigned i = 0; i < num_pages; i++, mfn++) {
+        mapped_frame_t *frame = find_mapped_frame(mfn);
+        BUG_ON(!frame || frame->refcount == 0);
+
+        if (--frame->refcount > 0)
+            continue;
+
         vunmap(mfn_to_virt_map(mfn), PAGE_ORDER_4K);
+        list_unlink(&frame->list);
+        kfree(frame);
+    }
 }
 
 /* Task management functions */
