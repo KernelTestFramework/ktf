@@ -201,9 +201,8 @@ done:
     return va;
 }
 
-void *vunmap(void *va, unsigned int order) {
-    return vmap(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS,
-                PT_NO_FLAGS);
+void vunmap(void *va, unsigned int order) {
+    vmap(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS);
 }
 
 void *kmap(mfn_t mfn, unsigned int order,
@@ -216,11 +215,6 @@ void *kmap(mfn_t mfn, unsigned int order,
                 l4_flags,
 #endif
                 l3_flags, l2_flags, l1_flags);
-}
-
-void *kunmap(void *va, unsigned int order) {
-    return vmap(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS,
-                PT_NO_FLAGS);
 }
 
 void init_pagetables(void) {
