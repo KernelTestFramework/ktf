@@ -270,7 +270,7 @@ void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
     mfn_t mfn = virt_to_mfn(LogicalAddress);
 
     for (unsigned i = 0; i < num_pages; i++, mfn++)
-        kunmap(mfn_to_virt_kern(mfn), PAGE_ORDER_4K);
+        vunmap(mfn_to_virt_kern(mfn), PAGE_ORDER_4K);
 }
 
 /* Task management functions */

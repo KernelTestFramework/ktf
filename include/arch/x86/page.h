@@ -139,14 +139,13 @@ extern void *vmap(void *va, mfn_t mfn, unsigned int order,
                   unsigned long l4_flags,
 #endif
                   unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags);
-extern void *vunmap(void *va, unsigned int order);
 
 extern void *kmap(mfn_t mfn, unsigned int order,
 #if defined(__x86_64__)
                   unsigned long l4_flags,
 #endif
                   unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags);
-extern void *kunmap(void *va, unsigned int order);
+extern void vunmap(void *va, unsigned int order);
 
 /* Static declarations */
 
