@@ -31,6 +31,7 @@ enum gfp_flags {
     GFP_KERNEL = 0x00000001,
     GFP_USER = 0x00000002,
     GFP_IDENT = 0x00000004,
+    GFP_KERNEL_MAP = 0x00000008,
 };
 
 /* External definitions */
