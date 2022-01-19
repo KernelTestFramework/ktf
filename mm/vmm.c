@@ -50,6 +50,8 @@ void *get_free_pages(unsigned int order, uint32_t flags) {
                   L2_PROT_USER, L1_PROT_USER);
     if (flags & GFP_KERNEL)
         va = kmap(mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
+    if (flags & GFP_KERNEL_MAP)
+        va = mmap(mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
 
     return va;
 }

@@ -117,6 +117,7 @@
 #define PADDR_MASK  (~(PADDR_SIZE - 1))
 
 #define VIRT_KERNEL_BASE _U64(0xffffffff80000000)
+#define VIRT_KERNEL_MAP  _U64(0xffff800000000000)
 #define VIRT_USER_BASE   _U64(0x0000000000400000)
 #define VIRT_IDENT_BASE  _U64(0x0000000000000000)
 
@@ -150,12 +151,19 @@ static inline paddr_t mfn_to_paddr(mfn_t mfn) { return (paddr_t)(mfn << PAGE_SHI
 static inline void *_paddr_to_virt(paddr_t pa, unsigned long addr_space) {
     return _ptr(pa + addr_space);
 }
+
 static inline void *paddr_to_virt_kern(paddr_t pa) {
     return _paddr_to_virt(pa, VIRT_KERNEL_BASE);
 }
+
+static inline void *paddr_to_virt_map(paddr_t pa) {
+    return _paddr_to_virt(pa, VIRT_KERNEL_MAP);
+}
+
 static inline void *paddr_to_virt_user(paddr_t pa) {
     return _paddr_to_virt(pa, VIRT_USER_BASE);
 }
+
 static inline void *paddr_to_virt(paddr_t pa) {
     return _paddr_to_virt(pa, VIRT_IDENT_BASE);
 }
@@ -163,9 +171,15 @@ static inline void *paddr_to_virt(paddr_t pa) {
 static inline void *mfn_to_virt_kern(mfn_t mfn) {
     return paddr_to_virt_kern(mfn << PAGE_SHIFT);
 }
+
+static inline void *mfn_to_virt_map(mfn_t mfn) {
+    return paddr_to_virt_map(mfn << PAGE_SHIFT);
+}
+
 static inline void *mfn_to_virt_user(mfn_t mfn) {
     return paddr_to_virt_user(mfn << PAGE_SHIFT);
 }
+
 static inline void *mfn_to_virt(mfn_t mfn) { return paddr_to_virt(mfn << PAGE_SHIFT); }
 
 static inline paddr_t virt_to_paddr(const void *va) {
@@ -173,6 +187,8 @@ static inline paddr_t virt_to_paddr(const void *va) {
 
     if (IS_ADDR_SPACE_VA(va, VIRT_KERNEL_BASE))
         return pa - VIRT_KERNEL_BASE;
+    if (IS_ADDR_SPACE_VA(va, VIRT_KERNEL_MAP))
+        return pa - VIRT_KERNEL_MAP;
     if (IS_ADDR_SPACE_VA(va, VIRT_USER_BASE))
         return pa - VIRT_USER_BASE;
 
@@ -190,6 +206,19 @@ static inline void *kmap(mfn_t mfn, unsigned int order,
                          unsigned long l3_flags, unsigned long l2_flags,
                          unsigned long l1_flags) {
     return vmap(mfn_to_virt_kern(mfn), mfn, order,
+#if defined(__x86_64__)
+                l4_flags,
+#endif
+                l3_flags, l2_flags, l1_flags);
+}
+
+static inline void *mmap(mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                         unsigned long l4_flags,
+#endif
+                         unsigned long l3_flags, unsigned long l2_flags,
+                         unsigned long l1_flags) {
+    return vmap(mfn_to_virt_map(mfn), mfn, order,
 #if defined(__x86_64__)
                 l4_flags,
 #endif
@@ -220,6 +249,18 @@ static inline void *kmap_2m(mfn_t mfn, unsigned long l2_flags) {
 
 static inline void *kmap_4k(mfn_t mfn, unsigned long l1_flags) {
     return kmap(mfn, PAGE_ORDER_4K, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER, l1_flags);
+}
+
+static inline void *mmap_1g(mfn_t mfn, unsigned long l3_flags) {
+    return mmap(mfn, PAGE_ORDER_1G, L4_PROT_USER, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
+}
+
+static inline void *mmap_2m(mfn_t mfn, unsigned long l2_flags) {
+    return mmap(mfn, PAGE_ORDER_2M, L4_PROT_USER, L3_PROT_USER, l2_flags, PT_NO_FLAGS);
+}
+
+static inline void *mmap_4k(mfn_t mfn, unsigned long l1_flags) {
+    return mmap(mfn, PAGE_ORDER_4K, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER, l1_flags);
 }
 
 #endif /* __ASSEMBLY__ */
