@@ -140,11 +140,6 @@ extern void *vmap(void *va, mfn_t mfn, unsigned int order,
 #endif
                   unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags);
 
-extern void *kmap(mfn_t mfn, unsigned int order,
-#if defined(__x86_64__)
-                  unsigned long l4_flags,
-#endif
-                  unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags);
 extern void vunmap(void *va, unsigned int order);
 
 /* Static declarations */
@@ -186,6 +181,19 @@ static inline paddr_t virt_to_paddr(const void *va) {
 
 static inline mfn_t virt_to_mfn(const void *va) {
     return paddr_to_mfn(virt_to_paddr(va));
+}
+
+static inline void *kmap(mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                         unsigned long l4_flags,
+#endif
+                         unsigned long l3_flags, unsigned long l2_flags,
+                         unsigned long l1_flags) {
+    return vmap(mfn_to_virt_kern(mfn), mfn, order,
+#if defined(__x86_64__)
+                l4_flags,
+#endif
+                l3_flags, l2_flags, l1_flags);
 }
 
 static inline void *vmap_1g(void *va, mfn_t mfn, unsigned long l3_flags) {
