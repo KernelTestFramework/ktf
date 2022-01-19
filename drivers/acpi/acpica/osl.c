@@ -214,7 +214,7 @@ BOOLEAN AcpiOsReadable(void *Memory, ACPI_SIZE Length) {
     for (mfn_t mfn = virt_to_mfn(Memory); mfn <= virt_to_mfn((char *) Memory + Length);
          ++mfn) {
         success = false;
-        mem = mfn_to_virt_kern(mfn);
+        mem = mfn_to_virt_map(mfn);
         asm volatile("1: movq ( %[mem] ), %%rax; movq $1, %[success];"
                      "2:" ASM_EXTABLE(1b, 2b)
                      : [ success ] "=m"(success)
@@ -233,7 +233,7 @@ BOOLEAN AcpiOsWriteable(void *Memory, ACPI_SIZE Length) {
     for (mfn_t mfn = virt_to_mfn(Memory); mfn <= virt_to_mfn((char *) Memory + Length);
          ++mfn) {
         success = false;
-        mem = mfn_to_virt_kern(mfn);
+        mem = mfn_to_virt_map(mfn);
         asm volatile("1: orq $0, ( %[mem] ); movq $1, %[success];"
                      "2:" ASM_EXTABLE(1b, 2b)
                      : [ success ] "=m"(success), [ mem ] "=r"(mem)
@@ -253,7 +253,7 @@ void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     void *va = NULL;
 
     for (unsigned i = 0; i < num_pages; i++, mfn++) {
-        void *_va = kmap_4k(mfn, L1_PROT);
+        void *_va = mmap_4k(mfn, L1_PROT);
         if (!_va)
             return NULL;
 
@@ -270,7 +270,7 @@ void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
     mfn_t mfn = virt_to_mfn(LogicalAddress);
 
     for (unsigned i = 0; i < num_pages; i++, mfn++)
-        vunmap(mfn_to_virt_kern(mfn), PAGE_ORDER_4K);
+        vunmap(mfn_to_virt_map(mfn), PAGE_ORDER_4K);
 }
 
 /* Task management functions */
