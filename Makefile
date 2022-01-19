@@ -233,7 +233,7 @@ endif
 ifeq ($(HAVE_KVM), kvm)
 QEMU_PARAMS += -enable-kvm
 endif # HAVE_KVM
-QEMU_PARAMS += -m 8192
+QEMU_PARAMS += -m 128
 QEMU_PARAMS += -display none -vga none -vnc none
 QEMU_PARAMS += -serial stdio
 QEMU_PARAMS += -smp cpus=2
