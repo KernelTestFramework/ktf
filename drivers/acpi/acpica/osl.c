@@ -45,6 +45,8 @@ typedef struct mapped_frame mapped_frame_t;
 
 static list_head_t mapped_frames;
 
+static spinlock_t map_lock = SPINLOCK_INIT;
+
 /* General OS functions */
 
 ACPI_STATUS AcpiOsInitialize(void) {
@@ -286,14 +288,17 @@ void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     mfn_t mfn = paddr_to_mfn(PhysicalAddress);
     void *va = NULL;
 
+    spin_lock(&map_lock);
     for (unsigned i = 0; i < num_pages; i++, mfn++) {
         mapped_frame_t *frame = find_mapped_frame(mfn);
         void *_va;
 
         if (!frame) {
             _va = mmap_4k(mfn, L1_PROT);
-            if (!_va)
+            if (!_va) {
+                spin_unlock(&map_lock);
                 return NULL;
+            }
             new_mapped_frame(mfn);
         }
         else {
@@ -304,6 +309,7 @@ void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
         if (!va)
             va = _ptr(_ul(_va) + offset);
     }
+    spin_unlock(&map_lock);
 
     return va;
 }
@@ -313,6 +319,7 @@ void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
     unsigned num_pages = ((offset + Length) / PAGE_SIZE) + 1;
     mfn_t mfn = virt_to_mfn(LogicalAddress);
 
+    spin_lock(&map_lock);
     for (unsigned i = 0; i < num_pages; i++, mfn++) {
         mapped_frame_t *frame = find_mapped_frame(mfn);
         BUG_ON(!frame || frame->refcount == 0);
@@ -324,6 +331,7 @@ void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
         list_unlink(&frame->list);
         kfree(frame);
     }
+    spin_unlock(&map_lock);
 }
 
 /* Task management functions */
