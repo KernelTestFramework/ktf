@@ -34,7 +34,7 @@
 
 #include <smp/smp.h>
 
-#include <mm/vmm.h>
+#include <mm/slab.h>
 
 static list_head_t tasks;
 static tid_t next_tid;
@@ -80,7 +80,7 @@ static inline task_state_t get_task_state(task_t *task) {
 }
 
 static task_t *create_task(void) {
-    task_t *task = get_free_pages(PAGE_ORDER_TASK, GFP_KERNEL);
+    task_t *task = kzalloc(sizeof(*task));
 
     if (!task)
         return NULL;
@@ -107,7 +107,7 @@ static void destroy_task(task_t *task) {
     list_unlink(&task->list);
     spin_unlock(&lock);
 
-    put_pages(task, PAGE_ORDER_TASK);
+    kfree(task);
 }
 
 static int prepare_task(task_t *task, const char *name, task_func_t func, void *arg) {
