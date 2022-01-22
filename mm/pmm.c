@@ -364,16 +364,17 @@ static inline frame_t *reserve_frame(frame_t *frame) {
     return frame;
 }
 
-static inline frame_t *return_frame(frame_t *frame) {
+static inline bool return_frame(frame_t *frame) {
     if (!is_frame_used(frame))
         panic("PMM: trying to return unused frame: %p\n", frame);
 
     if (--frame->refcount == 0) {
         list_unlink(&frame->list);
         list_add(&frame->list, &free_frames[frame->order]);
+        return true;
     }
 
-    return frame;
+    return false;
 }
 
 static frame_t *find_mfn_frame(list_head_t *frames, mfn_t mfn, unsigned int order) {
@@ -453,6 +454,41 @@ static void split_frame(frame_t *frame) {
     add_frame(NEXT_MFN(frame->mfn, frame->order), frame->order);
 }
 
+static void merge_frames(frame_t *first) {
+    frame_t *second;
+
+    BUG_ON(!first);
+
+    if (FIRST_FRAME_SIBLING(first->mfn, first->order + 1)) {
+        mfn_t next_mfn = NEXT_MFN(first->mfn, first->order);
+        second = find_mfn_frame(free_frames, next_mfn, first->order);
+    }
+    else {
+        /* Second frame sibling */
+        mfn_t prev_mfn = PREV_MFN(first->mfn, first->order);
+        second = first;
+        first = find_mfn_frame(free_frames, prev_mfn, first->order);
+    }
+
+    if (!first || !second)
+        return;
+
+    if (opt_debug) {
+        printk("PMM: Merging frames:\n");
+        display_frame(first);
+        display_frame(second);
+    }
+
+    /* Make the first sibling a higher order frame */
+    relink_frame_to_order(first, first->order + 1);
+
+    /* Destroy the second sibling frame */
+    destroy_frame(second);
+
+    /* Try to merge higher order frames */
+    merge_frames(first);
+}
+
 frame_t *get_free_frames(unsigned int order) {
     frame_t *frame;
 
@@ -478,24 +514,18 @@ frame_t *get_free_frames(unsigned int order) {
 void put_free_frames(mfn_t mfn, unsigned int order) {
     frame_t *frame;
 
-    BUG_ON(mfn_invalid(mfn));
-
-    if (order > MAX_PAGE_ORDER)
-        return;
+    BUG_ON(mfn_invalid(mfn) || order > MAX_PAGE_ORDER);
 
     spin_lock(&lock);
-    list_for_each_entry (frame, &busy_frames[order], list) {
-        if (frame->mfn == mfn) {
-            /* FIXME: Maintain order wrt mfn value */
-            /* FIXME: Add frame merge */
-            return_frame(frame);
-            spin_unlock(&lock);
-            return;
-        }
-    }
-    spin_unlock(&lock);
+    frame = find_mfn_frame(busy_frames, mfn, order);
+    if (!frame)
+        panic("PMM: unable to find frame: %lx, order: %u among busy frames\n", mfn,
+              order);
 
-    panic("PMM: unable to find frame: %x in busy frames list\n");
+    if (return_frame(frame))
+        merge_frames(frame);
+
+    spin_unlock(&lock);
 }
 
 void map_used_memory(void) {
