@@ -60,6 +60,8 @@ typedef struct frames_array frames_array_t;
 
 typedef bool (*free_frames_cond_t)(frame_t *free_frame);
 
+#define ORDER_TO_SIZE(order) (PAGE_SIZE << (order))
+
 #define FIRST_FRAME_SIBLING(mfn, order) ((mfn) % (1UL << (order)) == 0)
 #define NEXT_MFN(mfn, order)            ((mfn) + (1UL << (order)))
 #define PREV_MFN(mfn, order)            ((mfn) - (1UL << (order)))

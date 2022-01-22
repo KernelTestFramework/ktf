@@ -237,8 +237,18 @@ static inline void add_frame(mfn_t mfn, unsigned int order) {
     list_add_tail(&frame->list, &free_frames[order]);
 }
 
+static inline unsigned int find_max_avail_order(size_t size) {
+    for (unsigned int order = MAX_PAGE_ORDER; order > PAGE_ORDER_4K; order--) {
+        if (ORDER_TO_SIZE(order) <= size)
+            return order;
+    }
+
+    return PAGE_ORDER_4K;
+}
+
 static size_t process_memory_range(unsigned index) {
     paddr_t start, end, cur;
+    unsigned int max_order;
     addr_range_t range;
     size_t size;
 
@@ -261,31 +271,27 @@ static size_t process_memory_range(unsigned index) {
             add_early_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
         else
             add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
-        cur += (PAGE_SIZE << PAGE_ORDER_4K);
+        cur += ORDER_TO_SIZE(PAGE_ORDER_4K);
     }
 
-    /* Add initial 2M frames and align to 1G. */
-    while (cur % PAGE_SIZE_1G && cur + PAGE_SIZE_2M <= end) {
-        add_frame(paddr_to_mfn(cur), PAGE_ORDER_2M);
-        cur += (PAGE_SIZE << PAGE_ORDER_2M);
-    }
+    max_order = find_max_avail_order(end - cur);
 
-    /* Add all remaining 1G frames. */
-    while (cur + PAGE_SIZE_1G <= end) {
-        add_frame(paddr_to_mfn(cur), PAGE_ORDER_1G);
-        cur += (PAGE_SIZE << PAGE_ORDER_1G);
+    /* Add all available max_order frames. */
+    while (cur + ORDER_TO_SIZE(max_order) <= end) {
+        add_frame(paddr_to_mfn(cur), max_order);
+        cur += ORDER_TO_SIZE(max_order);
     }
 
     /* Add all remaining 2M frames. */
     while (cur + PAGE_SIZE_2M <= end) {
         add_frame(paddr_to_mfn(cur), PAGE_ORDER_2M);
-        cur += (PAGE_SIZE << PAGE_ORDER_2M);
+        cur += ORDER_TO_SIZE(PAGE_ORDER_2M);
     }
 
     /* Add all remaining 4K frames. */
     while (cur < end) {
         add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
-        cur += (PAGE_SIZE << PAGE_ORDER_4K);
+        cur += ORDER_TO_SIZE(PAGE_ORDER_4K);
     }
 
     if (cur != end) {
