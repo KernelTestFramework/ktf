@@ -390,8 +390,20 @@ static frame_t *find_mfn_frame(list_head_t *frames, mfn_t mfn, unsigned int orde
     return NULL;
 }
 
+static frame_t *find_larger_frame(list_head_t *frames, unsigned int order) {
+    while (++order <= MAX_PAGE_ORDER) {
+        frame_t *frame = get_first_frame(frames, order);
+
+        if (frame)
+            return frame;
+    }
+
+    return NULL;
+}
+
 /* Reserves and returns the first free frame fulfilling
- * the condition specified by the callback
+ * the condition specified by the callback.
+ * This function does not split larger frames.
  */
 frame_t *get_free_frames_cond(free_frames_cond_t cb) {
     spin_lock(&lock);
@@ -414,6 +426,33 @@ frame_t *get_free_frames_cond(free_frames_cond_t cb) {
     return NULL;
 }
 
+static inline void relink_frame_to_order(frame_t *frame, unsigned int new_order) {
+    BUG_ON(new_order > MAX_PAGE_ORDER);
+
+    list_unlink(&frame->list);
+    frames_count[frame->order]--;
+
+    frame->order = new_order;
+
+    list_add_tail(&frame->list, &free_frames[frame->order]);
+    frames_count[frame->order]++;
+}
+
+static void split_frame(frame_t *frame) {
+    BUG_ON(!frame);
+
+    if (opt_debug) {
+        printk("PMM: Splitting frame:\n");
+        display_frame(frame);
+    }
+
+    /* First sibling frame */
+    relink_frame_to_order(frame, frame->order - 1);
+
+    /* Create new frame entry for the second sibling frame */
+    add_frame(NEXT_MFN(frame->mfn, frame->order), frame->order);
+}
+
 frame_t *get_free_frames(unsigned int order) {
     frame_t *frame;
 
@@ -421,13 +460,16 @@ frame_t *get_free_frames(unsigned int order) {
         return NULL;
 
     spin_lock(&lock);
-    if (list_is_empty(&free_frames[order])) {
-        /* FIXME: Add page split */
-        spin_unlock(&lock);
-        return NULL;
+    while (list_is_empty(&free_frames[order])) {
+        frame = find_larger_frame(free_frames, order);
+        if (!frame) {
+            spin_unlock(&lock);
+            return NULL;
+        }
+        split_frame(frame);
     }
 
-    frame = reserve_frame(list_first_entry(&free_frames[order], frame_t, list));
+    frame = reserve_frame(get_first_frame(free_frames, order));
     spin_unlock(&lock);
 
     return frame;
