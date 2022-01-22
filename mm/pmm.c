@@ -376,17 +376,18 @@ static inline frame_t *return_frame(frame_t *frame) {
  * the condition specified by the callback
  */
 frame_t *get_free_frames_cond(free_frames_cond_t cb) {
-    frame_t *frame;
-
     spin_lock(&lock);
     for_each_order (order) {
+        frame_t *frame;
+
         if (list_is_empty(&free_frames[order]))
             continue;
 
         list_for_each_entry (frame, &free_frames[order], list) {
             if (cb(frame)) {
+                reserve_frame(frame);
                 spin_unlock(&lock);
-                return reserve_frame(frame);
+                return frame;
             }
         }
     }
