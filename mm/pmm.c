@@ -172,8 +172,8 @@ static inline frame_t *take_frame(frame_t *frame, frames_array_t *array) {
     return frame;
 }
 
-static inline frame_t *put_frame(frame_t *frame, frames_array_t *array) {
-    ASSERT(!frame);
+static inline frame_t *put_frames_array_entry(frame_t *frame, frames_array_t *array) {
+    BUG_ON(is_frame_free(frame));
 
     if (!array)
         array = find_frames_array(frame);
@@ -204,11 +204,15 @@ static inline frame_t *get_frames_array_entry(void) {
     return NULL;
 }
 
-static inline void put_frames_array_entry(frame_t *frame) {
-    if (is_frame_free(frame))
-        return;
+static inline void destroy_frame(frame_t *frame) {
+    BUG_ON(is_frame_used(frame));
 
-    put_frame(frame, NULL);
+    if (frame) {
+        list_unlink(&frame->list);
+        frames_count[frame->order]--;
+
+        put_frames_array_entry(frame, NULL);
+    }
 }
 
 static inline frame_t *new_frame(mfn_t mfn, unsigned int order) {
