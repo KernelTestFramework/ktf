@@ -80,6 +80,10 @@ static inline bool paddr_invalid(paddr_t pa) {
 
 static inline bool mfn_invalid(mfn_t mfn) { return paddr_invalid(mfn_to_paddr(mfn)); }
 
+static inline bool has_frames(list_head_t *frames, unsigned int order) {
+    return !(order > MAX_PAGE_ORDER || list_is_empty(&frames[order]));
+}
+
 static inline frame_t *get_free_frame(void) { return get_free_frames(PAGE_ORDER_4K); }
 static inline void put_free_frame(mfn_t mfn) {
     return put_free_frames(mfn, PAGE_ORDER_4K);
