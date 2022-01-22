@@ -376,6 +376,20 @@ static inline frame_t *return_frame(frame_t *frame) {
     return frame;
 }
 
+static frame_t *find_mfn_frame(list_head_t *frames, mfn_t mfn, unsigned int order) {
+    frame_t *frame;
+
+    if (!has_frames(frames, order))
+        return NULL;
+
+    list_for_each_entry (frame, &frames[order], list) {
+        if (frame->mfn == mfn)
+            return frame;
+    }
+
+    return NULL;
+}
+
 /* Reserves and returns the first free frame fulfilling
  * the condition specified by the callback
  */
