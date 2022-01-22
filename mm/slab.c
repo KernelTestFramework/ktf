@@ -135,7 +135,7 @@ meta_slab_t *slab_meta_alloc() {
      * If we're here then we've ran out of meta slab pages
      * Allocate a 4K page
      */
-    free_page = get_free_pages(PAGE_ORDER_4K, GFP_KERNEL);
+    free_page = get_free_page(GFP_KERNEL_MAP);
     if (free_page == NULL) {
         dprintk("slab_meta_alloc failed, not enough free pages\n");
         return NULL;
@@ -229,7 +229,7 @@ static void *ktf_alloc(size_t size) {
      * we can change the logic in future to have 2M for larger slab sizes
      */
 
-    free_page = get_free_pages(PAGE_ORDER_4K, GFP_KERNEL);
+    free_page = get_free_page(GFP_KERNEL_MAP);
     if (free_page == NULL) {
         dprintk("ktf_alloc failed, not enough free pages\n");
         slab_free(META_SLAB_PAGE_ENTRY(meta_slab), meta_slab);
