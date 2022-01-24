@@ -180,8 +180,8 @@ typedef enum com_irq com_irq_t;
 extern io_port_t com_ports[4];
 
 extern io_port_t get_first_com_port(void);
-extern void uart_init(io_port_t port, unsigned baud);
-extern void uart_input_init(uint8_t dst_cpus);
+extern void init_uart(uart_config_t *cfg);
+extern void init_uart_input(uint8_t dst_cpus);
 extern void uart_interrupt_handler(void);
 extern int serial_putchar(io_port_t port, char c);
 extern int serial_write(io_port_t port, const char *buf, size_t len);
