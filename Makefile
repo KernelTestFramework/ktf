@@ -50,7 +50,7 @@ endif
 ACPICA_DEST_DIR := $(KTF_ROOT)/drivers/acpi/acpica
 ifeq ($(CONFIG_ACPICA),y)
 TAR_CMD_ACPICA := tar --exclude=.git --exclude=.gitignore --strip-components=1 -C $(ACPICA_DEST_DIR) -xf
-ACPICA_VER := unix-20210730
+ACPICA_VER := unix-20211217
 ACPICA_NAME := acpica
 ACPICA_DIR := $(KTF_ROOT)/$(THIRD_PARTY)/$(ACPICA_NAME)
 ACPICA_TARBALL := $(ACPICA_DIR)/$(ACPICA_NAME)-$(ACPICA_VER).tar.gz
@@ -61,7 +61,6 @@ ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/executer
 ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/hardware
 ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/namespace
 ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/parser
-ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/resources
 ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/tables
 ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/components/utilities
 ACPICA_UNTAR_DIRS += $(ACPICA_NAME)-$(ACPICA_VER)/source/include
