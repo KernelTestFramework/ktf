@@ -55,7 +55,9 @@
 
 /* Kernel specific ACPICA configuration */
 
+#ifdef KTF_DEBUG
 #define ACPI_DEBUG_OUTPUT
+#endif
 
 #include <spinlock.h>
 #include <string.h>

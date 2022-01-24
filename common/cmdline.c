@@ -28,7 +28,11 @@
 #include <mm/regions.h>
 #include <string.h>
 
+#ifdef KTF_DEBUG
+bool opt_debug = true;
+#else
 bool opt_debug = false;
+#endif
 bool_cmd("debug", opt_debug);
 
 bool opt_keyboard = true;

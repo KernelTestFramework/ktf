@@ -64,7 +64,7 @@ static keyboard_state_t keyboard_state;
 
 void init_keyboard(uint8_t dst_cpus) {
     if (!boot_flags.i8042) {
-        printk("No i8042 microcontroller detected\n");
+        dprintk("No i8042 microcontroller detected\n");
         return;
     }
 
