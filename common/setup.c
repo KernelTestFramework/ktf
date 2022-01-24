@@ -66,8 +66,6 @@ boot_flags_t boot_flags;
 
 static unsigned bsp_cpu_id = 0;
 
-char cpu_identifier[49];
-
 unsigned get_bsp_cpu_id(void) { return bsp_cpu_id; }
 void set_bsp_cpu_id(unsigned cpu_id) { bsp_cpu_id = cpu_id; }
 
@@ -112,6 +110,19 @@ static void __text_init map_bios_area(void) {
         kmap_4k(bios_mfn, L1_PROT_RO);
 }
 
+static void display_cpu_info(void) {
+    char cpu_identifier[49];
+    unsigned long freq;
+
+    if (!cpu_vendor_string(cpu_identifier))
+        return;
+
+    printk("CPU: %.48s\n", cpu_identifier);
+    freq = get_cpu_freq(cpu_identifier);
+    if (freq > 0)
+        printk("Frequency: %lu MHz\n", freq / MHZ(1));
+}
+
 static void __text_init init_vga_console(void) {
     if (!boot_flags.vga)
         return;
@@ -142,12 +153,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_real_mode();
 
     /* Print cpu vendor info */
-    if (cpu_vendor_string(cpu_identifier)) {
-        printk("CPU: %.48s\n", cpu_identifier);
-        unsigned long freq = get_cpu_freq(cpu_identifier);
-        if (freq > 0)
-            printk("Frequency: %lu MHz\n", freq / MHZ(1));
-    }
+    display_cpu_info();
 
     /* Initialize Programmable Interrupt Controller */
     init_pic();
