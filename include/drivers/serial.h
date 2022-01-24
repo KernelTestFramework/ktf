@@ -186,4 +186,6 @@ extern void uart_interrupt_handler(void);
 extern int serial_putchar(io_port_t port, char c);
 extern int serial_write(io_port_t port, const char *buf, size_t len);
 
+extern void display_uart_config(const uart_config_t *cfg);
+
 #endif /* KTF_DRV_SERIAL_H */

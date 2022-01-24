@@ -39,6 +39,40 @@ static struct {
 
 io_port_t __data_rmode com_ports[4];
 
+static inline const char *com_port_name(com_port_t port) {
+    switch (port) {
+    case COM1_PORT:
+        return "COM1";
+    case COM2_PORT:
+        return "COM2";
+    case COM3_PORT:
+        return "COM3";
+    case COM4_PORT:
+        return "COM4";
+    default:
+        BUG();
+    }
+}
+
+static const uint8_t com_frame_size_values[] = {
+    [COM_FRAME_SIZE_5_BITS] = 5,
+    [COM_FRAME_SIZE_6_BITS] = 6,
+    [COM_FRAME_SIZE_7_BITS] = 7,
+    [COM_FRAME_SIZE_8_BITS] = 8,
+};
+
+static const char com_parity_names[] = {
+    [COM_NO_PARITY] = 'n',   [COM_ODD_PARITY] = 'o', [COM_EVEN_PARITY] = 'e',
+    [COM_HIGH_PARITY] = 'h', [COM_LOW_PARITY] = 'l',
+};
+
+#define COM_STOP_BIT_VALUE(cfg) ((cfg)->stop_bit + 1)
+
+void display_uart_config(const uart_config_t *cfg) {
+    printk("[%s] 0x%x %u,%u%c%u\n", com_port_name(cfg->port), cfg->port, cfg->baud,
+           com_frame_size_values[cfg->frame_size], com_parity_names[cfg->parity],
+           COM_STOP_BIT_VALUE(cfg));
+}
 
 io_port_t get_first_com_port(void) {
     memcpy((void *) com_ports, _ptr(BDA_COM_PORTS_ENTRY), sizeof(com_ports));
