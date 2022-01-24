@@ -36,11 +36,10 @@
 #include <smp/smp.h>
 
 #define QEMU_CONSOLE   0x0e9
-#define SERIAL_CONSOLE (com_ports[0])
 
 #define VPRINTK_BUF_SIZE 1024
 
-static console_callback_t console_callbacks[2];
+static console_callback_entry_t console_callbacks[2];
 static unsigned int num_console_callbacks;
 
 static void vprintk(const char *fmt, va_list args) {
@@ -56,8 +55,11 @@ static void vprintk(const char *fmt, va_list args) {
     if (rc > (int) sizeof(buf))
         panic("vprintk() buffer overflow\n");
 
-    for (i = 0; i < num_console_callbacks; i++)
-        console_callbacks[i](buf, rc);
+    for (i = 0; i < num_console_callbacks; i++) {
+        void *arg = console_callbacks[i].arg;
+
+        console_callbacks[i].cb(arg, buf, rc);
+    }
 
     spin_unlock(&lock);
 }
@@ -82,17 +84,25 @@ void AcpiOsPrintf(const char *Format, ...) {
 }
 #endif
 
+void serial_console_write(void *arg, const char *buf, size_t len) {
+    io_port_t port = (io_port_t) _ul(arg);
 
-void serial_console_write(const char *buf, size_t len) {
-    serial_write(SERIAL_CONSOLE, buf, len);
+    serial_write(port, buf, len);
 }
 
-void qemu_console_write(const char *buf, size_t len) { puts(QEMU_CONSOLE, buf, len); }
+void qemu_console_write(void *arg, const char *buf, size_t len) {
+    io_port_t port = (io_port_t) _ul(arg);
 
-void vga_console_write(const char *buf, size_t len) { vga_write(buf, len, VGA_WHITE); }
+    puts(port, buf, len);
+}
 
-void register_console_callback(console_callback_t cb) {
-    console_callbacks[num_console_callbacks++] = cb;
+void vga_console_write(void *vga_memory, const char *buf, size_t len) {
+    vga_write(vga_memory, buf, len, VGA_WHITE);
+}
+
+void register_console_callback(console_callback_t cb, void *arg) {
+    console_callbacks[num_console_callbacks].cb = cb;
+    console_callbacks[num_console_callbacks++].arg = arg;
 }
 
 void __noreturn panic(const char *fmt, ...) {

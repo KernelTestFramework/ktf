@@ -73,7 +73,7 @@ static void __text_init init_console(void) {
     get_com_ports();
 
     uart_init(com_ports[0], DEFAULT_BAUD_SPEED);
-    register_console_callback(serial_console_write);
+    register_console_callback(serial_console_write, _ptr(com_ports[0]));
 
     printk("COM1: %x, COM2: %x\n", com_ports[0], com_ports[1]);
 }
@@ -129,7 +129,7 @@ static void __text_init init_vga_console(void) {
 
     printk("Enabling VGA support\n");
     map_vga_area();
-    register_console_callback(vga_console_write);
+    register_console_callback(vga_console_write, paddr_to_virt_kern(VGA_START_ADDR));
 }
 
 void __noreturn __text_init kernel_start(uint32_t multiboot_magic,

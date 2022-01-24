@@ -27,7 +27,13 @@
 
 #include <ktf.h>
 
-typedef void (*console_callback_t)(const char *buf, size_t len);
+typedef void (*console_callback_t)(void *arg, const char *buf, size_t len);
+
+struct console_callback_entry {
+    console_callback_t cb;
+    void *arg;
+};
+typedef struct console_callback_entry console_callback_entry_t;
 
 extern void printk(const char *fmt, ...);
 
@@ -37,11 +43,11 @@ extern void printk(const char *fmt, ...);
             printk("%s (%s.%d): " fmt, __FILE__, __func__, __LINE__, ##__VA_ARGS__);     \
     } while (0)
 
-extern void serial_console_write(const char *buf, size_t len);
-extern void qemu_console_write(const char *buf, size_t len);
-extern void vga_console_write(const char *buf, size_t len);
+extern void serial_console_write(void *arg, const char *buf, size_t len);
+extern void qemu_console_write(void *arg, const char *buf, size_t len);
+extern void vga_console_write(void *arg, const char *buf, size_t len);
 
-extern void register_console_callback(console_callback_t func);
+extern void register_console_callback(console_callback_t func, void *arg);
 
 extern void panic(const char *fmt, ...);
 
