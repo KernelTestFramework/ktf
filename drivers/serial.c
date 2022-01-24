@@ -52,20 +52,27 @@ io_port_t get_first_com_port(void) {
     return COM1_PORT;
 }
 
-static inline void set_port_mode(io_port_t port, bool stop_bit, uint8_t width) {
-    lcr_t lcr = {0};
-
-    lcr.stop_bit = stop_bit;
-    lcr.width = width;
-    outb(port + UART_LCR_REG_OFFSET, lcr.reg);
-}
-
 static inline void set_dlab(io_port_t port, bool dlab) {
     lcr_t lcr;
 
     lcr.reg = inb(port + UART_LCR_REG_OFFSET);
     lcr.DLAB = dlab;
     outb(port + UART_LCR_REG_OFFSET, lcr.reg);
+}
+
+static inline void set_port_mode(uart_config_t *cfg) {
+    lcr_t lcr = {0};
+
+    lcr.stop_bit = cfg->stop_bit;
+    lcr.width = cfg->frame_size;
+    lcr.parity = cfg->parity;
+
+    outb(cfg->port + UART_LCR_REG_OFFSET, lcr.reg);
+
+    /* Set baud speed by applying divisor to DLL+DLH */
+    set_dlab(cfg->port, true);
+    outw(cfg->port + UART_DLL_REG_OFFSET, DEFAULT_BAUD_SPEED / cfg->baud);
+    set_dlab(cfg->port, false);
 }
 
 static inline bool thr_empty(io_port_t port) {
@@ -84,30 +91,25 @@ static inline bool receiver_ready(io_port_t port) {
     return msr.dsr && msr.cts;
 }
 
-void uart_init(io_port_t port, unsigned baud) {
+void __text_init init_uart(uart_config_t *cfg) {
     mcr_t mcr = {0};
 
     /* Enable interrupts for received data available */
-    outb(port + UART_IER_REG_OFFSET, 0x01);
+    outb(cfg->port + UART_IER_REG_OFFSET, 0x01);
 
     /* Disable FIFO control */
-    outb(port + UART_FCR_REG_OFFSET, 0x00);
+    outb(cfg->port + UART_FCR_REG_OFFSET, 0x00);
 
     /* Set 8n1 mode */
-    set_port_mode(port, COM_STOP_BIT_1, COM_FRAME_SIZE_8_BITS);
-
-    /* Set baud speed by applying divisor to DLL+DLH */
-    set_dlab(port, true);
-    outw(port + UART_DLL_REG_OFFSET, DEFAULT_BAUD_SPEED / baud);
-    set_dlab(port, false);
+    set_port_mode(cfg);
 
     /* Set tx/rx ready state */
     mcr.dtr = 1;
     mcr.rts = 1;
-    outb(port + UART_MCR_REG_OFFSET, mcr.reg);
+    outb(cfg->port + UART_MCR_REG_OFFSET, mcr.reg);
 }
 
-void uart_input_init(uint8_t dst_cpus) {
+void __text_init init_uart_input(uint8_t dst_cpus) {
     /* Initialize input state */
     memset(&input_state, 0, sizeof(input_state));
 

@@ -70,12 +70,18 @@ void set_bsp_cpu_id(unsigned cpu_id) { bsp_cpu_id = cpu_id; }
 #define QEMU_CONSOLE_PORT 0x0e9
 
 static void __text_init init_console(void) {
-    io_port_t com_port = get_first_com_port();
+    uart_config_t cfg = {0};
 
-    uart_init(com_port, DEFAULT_BAUD_SPEED);
-    register_console_callback(serial_console_write, _ptr(com_port));
-
-    printk("COM1: %x, COM2: %x\n", com_ports[0], com_ports[1]);
+    if (!parse_com_port(COM1, &cfg)) {
+        /* Use first COM port indicated by BIOS (if none, use COM1) */
+        cfg.port = get_first_com_port();
+        cfg.baud = DEFAULT_BAUD_SPEED;
+        cfg.frame_size = COM_FRAME_SIZE_8_BITS;
+        cfg.parity = COM_NO_PARITY;
+        cfg.stop_bit = COM_STOP_BIT_1;
+    }
+    init_uart(&cfg);
+    register_console_callback(serial_console_write, _ptr(cfg.port));
 
     if (opt_qemu_console) {
         register_console_callback(qemu_console_write, _ptr(QEMU_CONSOLE_PORT));
@@ -217,7 +223,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_pci();
 
     /* Initialize console input */
-    uart_input_init(get_bsp_cpu_id());
+    init_uart_input(get_bsp_cpu_id());
 
     /* Initialize timers */
     bool hpet_initialized = false;
