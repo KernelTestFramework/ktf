@@ -37,8 +37,6 @@ extern void printk(const char *fmt, ...);
             printk("%s (%s.%d): " fmt, __FILE__, __func__, __LINE__, ##__VA_ARGS__);     \
     } while (0)
 
-extern void putchar(int c);
-
 extern void serial_console_write(const char *buf, size_t len);
 extern void qemu_console_write(const char *buf, size_t len);
 extern void vga_console_write(const char *buf, size_t len);

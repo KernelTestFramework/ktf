@@ -82,7 +82,6 @@ void AcpiOsPrintf(const char *Format, ...) {
 }
 #endif
 
-void putchar(int c) { putc(SERIAL_CONSOLE, c); }
 
 void serial_console_write(const char *buf, size_t len) {
     serial_write(SERIAL_CONSOLE, buf, len);
