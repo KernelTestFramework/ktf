@@ -126,6 +126,11 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     /* Zero-out BSS sections */
     zero_bss();
 
+    if (multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC) {
+        /* Indentity mapping is still on, so fill in multiboot structures */
+        init_multiboot(mbi, &kernel_cmdline);
+    }
+
     /* Initialize console early */
     init_console();
 
@@ -146,11 +151,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* PIC is initialized - enable local interrupts */
     sti();
-
-    if (multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC) {
-        /* Indentity mapping is still on, so fill in multiboot structures */
-        init_multiboot(mbi, &kernel_cmdline);
-    }
 
     /* Parse commandline parameters */
     cmdline_parse(kernel_cmdline);
