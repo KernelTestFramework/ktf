@@ -50,7 +50,7 @@ void vga_scroll_up(void) {
         write_vga_buffer(--scroll_screen);
 }
 
-void vga_write(const char *buf, size_t len, vga_color_t color) {
+void vga_write(void *vga_memory, const char *buf, size_t len, vga_color_t color) {
     static int screen = 0, row = 0, col = 0;
 
     for (unsigned int i = 0; i < len; i++) {
@@ -77,7 +77,7 @@ void vga_write(const char *buf, size_t len, vga_color_t color) {
     }
 
     scroll_screen = screen;
-    write_vga_buffer(screen);
+    memcpy(vga_memory, vga_buffer[screen], sizeof(vga_buffer[screen]));
 }
 
 void map_vga_area(void) {
