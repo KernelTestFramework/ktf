@@ -22,17 +22,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef KTF_CPUID_H
-#define KTF_CPUID_H
 
+#include <cpuid.h>
+#include <ktf.h>
 #include <string.h>
 
-/* CPU vendor detection */
-#define CPUID_EXT_INFO_LEAF  0x80000000U
-#define CPUID_BRAND_INFO_MIN 0x80000002U
-#define CPUID_BRAND_INFO_MAX 0x80000004U
-
-static uint64_t get_cpu_freq(const char *cpu_str) {
+uint64_t get_cpu_freq(const char *cpu_str) {
     size_t len = strlen(cpu_str);
     uint64_t frequency = 0;
     char buf[16];
@@ -96,7 +91,7 @@ static uint64_t get_cpu_freq(const char *cpu_str) {
     return frequency;
 }
 
-static inline bool cpu_vendor_string(char *cpu_str) {
+bool cpu_vendor_string(char *cpu_str) {
     uint32_t leaf = CPUID_EXT_INFO_LEAF;
     uint32_t ebx = 0, ecx = 0, edx = 0;
     uint32_t eax = cpuid_eax(leaf);
@@ -117,5 +112,3 @@ static inline bool cpu_vendor_string(char *cpu_str) {
 
     return true;
 }
-
-#endif /* KTF_CPUID_H */
