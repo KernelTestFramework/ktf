@@ -30,6 +30,8 @@
 #include <ktf.h>
 #include <string.h>
 
+#include <drivers/serial.h>
+
 #define PARAM_MAX_LENGTH 32
 
 struct __packed ktf_param {
@@ -47,7 +49,7 @@ struct __packed ktf_param {
 
 #define cmd_param(_name, _var, _type)                                                    \
     __param_size_check(_var, _name);                                                     \
-    __ktfparam __cmd_##_var = {_name, _type, &_var, sizeof(_var)};
+    __ktfparam __cmd_##_var = {_name, _type, &(_var), sizeof(_var)};
 
 #define bool_cmd(_cmdname, _varname)   cmd_param(_cmdname, _varname, BOOL)
 #define ulong_cmd(_cmdname, _varname)  cmd_param(_cmdname, _varname, ULONG)
@@ -65,9 +67,12 @@ extern bool opt_hpet;
 extern bool opt_fpu;
 extern bool opt_qemu_console;
 extern bool opt_poweroff;
+
 extern const char *kernel_cmdline;
 
 extern void cmdline_parse(const char *cmdline);
+
+extern bool parse_com_port(com_idx_t com, uart_config_t *cfg);
 
 /* Static declarations */
 

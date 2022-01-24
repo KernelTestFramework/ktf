@@ -94,7 +94,7 @@ void uart_init(io_port_t port, unsigned baud) {
     outb(port + UART_FCR_REG_OFFSET, 0x00);
 
     /* Set 8n1 mode */
-    set_port_mode(port, STOP_BIT_1, FRAME_SIZE_8_BITS);
+    set_port_mode(port, COM_STOP_BIT_1, COM_FRAME_SIZE_8_BITS);
 
     /* Set baud speed by applying divisor to DLL+DLH */
     set_dlab(port, true);
