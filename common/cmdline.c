@@ -49,6 +49,9 @@ bool_cmd("fpu", opt_fpu);
 bool opt_qemu_console = false;
 bool_cmd("qemu_console", opt_qemu_console);
 
+bool opt_poweroff = true;
+bool_cmd("poweroff", opt_poweroff);
+
 const char *kernel_cmdline;
 
 void __text_init cmdline_parse(const char *cmdline) {
