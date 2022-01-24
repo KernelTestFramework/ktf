@@ -150,6 +150,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* Parse commandline parameters */
     cmdline_parse(kernel_cmdline);
+    if (!string_empty(kernel_cmdline))
+        printk("Command line: %s\n", kernel_cmdline);
 
     /* Initialize console early */
     init_console();

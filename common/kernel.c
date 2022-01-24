@@ -51,10 +51,7 @@ static void __noreturn echo_loop(void) {
 }
 
 void kernel_main(void) {
-    printk("\nKTF - Kernel Test Framework!\n\n");
-
-    if (kernel_cmdline)
-        printk("Command line: %s\n", kernel_cmdline);
+    printk("\nKTF - Kernel Test Framework!\n");
 
     zap_boot_mappings();
     if (opt_debug) {
