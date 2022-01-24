@@ -131,6 +131,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
         init_multiboot(mbi, &kernel_cmdline);
     }
 
+    /* Parse commandline parameters */
+    cmdline_parse(kernel_cmdline);
+
     /* Initialize console early */
     init_console();
 
@@ -151,9 +154,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* PIC is initialized - enable local interrupts */
     sti();
-
-    /* Parse commandline parameters */
-    cmdline_parse(kernel_cmdline);
 
     /* Initialize Physical Memory Manager */
     init_regions();
