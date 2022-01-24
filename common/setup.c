@@ -87,6 +87,9 @@ static void __text_init init_console(void) {
         register_console_callback(qemu_console_write, _ptr(QEMU_CONSOLE_PORT));
         printk("Initialized QEMU console at port 0x%x", QEMU_CONSOLE_PORT);
     }
+
+    printk("Serial console at: ");
+    display_uart_config(&cfg);
 }
 
 static __always_inline void zero_bss(void) {
