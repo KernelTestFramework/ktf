@@ -36,10 +36,13 @@ union line_control_register {
 };
 typedef union line_control_register lcr_t;
 
-#define FRAME_SIZE_8_BITS 0x03
-#define FRAME_SIZE_7_BITS 0x02
-#define FRAME_SIZE_6_BITS 0x01
-#define FRAME_SIZE_5_BITS 0x00
+enum com_idx {
+    COM1 = 0,
+    COM2 = 1,
+    COM3 = 2,
+    COM4 = 3,
+};
+typedef enum com_idx com_idx_t;
 
 enum com_port {
     COM1_PORT = 0x3f8,
@@ -49,14 +52,52 @@ enum com_port {
 };
 typedef enum com_port com_port_t;
 
-#define STOP_BIT_1 0x00
-#define STOP_BIT_2 0x01
+enum com_baud {
+    COM_BAUD_300 = 300,
+    COM_BAUD_1200 = 1200,
+    COM_BAUD_2400 = 2400,
+    COM_BAUD_4800 = 4800,
+    COM_BAUD_9600 = 9600,
+    COM_BAUD_19200 = 19200,
+    COM_BAUD_38400 = 38400,
+    COM_BAUD_57600 = 57600,
+    COM_BAUD_115200 = 115200,
+};
+typedef enum com_baud com_baud_t;
 
-#define NO_PARITY   0x00
-#define ODD_PARITY  0x01
-#define EVEN_PARITY 0x03
-#define HIGH_PARITY 0x05
-#define LOW_PARITY  0x07
+#define DEFAULT_BAUD_SPEED COM_BAUD_115200
+
+enum com_frame_size {
+    COM_FRAME_SIZE_8_BITS = 0x03,
+    COM_FRAME_SIZE_7_BITS = 0x02,
+    COM_FRAME_SIZE_6_BITS = 0x01,
+    COM_FRAME_SIZE_5_BITS = 0x00,
+};
+typedef enum com_frame_size com_frame_size_t;
+
+enum com_stop_bit {
+    COM_STOP_BIT_1 = 0x00,
+    COM_STOP_BIT_2 = 0x01,
+};
+typedef enum com_stop_bit com_stop_bit_t;
+
+enum com_parity {
+    COM_NO_PARITY = 0x00,
+    COM_ODD_PARITY = 0x01,
+    COM_EVEN_PARITY = 0x03,
+    COM_HIGH_PARITY = 0x05,
+    COM_LOW_PARITY = 0x07,
+};
+typedef enum com_parity com_parity_t;
+
+struct uart_config {
+    io_port_t port;
+    com_baud_t baud;
+    com_frame_size_t frame_size;
+    com_parity_t parity;
+    com_stop_bit_t stop_bit;
+};
+typedef struct uart_config uart_config_t;
 
 union modem_control_register {
     uint8_t reg;
@@ -107,8 +148,14 @@ union interrupt_enable_register {
 };
 typedef union interrupt_enable_register ier_t;
 
-#define COM1_IRQ         4 /* IRQ 4 */
-#define COM2_IRQ         3 /* IRQ 3 */
+enum com_irq {
+    COM1_IRQ = 4, /* IRQ 4 */
+    COM2_IRQ = 3, /* IRQ 3 */
+    COM3_IRQ = COM1_IRQ,
+    COM4_IRQ = COM2_IRQ,
+};
+typedef enum com_irq com_irq_t;
+
 #define COM1_IRQ0_OFFSET (PIC_IRQ0_OFFSET + COM1_IRQ)
 #define COM2_IRQ0_OFFSET (PIC_IRQ0_OFFSET + COM2_IRQ)
 
@@ -124,8 +171,6 @@ typedef union interrupt_enable_register ier_t;
 #define UART_LSR_REG_OFFSET 0x05
 #define UART_MSR_REG_OFFSET 0x06
 #define UART_SCR_REG_OFFSET 0x07
-
-#define DEFAULT_BAUD_SPEED 115200
 
 #define UART_IIR_STATUS_MASK 0x0E /* bits 3, 2, 1 */
 #define UART_IIR_RBR_READY   0x04
