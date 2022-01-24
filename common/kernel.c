@@ -69,7 +69,8 @@ void kernel_main(void) {
 #endif
 
 #ifdef KTF_ACPICA
-    acpi_power_off();
+    if (opt_poweroff)
+        acpi_power_off();
 #endif
     echo_loop();
 }
