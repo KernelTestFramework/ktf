@@ -31,7 +31,6 @@
 #include <symbols.h>
 #include <test.h>
 
-extern char *kernel_cmdline;
 #include <cmdline.h>
 
 static char opt_string[4];
