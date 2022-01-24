@@ -60,8 +60,6 @@
 #include <perfmon/pfmlib.h>
 #endif
 
-io_port_t __data_rmode com_ports[2] = {COM1_PORT, COM2_PORT};
-
 boot_flags_t boot_flags;
 
 static unsigned bsp_cpu_id = 0;
@@ -70,11 +68,12 @@ unsigned get_bsp_cpu_id(void) { return bsp_cpu_id; }
 void set_bsp_cpu_id(unsigned cpu_id) { bsp_cpu_id = cpu_id; }
 
 #define QEMU_CONSOLE_PORT 0x0e9
-static void __text_init init_console(void) {
-    get_com_ports();
 
-    uart_init(com_ports[0], DEFAULT_BAUD_SPEED);
-    register_console_callback(serial_console_write, _ptr(com_ports[0]));
+static void __text_init init_console(void) {
+    io_port_t com_port = get_first_com_port();
+
+    uart_init(com_port, DEFAULT_BAUD_SPEED);
+    register_console_callback(serial_console_write, _ptr(com_port));
 
     printk("COM1: %x, COM2: %x\n", com_ports[0], com_ports[1]);
 

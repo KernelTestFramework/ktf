@@ -37,7 +37,20 @@ static struct {
     unsigned init;
 } input_state;
 
-extern io_port_t com_ports[2];
+io_port_t __data_rmode com_ports[4];
+
+
+io_port_t get_first_com_port(void) {
+    memcpy((void *) com_ports, _ptr(BDA_COM_PORTS_ENTRY), sizeof(com_ports));
+
+    for (unsigned int i = 0; i < ARRAY_SIZE(com_ports); i++) {
+        if (com_ports[i] != 0x0)
+            return com_ports[i];
+    }
+
+    /* Fallback to COM1 */
+    return COM1_PORT;
+}
 
 static inline void set_port_mode(io_port_t port, bool stop_bit, uint8_t width) {
     lcr_t lcr = {0};

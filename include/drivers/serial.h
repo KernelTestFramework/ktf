@@ -41,6 +41,14 @@ typedef union line_control_register lcr_t;
 #define FRAME_SIZE_6_BITS 0x01
 #define FRAME_SIZE_5_BITS 0x00
 
+enum com_port {
+    COM1_PORT = 0x3f8,
+    COM2_PORT = 0x2f8,
+    COM3_PORT = 0x3e8,
+    COM4_PORT = 0x2e8,
+};
+typedef enum com_port com_port_t;
+
 #define STOP_BIT_1 0x00
 #define STOP_BIT_2 0x01
 
@@ -124,6 +132,9 @@ typedef union interrupt_enable_register ier_t;
 
 /* External declarations */
 
+extern io_port_t com_ports[4];
+
+extern io_port_t get_first_com_port(void);
 extern void uart_init(io_port_t port, unsigned baud);
 extern void uart_input_init(uint8_t dst_cpus);
 extern void uart_interrupt_handler(void);
