@@ -69,6 +69,7 @@ static unsigned bsp_cpu_id = 0;
 unsigned get_bsp_cpu_id(void) { return bsp_cpu_id; }
 void set_bsp_cpu_id(unsigned cpu_id) { bsp_cpu_id = cpu_id; }
 
+#define QEMU_CONSOLE_PORT 0x0e9
 static void __text_init init_console(void) {
     get_com_ports();
 
@@ -76,6 +77,11 @@ static void __text_init init_console(void) {
     register_console_callback(serial_console_write, _ptr(com_ports[0]));
 
     printk("COM1: %x, COM2: %x\n", com_ports[0], com_ports[1]);
+
+    if (opt_qemu_console) {
+        register_console_callback(qemu_console_write, _ptr(QEMU_CONSOLE_PORT));
+        printk("Initialized QEMU console at port 0x%x", QEMU_CONSOLE_PORT);
+    }
 }
 
 static __always_inline void zero_bss(void) {

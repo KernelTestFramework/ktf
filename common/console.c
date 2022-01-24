@@ -35,8 +35,6 @@
 
 #include <smp/smp.h>
 
-#define QEMU_CONSOLE   0x0e9
-
 #define VPRINTK_BUF_SIZE 1024
 
 static console_callback_entry_t console_callbacks[2];

@@ -63,6 +63,7 @@ extern bool opt_pit;
 extern bool opt_apic_timer;
 extern bool opt_hpet;
 extern bool opt_fpu;
+extern bool opt_qemu_console;
 extern const char *kernel_cmdline;
 
 extern void cmdline_parse(const char *cmdline);
