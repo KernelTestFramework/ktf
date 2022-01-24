@@ -27,6 +27,8 @@
 
 #ifndef __ASSEMBLY__
 #include <compiler.h>
+#include <ktf.h>
+#include <string.h>
 
 #define PARAM_MAX_LENGTH 32
 
@@ -52,5 +54,31 @@ struct __packed ktf_param {
 #define string_cmd(_cmdname, _varname) cmd_param(_cmdname, _varname, STRING)
 
 #endif /* __ASSEMBLY__ */
+
+/* External declarations */
+
+extern bool opt_debug;
+extern bool opt_keyboard;
+extern bool opt_pit;
+extern bool opt_apic_timer;
+extern bool opt_hpet;
+extern bool opt_fpu;
+extern const char *kernel_cmdline;
+
+extern void cmdline_parse(const char *cmdline);
+
+/* Static declarations */
+
+static inline int parse_bool(const char *s) {
+    if (!strcmp("no", s) || !strcmp("off", s) || !strcmp("false", s) ||
+        !strcmp("disable", s) || !strcmp("0", s))
+        return 0;
+
+    if (!strcmp("yes", s) || !strcmp("on", s) || !strcmp("true", s) ||
+        !strcmp("enable", s) || !strcmp("1", s))
+        return 1;
+
+    return -1;
+}
 
 #endif /* KTF_CMDLINE_H */

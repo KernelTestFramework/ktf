@@ -60,106 +60,16 @@
 #include <perfmon/pfmlib.h>
 #endif
 
-bool opt_debug = false;
-bool_cmd("debug", opt_debug);
-
-bool opt_keyboard = true;
-bool_cmd("keyboard", opt_keyboard);
-
-bool opt_pit = false;
-bool_cmd("pit", opt_pit);
-
-bool opt_apic_timer = false;
-bool_cmd("apic_timer", opt_apic_timer);
-
-bool opt_hpet = false;
-bool_cmd("hpet", opt_hpet);
-
-bool opt_fpu = false;
-bool_cmd("fpu", opt_fpu);
-
 io_port_t __data_rmode com_ports[2] = {COM1_PORT, COM2_PORT};
 
 boot_flags_t boot_flags;
 
 static unsigned bsp_cpu_id = 0;
 
-const char *kernel_cmdline;
 char cpu_identifier[49];
 
 unsigned get_bsp_cpu_id(void) { return bsp_cpu_id; }
 void set_bsp_cpu_id(unsigned cpu_id) { bsp_cpu_id = cpu_id; }
-
-static __text_init int parse_bool(const char *s) {
-    if (!strcmp("no", s) || !strcmp("off", s) || !strcmp("false", s) ||
-        !strcmp("disable", s) || !strcmp("0", s))
-        return 0;
-
-    if (!strcmp("yes", s) || !strcmp("on", s) || !strcmp("true", s) ||
-        !strcmp("enable", s) || !strcmp("1", s))
-        return 1;
-
-    return -1;
-}
-
-void __text_init cmdline_parse(const char *cmdline) {
-    static __bss_init char opt[PAGE_SIZE];
-    char *optval, *optkey, *q;
-    const char *p = cmdline;
-    struct ktf_param *param;
-
-    if (cmdline == NULL)
-        return;
-
-    for (;;) {
-        p = string_trim_whitspace(p);
-
-        if (iseostr(*p))
-            break;
-
-        q = optkey = opt;
-        while ((!isspace(*p)) && (!iseostr(*p))) {
-            ASSERT(_ul(q - opt) < sizeof(opt) - 1);
-            *q++ = *p++;
-        }
-        *q = '\0';
-
-        /* split on '=' */
-        optval = strchr(opt, '=');
-        if (optval != NULL)
-            *optval++ = '\0';
-        else
-            /* assume a bool later */
-            optval = opt;
-
-        for (param = __start_cmdline; param < __end_cmdline; param++) {
-            if (strcmp(param->name, optkey))
-                continue;
-
-            switch (param->type) {
-            case STRING:
-                strncpy(param->var, optval, param->varlen);
-                if (strlen(optval) >= param->varlen) {
-                    ((char *) param->var)[param->varlen - 1] = '\0';
-                    printk("WARNING: The commandline parameter value for %s does not fit "
-                           "into the preallocated buffer (size %lu >= %u)\n",
-                           param->name, strlen(optval), param->varlen);
-                }
-                break;
-            case ULONG:
-                *(unsigned long *) param->var = strtoul(optval, NULL, 0);
-                break;
-            case BOOL:
-                *(bool *) param->var =
-                    !!parse_bool(!strcmp(optval, optkey) ? "1" : optval);
-                break;
-            default:
-                panic("Unkown cmdline type detected...");
-                break;
-            }
-        }
-    }
-}
 
 static void __text_init init_console(void) {
     get_com_ports();
