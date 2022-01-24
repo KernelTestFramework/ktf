@@ -25,9 +25,6 @@
 #ifndef KTF_SETUP_H
 #define KTF_SETUP_H
 
-#define COM1_PORT 0x3f8
-#define COM2_PORT 0x2f8
-
 #ifndef __ASSEMBLY__
 #include <cmdline.h>
 #include <page.h>
@@ -41,22 +38,10 @@ struct boot_flags {
 };
 typedef struct boot_flags boot_flags_t;
 
-extern io_port_t com_ports[2];
-
 extern char cpu_identifier[49];
 extern boot_flags_t boot_flags;
 
 /* Static declarations */
-
-static inline void get_com_ports(void) {
-    memcpy((void *) com_ports, (void *) (BDA_COM_PORTS_ENTRY), sizeof(com_ports));
-
-    if (com_ports[0] == 0x0)
-        com_ports[0] = COM1_PORT;
-
-    if (com_ports[1] == 0x0)
-        com_ports[1] = COM2_PORT;
-}
 
 /* External declarations */
 
