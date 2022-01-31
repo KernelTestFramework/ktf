@@ -123,6 +123,28 @@
 
 #ifndef __ASSEMBLY__
 
+enum pat_field {
+    PA0 = 0,
+    PA1,
+    PA2,
+    PA3,
+    PA4,
+    PA5,
+    PA6,
+    PA7,
+};
+typedef enum pat_field pat_field_t;
+
+enum pat_memory_type {
+    UC = 0, /* Uncacheable */
+    WC = 1, /* Write Combining */
+    WT = 4, /* Write Through */
+    WP,     /* Write Protected */
+    WB,     /* Write Back */
+    UC_,    /* Uncached */
+};
+typedef enum pat_memory_type pat_memory_type_t;
+
 typedef unsigned long paddr_t;
 typedef unsigned long mfn_t;
 
@@ -142,6 +164,9 @@ extern void *vmap(void *va, mfn_t mfn, unsigned int order,
                   unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags);
 
 extern void vunmap(void *va, unsigned int order);
+
+extern void pat_set_type(pat_field_t field, pat_memory_type_t type);
+extern pat_memory_type_t pat_get_type(pat_field_t field);
 
 /* Static declarations */
 

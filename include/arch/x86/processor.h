@@ -91,6 +91,8 @@
 /*
  * Model Specific Registers (MSR)
  */
+#define MSR_PAT 0x277
+
 #define MSR_APIC_BASE 0x0000001B
 
 #define MSR_EFER   0xc0000080      /* Extended Feature Enable Register */
