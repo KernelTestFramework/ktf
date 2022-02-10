@@ -287,6 +287,7 @@ struct multiboot_apm_info {
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef __ASSEMBLY__
 extern void display_multiboot_mmap(void);
 extern void init_multiboot(multiboot_info_t *mbi, const char **cmdline);
 
@@ -295,5 +296,6 @@ extern void map_multiboot_areas(void);
 extern unsigned mbi_get_avail_memory_ranges_num(void);
 extern int mbi_get_avail_memory_range(unsigned index, addr_range_t *r);
 extern int mbi_get_memory_range(paddr_t pa, addr_range_t *r);
+#endif /* __ASSEMBLY__ */
 
 #endif /* KTF_MULTIBOOT_H */
