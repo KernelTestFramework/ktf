@@ -183,7 +183,7 @@ static inline void set_gate32_offset(struct x86_gate32 *gate, unsigned long offs
 }
 
 static inline uint32_t get_gate32_offset(const struct x86_gate32 *gate) {
-    return (gate->offset_hi << 16) | gate->offset_lo;
+    return (_u(gate->offset_hi) << 16) | gate->offset_lo;
 }
 
 static inline void set_gate32(struct x86_gate32 *gate, uint8_t type, uint16_t selector,
@@ -223,7 +223,7 @@ static inline void set_gate64_offset(struct x86_gate64 *gate, unsigned long offs
 }
 
 static inline uint64_t get_gate64_offset(const struct x86_gate64 *gate) {
-    return ((uint64_t) gate->offset_hi << 32) | (gate->offset_mi << 16) | gate->offset_lo;
+    return (_ul(gate->offset_hi) << 32) | (_ul(gate->offset_mi) << 16) | gate->offset_lo;
 }
 
 static inline void set_gate64(struct x86_gate64 *gate, uint8_t type, uint16_t selector,
