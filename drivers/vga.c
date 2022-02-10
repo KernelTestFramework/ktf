@@ -83,7 +83,7 @@ void vga_write(void *vga_memory, const char *buf, size_t len, vga_color_t color)
 void map_vga_area(void) {
     for (mfn_t vga_mfn = paddr_to_mfn(VGA_START_ADDR);
          vga_mfn < paddr_to_mfn(VGA_END_ADDR); vga_mfn++) {
-        vmap_4k(mfn_to_virt(vga_mfn), vga_mfn, L1_PROT);
-        kmap_4k(vga_mfn, L1_PROT);
+        vmap_4k(mfn_to_virt(vga_mfn), vga_mfn, L1_PROT_NOCACHE);
+        kmap_4k(vga_mfn, L1_PROT_NOCACHE);
     }
 }
