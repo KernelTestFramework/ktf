@@ -153,7 +153,7 @@ void init_apic(unsigned int cpu, apic_mode_t mode) {
      * X2APIC uses MSRs for accesses, so no mapping needed.
      */
     if (apic_mode == APIC_MODE_XAPIC)
-        vmap_4k(apic_get_base(apic_base), apic_base.base, L1_PROT);
+        vmap_4k(apic_get_base(apic_base), apic_base.base, L1_PROT_NOCACHE);
 
     spiv.reg = apic_read(APIC_SPIV);
     spiv.vector = 0xFF;
