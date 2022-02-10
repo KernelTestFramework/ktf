@@ -122,7 +122,7 @@ COMMON_FLAGS += -DKTF_ACPICA
 endif
 
 AFLAGS  := $(COMMON_FLAGS) -D__ASSEMBLY__ -nostdlib -nostdinc
-CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O3 -g -Wall -Wextra -ffreestanding -nostdlib -nostdinc
+CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O2 -g -Wall -Wextra -ffreestanding -nostdlib -nostdinc
 CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse2
 CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin -fomit-frame-pointer -fcf-protection="none"
 CFLAGS  += -mcmodel=kernel -fno-pic -fno-asynchronous-unwind-tables -fno-unwind-tables
