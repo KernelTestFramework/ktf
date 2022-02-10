@@ -64,7 +64,7 @@ struct task {
     void *arg;
 
     unsigned long result;
-} __aligned(PAGE_SIZE);
+};
 typedef struct task task_t;
 
 /* External declarations */
