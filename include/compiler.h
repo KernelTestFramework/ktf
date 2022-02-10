@@ -54,6 +54,7 @@
 typedef uint64_t off_t;
 #define _ptr(val) ((void *) (unsigned long) (val))
 #define _ul(val)  ((unsigned long) (val))
+#define _u(val)   ((unsigned int) (val))
 #define _int(val) ((int) (val))
 #endif
 
