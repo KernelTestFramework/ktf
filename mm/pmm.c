@@ -383,13 +383,13 @@ static inline bool return_frame(frame_t *frame) {
     return false;
 }
 
-static frame_t *find_mfn_frame(list_head_t *frames, mfn_t mfn, unsigned int order) {
+static frame_t *find_mfn_frame(list_head_t *list, mfn_t mfn, unsigned int order) {
     frame_t *frame;
 
-    if (!has_frames(frames, order))
+    if (!has_frames(list, order))
         return NULL;
 
-    list_for_each_entry (frame, &frames[order], list) {
+    list_for_each_entry (frame, &list[order], list) {
         if (frame->mfn == mfn)
             return frame;
     }
@@ -397,9 +397,9 @@ static frame_t *find_mfn_frame(list_head_t *frames, mfn_t mfn, unsigned int orde
     return NULL;
 }
 
-static frame_t *find_larger_frame(list_head_t *frames, unsigned int order) {
+static frame_t *find_larger_frame(list_head_t *list, unsigned int order) {
     while (++order <= MAX_PAGE_ORDER) {
-        frame_t *frame = get_first_frame(frames, order);
+        frame_t *frame = get_first_frame(list, order);
 
         if (frame)
             return frame;
