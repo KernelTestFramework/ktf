@@ -97,16 +97,15 @@ static inline void set_dlab(io_port_t port, bool dlab) {
 static inline void set_port_mode(uart_config_t *cfg) {
     lcr_t lcr = {0};
 
-    lcr.stop_bit = cfg->stop_bit;
-    lcr.width = cfg->frame_size;
-    lcr.parity = cfg->parity;
-
-    outb(cfg->port + UART_LCR_REG_OFFSET, lcr.reg);
-
     /* Set baud speed by applying divisor to DLL+DLH */
     set_dlab(cfg->port, true);
     outw(cfg->port + UART_DLL_REG_OFFSET, DEFAULT_BAUD_SPEED / cfg->baud);
     set_dlab(cfg->port, false);
+
+    lcr.stop_bit = cfg->stop_bit;
+    lcr.parity = cfg->parity;
+    lcr.width = cfg->frame_size;
+    outb(cfg->port + UART_LCR_REG_OFFSET, lcr.reg);
 }
 
 static inline bool thr_empty(io_port_t port) {
@@ -134,7 +133,7 @@ void __text_init init_uart(uart_config_t *cfg) {
     /* Disable FIFO control */
     outb(cfg->port + UART_FCR_REG_OFFSET, 0x00);
 
-    /* Set 8n1 mode */
+    /* Set port mode */
     set_port_mode(cfg);
 
     /* Set tx/rx ready state */
