@@ -28,14 +28,6 @@
 #include <drivers/pic.h>
 #include <ktf.h>
 
-union line_control_register {
-    uint8_t reg;
-    struct __packed {
-        uint8_t width : 2, stop_bit : 1, parity : 3, break_ctrl : 1, DLAB : 1;
-    };
-};
-typedef union line_control_register lcr_t;
-
 enum com_idx {
     COM1 = 0,
     COM2 = 1,
@@ -98,6 +90,14 @@ struct uart_config {
     com_stop_bit_t stop_bit;
 };
 typedef struct uart_config uart_config_t;
+
+union line_control_register {
+    uint8_t reg;
+    struct __packed {
+        uint8_t width : 2, stop_bit : 1, parity : 3, break_ctrl : 1, DLAB : 1;
+    };
+};
+typedef union line_control_register lcr_t;
 
 union modem_control_register {
     uint8_t reg;
