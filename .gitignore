@@ -8,6 +8,7 @@ cscope.*
 *.debug
 Makeconf.local
 .DS_Store
+*.swp
 drivers/acpi/acpica/source/
 third-party/libpfm/COPYING
 third-party/libpfm/Makefile
