@@ -87,13 +87,14 @@ else
 STRIP_OPTS := -s
 endif
 
+GRUB_DIR := grub/boot
 GRUB_FILE := grub-file
 GRUB_MKIMAGE := grub-mkimage
 GRUB_MODULES := multiboot iso9660 biosdisk
 ifneq ($(UNITTEST),)
-GRUB_CONFIG := grub/boot/grub/grub-test.cfg
+GRUB_CONFIG := $(GRUB_DIR)/grub/grub-test.cfg
 else
-GRUB_CONFIG := grub/boot/grub/grub.cfg
+GRUB_CONFIG := $(GRUB_DIR)/grub/grub.cfg
 endif
 XORRISO := xorriso
 QEMU_BIN := qemu-system-x86_64
@@ -252,7 +253,7 @@ else
 $(ISO_FILE): $(TARGET)
 	@echo "GEN ISO" $(ISO_FILE)
 	$(VERBOSE) $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
-	$(VERBOSE) cp $(TARGET) grub/boot/
+	$(VERBOSE) cp $(TARGET) $(GRUB_DIR)/
 	$(VERBOSE) $(GRUB_MKIMAGE) --format i386-pc-eltorito -c $(GRUB_CONFIG) -p /boot/grub -o grub/boot.img $(GRUB_MODULES)
 	$(VERBOSE) $(XORRISO) -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
 endif
