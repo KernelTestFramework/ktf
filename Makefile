@@ -89,8 +89,8 @@ endif
 
 GRUB_DIR := grub/boot
 GRUB_FILE := grub-file
-GRUB_MKIMAGE := grub-mkimage
-GRUB_MODULES := multiboot iso9660 biosdisk
+GRUB_MKRESCUE := grub-mkrescue
+GRUB_MODULES := multiboot iso9660 serial normal
 ifneq ($(UNITTEST),)
 GRUB_CONFIG := $(GRUB_DIR)/grub/grub-test.cfg
 else
@@ -257,8 +257,7 @@ $(ISO_FILE): $(TARGET)
 	$(VERBOSE) $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	$(VERBOSE) cp $(TARGET) $(GRUB_DIR)/
 	$(VERBOSE) $(XZ) -q -f $(GRUB_DIR)/$(TARGET)
-	$(VERBOSE) $(GRUB_MKIMAGE) --format i386-pc-eltorito -c $(GRUB_CONFIG) -p /boot/grub -o grub/boot.img $(GRUB_MODULES)
-	$(VERBOSE) $(XORRISO) -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
+	$(VERBOSE) $(GRUB_MKRESCUE) --install-modules="$(GRUB_MODULES)" --fonts=no --compress=xz -o $(ISO_FILE) grub &> /dev/null
 endif
 
 .PHONY: boot
