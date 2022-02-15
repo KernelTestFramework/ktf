@@ -99,6 +99,7 @@ endif
 XORRISO := xorriso
 QEMU_BIN := qemu-system-x86_64
 GDB := gdb
+XZ := xz
 
 COMMON_INCLUDES := -I$(KTF_ROOT)/include -I$(KTF_ROOT)/include/arch/x86
 ifeq ($(CONFIG_LIBPFM),y)
@@ -216,6 +217,7 @@ clean:
 	$(VERBOSE) find $(KTF_ROOT) -name \*.bin -delete
 	$(VERBOSE) find $(KTF_ROOT) -name \*.iso -delete
 	$(VERBOSE) find $(KTF_ROOT) -name \*.img -delete
+	$(VERBOSE) find $(KTF_ROOT) -name \*.xz -delete
 	$(VERBOSE) find $(KTF_ROOT) -name cscope.\* -delete
 	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
 	$(VERBOSE) $(RM) -rf $(ACPICA_DEST_DIR)/source
@@ -254,6 +256,7 @@ $(ISO_FILE): $(TARGET)
 	@echo "GEN ISO" $(ISO_FILE)
 	$(VERBOSE) $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	$(VERBOSE) cp $(TARGET) $(GRUB_DIR)/
+	$(VERBOSE) $(XZ) -q -f $(GRUB_DIR)/$(TARGET)
 	$(VERBOSE) $(GRUB_MKIMAGE) --format i386-pc-eltorito -c $(GRUB_CONFIG) -p /boot/grub -o grub/boot.img $(GRUB_MODULES)
 	$(VERBOSE) $(XORRISO) -as mkisofs -U -b boot.img -no-emul-boot -boot-load-size 4 -boot-info-table -o $(ISO_FILE) grub 2>> /dev/null
 endif
