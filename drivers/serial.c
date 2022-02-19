@@ -219,10 +219,13 @@ int serial_write(io_port_t port, const char *buf, size_t len) {
 }
 
 void uart_interrupt_handler(void) {
-    unsigned int i;
-    for (i = 0; i < ARRAY_SIZE(com_ports); ++i) {
-        uint8_t status = inb(com_ports[i] + UART_IIR_REG_OFFSET);
-        if ((status & UART_IIR_STATUS_MASK) == UART_IIR_RBR_READY) {
+    for (unsigned int i = 0; i < ARRAY_SIZE(com_ports); ++i) {
+        com_port_t com_port = com_ports[i];
+        iir_t iir;
+
+        iir.reg = inb(com_port + UART_IIR_REG_OFFSET);
+        if (iir.event == UART_IIR_EVENT_RXD_AVAIL ||
+            iir.event == UART_IIR_EVENT_CHAR_TIMEOUT) {
             uint8_t input = inb(com_ports[i] + UART_RBR_REG_OFFSET);
 
             input_state.buf[input_state.curr] = input;
