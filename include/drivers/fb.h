@@ -28,6 +28,10 @@
 #include <ktf.h>
 #include <multiboot.h>
 
+#define FB_WHITE 0xFFFFFFFF
+
 extern bool init_framebuffer(const multiboot_info_t *mbi);
+extern void draw_line(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color);
+extern void draw_logo(void);
 
 #endif /* KTF_DRV_FB_H */
