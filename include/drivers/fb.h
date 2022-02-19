@@ -31,7 +31,9 @@
 #define FB_WHITE 0xFFFFFFFF
 
 extern bool init_framebuffer(const multiboot_info_t *mbi);
+extern void put_char(char c, uint32_t x, uint32_t y, uint32_t color);
 extern void draw_line(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color);
 extern void draw_logo(void);
+extern void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color);
 
 #endif /* KTF_DRV_FB_H */

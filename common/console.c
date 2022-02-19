@@ -30,6 +30,7 @@
 #include <spinlock.h>
 #include <string.h>
 
+#include <drivers/fb.h>
 #include <drivers/serial.h>
 #include <drivers/vga.h>
 
@@ -96,6 +97,10 @@ void qemu_console_write(void *arg, const char *buf, size_t len) {
 
 void vga_console_write(void *vga_memory, const char *buf, size_t len) {
     vga_write(vga_memory, buf, len, VGA_WHITE);
+}
+
+void fb_console_write(void *fb_memory, const char *buf, size_t len) {
+    fb_write(fb_memory, buf, len, FB_WHITE);
 }
 
 void register_console_callback(console_callback_t cb, void *arg) {
