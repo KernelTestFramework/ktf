@@ -23,15 +23,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <drivers/fb.h>
+#include <drivers/logo.h>
 #include <ktf.h>
 #include <multiboot.h>
 #include <page.h>
+
 static uint32_t width;
 static uint32_t height;
 static uint32_t pitch;
 static uint8_t bpp;
 
 static size_t buffer_size;
+static size_t banner_size;
 static void *video_memory;
 
 static void (*put_pixel)(uint32_t x, uint32_t y, uint32_t color);
@@ -76,6 +79,7 @@ bool init_framebuffer(const multiboot_info_t *mbi) {
     bpp = mbi->framebuffer_bpp;
 
     buffer_size = (size_t) width * height;
+    banner_size = (size_t) width * LOGO_HEIGHT;
 
     switch (bpp) {
     case 0 ... 7:
@@ -88,14 +92,17 @@ bool init_framebuffer(const multiboot_info_t *mbi) {
     case 16:
         put_pixel = put_pixel16;
         buffer_size *= 2;
+        banner_size *= 2;
         break;
     case 24:
         put_pixel = put_pixel24;
         buffer_size *= 3;
+        banner_size *= 3;
         break;
     case 32:
         put_pixel = put_pixel32;
         buffer_size *= 4;
+        banner_size *= 4;
         break;
     default:
         BUG();
@@ -105,4 +112,29 @@ bool init_framebuffer(const multiboot_info_t *mbi) {
     memset(video_memory, 0, buffer_size);
 
     return true;
+}
+
+void draw_line(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color) {
+    while (x1 <= x2 || y1 <= y2) {
+        put_pixel(x1, y1, color);
+        if (x1 <= x2)
+            x1++;
+        if (y1 <= y2)
+            y1++;
+    }
+}
+
+void draw_logo(void) {
+    uint32_t *px = (uint32_t *) logo;
+
+    for (int y = LOGO_HEIGHT; y > 0; y--) {
+        for (int x = 0; x < LOGO_WIDTH; x++)
+            put_pixel(x, y, *px++);
+    }
+
+    draw_line(0, LOGO_HEIGHT + 4, width, LOGO_HEIGHT + 4, FB_WHITE);
+}
+
+static void clear_screen(void *fb_addr) {
+    memset((uint8_t *) video_memory + banner_size, 0, buffer_size - banner_size);
 }
