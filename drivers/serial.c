@@ -139,6 +139,7 @@ void __text_init init_uart(uart_config_t *cfg) {
     /* Set tx/rx ready state */
     mcr.dtr = 1;
     mcr.rts = 1;
+    mcr.aux = 2;
     outb(cfg->port + UART_MCR_REG_OFFSET, mcr.reg);
 }
 
