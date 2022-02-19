@@ -22,11 +22,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <console.h>
 #include <drivers/fb.h>
 #include <drivers/logo.h>
 #include <ktf.h>
 #include <multiboot.h>
 #include <page.h>
+#include <string.h>
+
+extern uint64_t fonts[];
 
 static uint32_t width;
 static uint32_t height;
@@ -111,7 +115,19 @@ bool init_framebuffer(const multiboot_info_t *mbi) {
     map_fb_area(mbi->framebuffer_addr, buffer_size);
     memset(video_memory, 0, buffer_size);
 
+    register_console_callback(fb_console_write, video_memory);
     return true;
+}
+
+void put_char(char c, uint32_t x, uint32_t y, uint32_t color) {
+    uint64_t font = fonts[(uint8_t) c];
+
+    for (int yy = 0; yy < 8; yy++) {
+        for (int xx = 0; xx < 8; xx++, font >>= 1) {
+            if (font & 1)
+                put_pixel(x + xx, y + yy, color);
+        }
+    }
 }
 
 void draw_line(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color) {
@@ -137,4 +153,29 @@ void draw_logo(void) {
 
 static void clear_screen(void *fb_addr) {
     memset((uint8_t *) video_memory + banner_size, 0, buffer_size - banner_size);
+}
+
+void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color) {
+    static uint32_t row = LOGO_HEIGHT + 8, col = 0;
+
+    for (unsigned int i = 0; i < len; i++) {
+        char c = buf[i];
+
+        if ((col + 8) > width || c == '\n') {
+            row += sizeof(fonts[0]);
+            col = 0;
+        }
+
+        if ((row + 8) > height) {
+            clear_screen(fb_addr);
+            row = LOGO_HEIGHT + 8;
+            col = 0;
+        }
+
+        if (c == '\n')
+            continue;
+
+        put_char(c, col, row, color);
+        col += sizeof(fonts[0]);
+    }
 }

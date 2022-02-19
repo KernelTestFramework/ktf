@@ -46,6 +46,7 @@ extern void printk(const char *fmt, ...);
 extern void serial_console_write(void *arg, const char *buf, size_t len);
 extern void qemu_console_write(void *arg, const char *buf, size_t len);
 extern void vga_console_write(void *arg, const char *buf, size_t len);
+extern void fb_console_write(void *arg, const char *buf, size_t len);
 
 extern void register_console_callback(console_callback_t func, void *arg);
 
