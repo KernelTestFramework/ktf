@@ -126,15 +126,21 @@ static inline bool receiver_ready(io_port_t port) {
 
 void __text_init init_uart(uart_config_t *cfg) {
     mcr_t mcr = {0};
+    fcr_t fcr = {0};
 
     /* Enable interrupts for received data available */
     outb(cfg->port + UART_IER_REG_OFFSET, 0x01);
 
-    /* Disable FIFO control */
-    outb(cfg->port + UART_FCR_REG_OFFSET, 0x00);
 
     /* Set port mode */
     set_port_mode(cfg);
+
+    /* Enable FIFO control */
+    fcr.enable = 1;
+    fcr.clear_rx = 1;
+    fcr.clear_tx = 1;
+    fcr.int_lvl = FIFO_INT_TRIGGER_LEVEL_1;
+    outb(cfg->port + UART_FCR_REG_OFFSET, fcr.reg);
 
     /* Set tx/rx ready state */
     mcr.dtr = 1;
