@@ -127,10 +127,13 @@ static inline bool receiver_ready(io_port_t port) {
 void __text_init init_uart(uart_config_t *cfg) {
     mcr_t mcr = {0};
     fcr_t fcr = {0};
+    ier_t ier = {0};
 
     /* Enable interrupts for received data available */
-    outb(cfg->port + UART_IER_REG_OFFSET, 0x01);
-
+    ier.rx_avl = 1;
+    ier.rx_lsr_change = 0;
+    ier.msr_change = 1;
+    outb(cfg->port + UART_IER_REG_OFFSET, ier.reg);
 
     /* Set port mode */
     set_port_mode(cfg);
