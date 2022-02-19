@@ -50,6 +50,7 @@
 #include <smp/mptables.h>
 #include <smp/smp.h>
 
+#include <drivers/fb.h>
 #include <drivers/hpet.h>
 #include <drivers/pic.h>
 #include <drivers/pit.h>
@@ -137,6 +138,8 @@ static void display_cpu_info(void) {
         printk("Frequency: %lu MHz\n", freq / MHZ(1));
 }
 
+static void display_banner(void) { draw_logo(); }
+
 static void __text_init init_vga_console(void) {
     if (!boot_flags.vga)
         return;
@@ -194,6 +197,11 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     if (opt_debug)
         dump_pagetables();
 
+    if (init_framebuffer(mbi))
+        display_banner();
+    else
+        init_vga_console();
+
     init_percpu();
 
     init_traps(get_bsp_cpu_id());
@@ -212,8 +220,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
         if (init_mptables() < 0)
             BUG();
     }
-
-    init_vga_console();
 
     init_apic(get_bsp_cpu_id(), APIC_MODE_XAPIC);
 
