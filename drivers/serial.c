@@ -150,6 +150,9 @@ void __text_init init_uart(uart_config_t *cfg) {
     mcr.rts = 1;
     mcr.aux = 2;
     outb(cfg->port + UART_MCR_REG_OFFSET, mcr.reg);
+
+    if (com_ports[0] == NO_COM_PORT)
+        com_ports[0] = cfg->port;
 }
 
 void __text_init init_uart_input(uint8_t dst_cpus) {
@@ -222,6 +225,9 @@ void uart_interrupt_handler(void) {
     for (unsigned int i = 0; i < ARRAY_SIZE(com_ports); ++i) {
         com_port_t com_port = com_ports[i];
         iir_t iir;
+
+        if (com_port == NO_COM_PORT)
+            continue;
 
         iir.reg = inb(com_port + UART_IIR_REG_OFFSET);
         if (iir.event == UART_IIR_EVENT_RXD_AVAIL ||
