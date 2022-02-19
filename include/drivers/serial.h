@@ -37,6 +37,7 @@ enum com_idx {
 typedef enum com_idx com_idx_t;
 
 enum com_port {
+    NO_COM_PORT = 0x0,
     COM1_PORT = 0x3f8,
     COM2_PORT = 0x2f8,
     COM3_PORT = 0x3e8,
