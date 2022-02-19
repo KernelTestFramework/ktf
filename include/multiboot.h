@@ -296,6 +296,7 @@ extern void map_multiboot_areas(void);
 extern unsigned mbi_get_avail_memory_ranges_num(void);
 extern int mbi_get_avail_memory_range(unsigned index, addr_range_t *r);
 extern int mbi_get_memory_range(paddr_t pa, addr_range_t *r);
+extern bool mbi_has_framebuffer(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_MULTIBOOT_H */

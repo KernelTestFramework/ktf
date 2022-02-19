@@ -194,3 +194,19 @@ found:
 
     return 0;
 }
+
+bool mbi_has_framebuffer(void) {
+    if (!has_mbi_flag(MULTIBOOT_INFO_FRAMEBUFFER_INFO))
+        return false;
+
+    switch (multiboot_info->framebuffer_type) {
+    case MULTIBOOT_FRAMEBUFFER_TYPE_INDEXED:
+    case MULTIBOOT_FRAMEBUFFER_TYPE_RGB:
+        return true;
+    case MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT:
+    default:
+        return false;
+    }
+
+    return false;
+}
