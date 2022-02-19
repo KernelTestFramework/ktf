@@ -148,6 +148,24 @@ union interrupt_enable_register {
 };
 typedef union interrupt_enable_register ier_t;
 
+union interrupt_identification_register {
+    uint8_t reg;
+    struct __packed {
+        uint8_t no_int_pend : 1, event : 3, rsvd : 1, fifo_64b : 1, fifo_status : 2;
+    };
+};
+typedef union interrupt_identification_register iir_t;
+
+#define UART_IIR_EVENT_MSR_CHANGE   0x0
+#define UART_IIR_EVENT_THR_EMPTY    0x1
+#define UART_IIR_EVENT_RXD_AVAIL    0x2
+#define UART_IIR_EVENT_LSR_CHANGE   0x3
+#define UART_IIR_EVENT_CHAR_TIMEOUT 0x6
+
+#define UART_IIR_FIFO_NO_FIFO       0x0
+#define UART_IIR_FIFO_UNUSABLE_FIFO 0x1
+#define UART_IIR_FIFO_ENABLED       0x3
+
 enum com_irq {
     COM1_IRQ = 4, /* IRQ 4 */
     COM2_IRQ = 3, /* IRQ 3 */
@@ -171,9 +189,6 @@ typedef enum com_irq com_irq_t;
 #define UART_LSR_REG_OFFSET 0x05
 #define UART_MSR_REG_OFFSET 0x06
 #define UART_SCR_REG_OFFSET 0x07
-
-#define UART_IIR_STATUS_MASK 0x0E /* bits 3, 2, 1 */
-#define UART_IIR_RBR_READY   0x04
 
 /* External declarations */
 
