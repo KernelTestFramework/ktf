@@ -27,21 +27,21 @@
 #include <asm-macros.h>
 #include <mm/slab.h>
 
-static inline __used int isspace(int c) { return c == ' ' || c == '\t'; }
+static inline int isspace(int c) { return c == ' ' || c == '\t'; }
 
-static inline __used int iseostr(int c) { return c == '\0'; }
+static inline int iseostr(int c) { return c == '\0'; }
 
-static inline __used int ispunct(int c) { return c == '.'; }
+static inline int ispunct(int c) { return c == '.'; }
 
-static inline __used int isdigit(int c) { return c >= '0' && c <= '9'; }
+static inline int isdigit(int c) { return c >= '0' && c <= '9'; }
 
-static inline __used int isxdigit(int c) {
+static inline int isxdigit(int c) {
     return (isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
 }
 
-static inline __used int isascii(int c) { return c >= 0 && c <= 127; }
+static inline int isascii(int c) { return c >= 0 && c <= 127; }
 
-static inline __used int islower(int c) { return c >= 'a' && c <= 'z'; }
+static inline int islower(int c) { return c >= 'a' && c <= 'z'; }
 
 static inline int isupper(int c) { return c >= 'A' && c <= 'Z'; }
 
