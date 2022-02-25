@@ -93,6 +93,24 @@
  */
 #define MSR_PAT 0x277
 
+#define MSR_MTRR_FIX_64K_00000 0x250
+#define MSR_MTRR_FIX_16K_80000 0x258
+#define MSR_MTRR_FIX_16K_A0000 0x259
+#define MSR_MTRR_FIX_4K_C0000  0x268
+#define MSR_MTRR_FIX_4K_C8000  0x269
+#define MSR_MTRR_FIX_4K_D0000  0x26A
+#define MSR_MTRR_FIX_4K_D8000  0x26B
+#define MSR_MTRR_FIX_4K_E0000  0x26C
+#define MSR_MTRR_FIX_4K_E8000  0x26D
+#define MSR_MTRR_FIX_4K_F0000  0x26E
+#define MSR_MTRR_FIX_4K_F8000  0x26F
+
+#define MSR_MTRR_CAP      0x2FF
+#define MSR_MTRR_DEF_TYPE 0x2FF
+
+#define MSR_MTRR_PHYS_BASE(n) (0x200 + (n * 2))
+#define MSR_MTRR_PHYS_MASK(n) (0x201 + (n * 2))
+
 #define MSR_APIC_BASE 0x0000001B
 
 #define MSR_EFER   0xc0000080      /* Extended Feature Enable Register */
