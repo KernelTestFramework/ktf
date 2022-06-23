@@ -41,8 +41,6 @@ static tid_t next_tid;
 
 static spinlock_t lock = SPINLOCK_INIT;
 
-static bool terminate;
-
 void init_tasks(void) {
     printk("Initializing tasks\n");
 
@@ -226,12 +224,24 @@ void wait_for_task_group(task_group_t group) {
             }
         }
         cpu_relax();
-    } while (busy && !terminate);
+    } while (busy);
 }
 
 void run_tasks(unsigned int cpu) {
-    do {
-        run_task(get_task_for_cpu(cpu));
+    task_t *task;
+
+    while ((task = get_task_for_cpu(cpu))) {
+        switch (task->state) {
+        case TASK_STATE_DONE:
+            printk("Task '%s' finished with result %lu\n", task->name, task->result);
+            destroy_task(task);
+            break;
+        case TASK_STATE_SCHEDULED:
+            run_task(task);
+            break;
+        default:
+            break;
+        }
         cpu_relax();
-    } while (!terminate);
+    }
 }
