@@ -31,6 +31,7 @@
 #include <percpu.h>
 #include <sched.h>
 #include <setup.h>
+#include <smp/smp.h>
 #ifdef KTF_PMU
 #include <perfmon/pfmlib.h>
 #endif
@@ -51,6 +52,8 @@ static void __noreturn echo_loop(void) {
 }
 
 void kernel_main(void) {
+    task_t *tests_task;
+
     printk("\nKTF - Kernel Test Framework!\n");
 
     zap_boot_mappings();
@@ -59,7 +62,12 @@ void kernel_main(void) {
         display_multiboot_mmap();
     }
 
-    test_main();
+    tests_task = new_task("tests", test_main, NULL);
+    schedule_task(tests_task, smp_processor_id());
+
+    run_tasks(smp_processor_id());
+
+    wait_for_all_tasks();
 
     printk("All tasks done.\n");
 

@@ -59,7 +59,7 @@ static get_next_test_result_t get_next_test(test_fn **out_test_fn, char **out_na
     return TESTS_DONE;
 }
 
-void test_main(void) {
+void test_main(void *unused) {
     char *name;
     test_fn *fn = NULL;
     unsigned n = 0;
@@ -74,8 +74,6 @@ void test_main(void) {
         printk("Test %s returned: 0x%x\n", name, rc);
         n++;
     }
-
-    wait_for_all_tasks();
 
     printk("Tests completed: %u\n", n);
 }
