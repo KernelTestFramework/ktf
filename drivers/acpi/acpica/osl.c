@@ -343,16 +343,32 @@ ACPI_THREAD_ID AcpiOsGetThreadId(void) {
     return smp_processor_id() + 1;
 }
 
+struct osd_exec_cb_wrapper {
+    ACPI_OSD_EXEC_CALLBACK Function;
+    void *Context;
+};
+typedef struct osd_exec_cb_wrapper osd_exec_cb_wrapper_t;
+
+unsigned long _osd_exec_cb_wrapper(void *arg) {
+    osd_exec_cb_wrapper_t *cb = arg;
+
+    cb->Function(cb->Context);
+    return 0;
+}
+
 ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Function,
                           void *Context) {
     static unsigned counter = 0;
     unsigned cpu = smp_processor_id();
+    osd_exec_cb_wrapper_t cb;
     char name[40];
     task_t *task;
 
     snprintf(name, sizeof(name), "acpi_%u_%u_%u", Type, counter++, cpu);
 
-    task = new_task(name, (task_func_t) Function, Context);
+    cb.Function = Function;
+    cb.Context = Context;
+    task = new_task(name, _osd_exec_cb_wrapper, &cb);
     if (!task)
         return AE_NO_MEMORY;
 

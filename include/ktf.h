@@ -45,7 +45,7 @@ extern bool opt_debug;
 extern int usermode_call(user_func_t fn, void *fn_arg);
 
 extern void kernel_main(void) __noreturn;
-extern void test_main(void *unused);
+extern unsigned long test_main(void *unused);
 
 #endif /* __ASSEMBLY__ */
 
