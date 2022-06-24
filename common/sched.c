@@ -85,7 +85,7 @@ static task_t *create_task(void) {
 
     memset(task, 0, sizeof(*task));
     task->id = next_tid++;
-    task->gid = TASK_GROUP_UNSPECIFIED;
+    task->gid = TASK_GROUP_ALL;
     task->cpu = INVALID_CPU;
     set_task_state(task, TASK_STATE_NEW);
 
@@ -215,7 +215,7 @@ void wait_for_task_group(task_group_t group) {
 
         list_for_each_entry (task, &tasks, list) {
             /* When group is unspecified the functions waits for all tasks. */
-            if (group != TASK_GROUP_UNSPECIFIED && task->gid != group)
+            if (group != TASK_GROUP_ALL && task->gid != group)
                 continue;
 
             if (get_task_state(task) != TASK_STATE_DONE) {
