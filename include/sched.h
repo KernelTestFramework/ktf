@@ -30,7 +30,7 @@
 #include <list.h>
 #include <page.h>
 
-typedef void (*task_func_t)(void *arg);
+typedef unsigned long (*task_func_t)(void *arg);
 
 enum task_state {
     TASK_STATE_NEW,
