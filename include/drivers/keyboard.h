@@ -25,6 +25,7 @@
 #ifndef KTF_KEYBOARD_H
 #define KTF_KEYBOARD_H
 
+#include <cpu.h>
 #include <drivers/pic.h>
 
 #define KEYBOARD_PORT_CMD  0x64 /* keyboard command port */
@@ -114,7 +115,7 @@ typedef enum scan_code scan_code_t;
 
 /* External Declarations */
 
-extern void init_keyboard(uint8_t dst_cpus);
+extern void init_keyboard(const cpu_t *cpu);
 extern void keyboard_interrupt_handler(void);
 extern unsigned int keyboard_process_keys(void);
 

@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #ifdef KTF_ACPICA
+#include <cpu.h>
 #include <ktf.h>
 #include <mm/slab.h>
 #include <pci_cfg.h>
@@ -359,12 +360,12 @@ unsigned long _osd_exec_cb_wrapper(void *arg) {
 ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Function,
                           void *Context) {
     static unsigned counter = 0;
-    unsigned cpu = smp_processor_id();
+    cpu_t *cpu = get_cpu(smp_processor_id());
     osd_exec_cb_wrapper_t cb;
     char name[40];
     task_t *task;
 
-    snprintf(name, sizeof(name), "acpi_%u_%u_%u", Type, counter++, cpu);
+    snprintf(name, sizeof(name), "acpi_%u_%u_%u", Type, counter++, cpu->id);
 
     cb.Function = Function;
     cb.Context = Context;
@@ -373,7 +374,7 @@ ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Functio
         return AE_NO_MEMORY;
 
     set_task_group(task, TASK_GROUP_ACPI);
-    schedule_task(task, cpu);
+    schedule_task(task, cpu->id);
 
     return AE_OK;
 }
@@ -555,7 +556,8 @@ void acpi_interrupt_handler(void) {
 
 ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 InterruptLevel, ACPI_OSD_HANDLER Handler,
                                           void *Context) {
-    percpu_t *percpu = get_percpu_page(get_bsp_cpu_id());
+    cpu_t *cpu = get_bsp_cpu();
+    percpu_t *percpu = cpu->percpu;
 
     if (acpi_irq_installed)
         return AE_ALREADY_EXISTS;
@@ -577,7 +579,8 @@ ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 InterruptLevel, ACPI_OSD_HANDLE
 
 ACPI_STATUS AcpiOsRemoveInterruptHandler(UINT32 InterruptLevel,
                                          ACPI_OSD_HANDLER Handler) {
-    percpu_t *percpu = get_percpu_page(get_bsp_cpu_id());
+    cpu_t *cpu = get_bsp_cpu();
+    percpu_t *percpu = cpu->percpu;
 
     if (!acpi_irq_installed)
         return AE_NOT_EXIST;

@@ -62,7 +62,7 @@ typedef struct keyboard_state keyboard_state_t;
 
 static keyboard_state_t keyboard_state;
 
-void init_keyboard(uint8_t dst_cpus) {
+void init_keyboard(const cpu_t *cpu) {
     if (!boot_flags.i8042) {
         dprintk("No i8042 microcontroller detected\n");
         return;
@@ -144,7 +144,7 @@ void init_keyboard(uint8_t dst_cpus) {
         outb(KEYBOARD_PORT_DATA, current_status.config);
 
         configure_isa_irq(KEYBOARD_PORT1_IRQ, KEYBOARD_PORT1_IRQ0_OFFSET,
-                          IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
+                          IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_1);
     }
     else {
@@ -154,7 +154,7 @@ void init_keyboard(uint8_t dst_cpus) {
         outb(KEYBOARD_PORT_DATA, current_status.config);
 
         configure_isa_irq(KEYBOARD_PORT2_IRQ, KEYBOARD_PORT2_IRQ0_OFFSET,
-                          IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
+                          IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_2);
     }
 

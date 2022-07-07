@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <cpu.h>
 #include <errno.h>
 #include <ioapic.h>
 #include <ktf.h>
@@ -33,8 +34,6 @@
 #include <setup.h>
 
 #include <smp/mptables.h>
-
-static unsigned nr_cpus;
 
 static inline uint8_t get_mp_checksum(void *ptr, size_t len) {
     uint8_t checksum = 0;
@@ -207,17 +206,24 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
         switch (*entry_ptr) {
         case MPC_PROCESSOR_ENTRY: {
             mpc_processor_entry_t *mpc_cpu = (mpc_processor_entry_t *) entry_ptr;
-            percpu_t *percpu = get_percpu_page(nr_cpus++);
+            bool enabled = !!mpc_cpu->en;
+            cpu_t *cpu;
 
+            if (!!mpc_cpu->bsp) {
+                cpu = get_bsp_cpu();
+                BUG_ON(!cpu);
+            }
+            else
+                cpu = get_cpu(mpc_cpu->lapic_id)
+                          ?: add_cpu(mpc_cpu->lapic_id, false, enabled);
+
+            cpu->enabled = enabled;
+
+            percpu_t *percpu = cpu->percpu;
             percpu->apic_id = mpc_cpu->lapic_id;
-            percpu->enabled = !!mpc_cpu->en;
-            percpu->bsp = !!mpc_cpu->bsp;
             percpu->family = mpc_cpu->family;
             percpu->model = mpc_cpu->model;
             percpu->stepping = mpc_cpu->stepping;
-
-            if (percpu->bsp)
-                set_bsp_cpu_id(percpu->cpu_id);
 
             dump_mpc_processor_entry(mpc_cpu);
             entry_ptr += sizeof(*mpc_cpu);
@@ -283,15 +289,12 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
     }
 }
 
-unsigned mptables_get_nr_cpus(void) { return nr_cpus; }
-
 int init_mptables(void) {
     mpf_t *mpf_ptr = get_mpf_addr();
     mpc_hdr_t *mpc_ptr;
 
     if (!mpf_ptr) {
         printk("No MP Floating Structure Pointer found!\n");
-        nr_cpus = 0;
         return -ENODEV;
     }
 
