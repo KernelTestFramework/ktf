@@ -23,8 +23,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <acpi_ktf.h>
+#include <cpu.h>
 #include <ioapic.h>
-#include <percpu.h>
 #include <setup.h>
 #include <string.h>
 
@@ -45,10 +45,6 @@ static const char *madt_int_trigger_names[] = {
     [ACPI_MADT_INT_TRIGGER_RSVD] = "Reserved",
     [ACPI_MADT_INT_TRIGGER_LT] = "Level",
 };
-
-static unsigned nr_cpus;
-
-unsigned acpi_get_nr_cpus(void) { return nr_cpus; }
 
 #ifndef KTF_ACPICA
 #include <errno.h>
@@ -232,7 +228,7 @@ static int process_fadt(void) {
     return 0;
 }
 
-static int process_madt_entries(unsigned bsp_cpu_id) {
+static int process_madt_entries(void) {
     acpi_madt_t *madt = (acpi_madt_t *) acpi_find_table(MADT_SIGNATURE);
     acpi_madt_entry_t *entry;
     bus_t *isa_bus = NULL;
@@ -257,7 +253,6 @@ static int process_madt_entries(unsigned bsp_cpu_id) {
         switch (entry->type) {
         case ACPI_MADT_TYPE_LAPIC: {
             acpi_madt_processor_t *madt_cpu = (acpi_madt_processor_t *) entry->data;
-            percpu_t *percpu;
             bool enabled;
 
             /* Some systems report all CPUs, marked as disabled */
@@ -265,15 +260,16 @@ static int process_madt_entries(unsigned bsp_cpu_id) {
             if (!enabled)
                 break;
 
-            percpu = get_percpu_page(madt_cpu->apic_proc_id);
+            cpu_t *cpu = get_cpu(madt_cpu->apic_proc_id)
+                             ?: add_cpu(madt_cpu->apic_proc_id, false, enabled);
+            cpu->enabled = enabled;
+
+            percpu_t *percpu = cpu->percpu;
             percpu->cpu_id = madt_cpu->apic_proc_id;
             percpu->apic_id = madt_cpu->apic_id;
-            percpu->bsp = !!(madt_cpu->apic_proc_id == bsp_cpu_id);
-            percpu->enabled = enabled;
 
-            nr_cpus++;
             printk("ACPI: [MADT] APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n",
-                   madt_cpu->apic_proc_id, madt_cpu->apic_id, madt_cpu->flags);
+                   cpu->id, percpu->apic_id, madt_cpu->flags);
             break;
         }
         case ACPI_MADT_TYPE_IOAPIC: {
@@ -383,7 +379,7 @@ acpi_table_t *acpi_find_table(uint32_t signature) {
     return NULL;
 }
 
-int init_acpi(unsigned bsp_cpu_id) {
+int init_acpi(void) {
     unsigned acpi_nr_tables;
     rsdt_t *rsdt = NULL;
     xsdt_t *xsdt = NULL;
@@ -437,7 +433,7 @@ int init_acpi(unsigned bsp_cpu_id) {
     if (rc < 0)
         return rc;
 
-    return process_madt_entries(bsp_cpu_id);
+    return process_madt_entries();
 }
 #else /* KTF_ACPICA */
 #include "acpi.h"
@@ -486,8 +482,6 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
     switch (entry->Type) {
     case ACPI_MADT_TYPE_LOCAL_APIC: {
         ACPI_MADT_LOCAL_APIC *lapic = (ACPI_MADT_LOCAL_APIC *) entry;
-        uint32_t bsp_cpu_id = (uint32_t) _ul(arg);
-        percpu_t *percpu;
         bool enabled;
 
         /* Some systems report all CPUs, marked as disabled */
@@ -495,15 +489,15 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
         if (!enabled)
             break;
 
-        percpu = get_percpu_page(lapic->ProcessorId);
-        percpu->cpu_id = lapic->ProcessorId;
-        percpu->apic_id = lapic->Id;
-        percpu->bsp = !!(lapic->ProcessorId == bsp_cpu_id);
-        percpu->enabled = enabled;
+        cpu_t *cpu =
+            get_cpu(lapic->ProcessorId) ?: add_cpu(lapic->ProcessorId, false, enabled);
+        cpu->enabled = enabled;
 
-        nr_cpus++;
-        printk("ACPI: [MADT] APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n",
-               percpu->cpu_id, percpu->apic_id, lapic->LapicFlags);
+        percpu_t *percpu = cpu->percpu;
+        percpu->apic_id = lapic->Id;
+
+        printk("ACPI: [MADT] APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n", cpu->id,
+               percpu->apic_id, lapic->LapicFlags);
         break;
     }
     case ACPI_MADT_TYPE_IO_APIC: {
@@ -597,25 +591,23 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
     }
     case ACPI_MADT_TYPE_LOCAL_SAPIC: {
         ACPI_MADT_LOCAL_SAPIC *slapic = (ACPI_MADT_LOCAL_SAPIC *) entry;
-        percpu_t *percpu = get_percpu_page(slapic->ProcessorId);
-        uint32_t bsp_cpu_id = (uint32_t) _ul(arg);
+        bool enabled = !!(slapic->LapicFlags & 0x1);
+        cpu_t *cpu =
+            get_cpu(slapic->ProcessorId) ?: add_cpu(slapic->ProcessorId, false, enabled);
 
-        percpu->cpu_id = slapic->ProcessorId;
+        cpu->enabled = enabled;
+
+        percpu_t *percpu = cpu->percpu;
         percpu->sapic_id = slapic->Id;
         percpu->sapic_eid = slapic->Eid;
-
         percpu->sapic_uid = slapic->Uid;
         percpu->sapic_uid_str[0] = slapic->UidString[0];
 
-        percpu->bsp = !!(slapic->ProcessorId == bsp_cpu_id);
-        percpu->enabled = !!(slapic->LapicFlags & 0x1);
-
-        if (percpu->enabled) {
-            nr_cpus++;
+        if (cpu->enabled) {
             printk("ACPI: [MADT] SAPIC Processor ID: %u, SAPIC ID: %u, SAPIC EID: %u, "
                    "SAPIC UID: %u, SAPIC UID Str: %c Flags: %08x\n",
-                   percpu->cpu_id, slapic->Id, slapic->Eid, slapic->Uid,
-                   slapic->UidString[0], slapic->LapicFlags);
+                   cpu->id, slapic->Id, slapic->Eid, slapic->Uid, slapic->UidString[0],
+                   slapic->LapicFlags);
         }
         break;
     }
@@ -625,18 +617,17 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
     }
     case ACPI_MADT_TYPE_LOCAL_X2APIC: {
         ACPI_MADT_LOCAL_X2APIC *x2lapic = (ACPI_MADT_LOCAL_X2APIC *) entry;
-        percpu_t *percpu = get_percpu_page(x2lapic->Uid);
-        uint32_t bsp_cpu_id = (uint32_t) _ul(arg);
+        bool enabled = !!(x2lapic->LapicFlags & 0x1);
+        cpu_t *cpu = get_cpu(x2lapic->Uid) ?: add_cpu(x2lapic->Uid, false, enabled);
 
-        percpu->cpu_id = x2lapic->Uid;
+        cpu->enabled = enabled;
+
+        percpu_t *percpu = cpu->percpu;
         percpu->apic_id = x2lapic->LocalApicId;
-        percpu->bsp = !!(x2lapic->Uid == bsp_cpu_id);
-        percpu->enabled = !!(x2lapic->LapicFlags & 0x1);
 
-        if (percpu->enabled) {
-            nr_cpus++;
+        if (cpu->enabled) {
             printk("ACPI: [MADT] X2APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n",
-                   percpu->cpu_id, percpu->apic_id, x2lapic->LapicFlags);
+                   cpu->id, percpu->apic_id, x2lapic->LapicFlags);
         }
         break;
     }
@@ -703,7 +694,7 @@ static ACPI_STATUS init_fadt(void) {
     return AE_OK;
 }
 
-static ACPI_STATUS init_madt(unsigned bsp_cpu_id) {
+static ACPI_STATUS init_madt(void) {
     ACPI_TABLE_MADT *madt = acpi_find_table(ACPI_SIG_MADT);
     ACPI_SUBTABLE_HEADER *subtbl = (void *) madt + sizeof(*madt);
 
@@ -712,7 +703,7 @@ static ACPI_STATUS init_madt(unsigned bsp_cpu_id) {
 
     uint32_t length = madt->Header.Length - sizeof(*madt);
 
-    acpi_walk_subtables(subtbl, length, madt_parser, (void *) _ul(bsp_cpu_id));
+    acpi_walk_subtables(subtbl, length, madt_parser, NULL);
     return AE_OK;
 }
 
@@ -733,7 +724,7 @@ void acpi_walk_subtables(ACPI_SUBTABLE_HEADER *entry, uint32_t length,
     }
 }
 
-ACPI_STATUS init_acpi(unsigned bsp_cpu_id) {
+ACPI_STATUS init_acpi(void) {
     ACPI_STATUS status;
 
     printk("Initializing ACPI support\n");
@@ -746,7 +737,7 @@ ACPI_STATUS init_acpi(unsigned bsp_cpu_id) {
     if (status != AE_OK)
         return status;
 
-    status = init_madt(bsp_cpu_id);
+    status = init_madt();
     return status;
 }
 

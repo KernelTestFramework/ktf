@@ -25,6 +25,7 @@
 #include <acpi_ktf.h>
 #include <apic.h>
 #include <console.h>
+#include <cpu.h>
 #include <ktf.h>
 #include <lib.h>
 #include <pagetable.h>
@@ -50,13 +51,15 @@ cr3_t __data_init ap_cr3;
 void __noreturn ap_startup(void) {
     WRITE_SP(ap_new_sp);
 
-    init_traps(ap_cpuid);
+    cpu_t *cpu = get_cpu(ap_cpuid);
+
+    init_traps(cpu);
     init_apic(ap_cpuid, apic_get_mode());
 
     ap_callin = true;
     smp_wmb();
 
-    run_tasks(smp_processor_id());
+    run_tasks(cpu->id);
 
     while (true)
         halt();
@@ -64,18 +67,19 @@ void __noreturn ap_startup(void) {
     UNREACHABLE();
 }
 
-static __text_init void boot_cpu(percpu_t *percpu) {
+static __text_init void boot_cpu(cpu_t *cpu) {
+    percpu_t *percpu = cpu->percpu;
     apic_icr_t icr;
 
-    if (percpu->bsp)
+    if (cpu->bsp)
         return;
 
     ap_new_sp = get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL);
-    ap_cpuid = percpu->cpu_id;
+    ap_cpuid = cpu->id;
     ap_callin = false;
     smp_wmb();
 
-    dprintk("Starting AP: %u\n", percpu->cpu_id);
+    dprintk("Starting AP: %u\n", cpu->id);
 
     memset(&icr, 0, sizeof(icr));
     apic_icr_set_dest(&icr, percpu->apic_id);
@@ -98,23 +102,14 @@ static __text_init void boot_cpu(percpu_t *percpu) {
     while (!ap_callin)
         cpu_relax();
 
-    dprintk("AP: %u Done \n", percpu->cpu_id);
+    dprintk("AP: %u Done \n", cpu->id);
 }
 
 void __text_init init_smp(void) {
-    nr_cpus = acpi_get_nr_cpus();
-    if (nr_cpus == 0) {
-        nr_cpus = mptables_get_nr_cpus();
-        if (nr_cpus == 0) {
-            nr_cpus++;
-            return;
-        }
-    }
+    nr_cpus = get_nr_cpus();
 
     printk("Initializing SMP support (CPUs: %u)\n", nr_cpus);
     ap_cr3 = cr3;
 
-    for_each_percpu(boot_cpu);
+    for_each_cpu(boot_cpu);
 }
-
-unsigned get_nr_cpus(void) { return nr_cpus; }

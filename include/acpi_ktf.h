@@ -267,7 +267,7 @@ typedef struct acpi_madt acpi_madt_t;
 /* External Declarations */
 
 extern acpi_table_t *acpi_find_table(uint32_t signature);
-extern int init_acpi(unsigned bsp_cpu_id);
+extern int init_acpi(void);
 
 #else /* KTF_ACPICA */
 
@@ -289,7 +289,7 @@ extern void *acpi_find_table(char *signature);
 extern void acpi_walk_subtables(ACPI_SUBTABLE_HEADER *entry, uint32_t length,
                                 acpi_subtable_parser_t parser, void *arg);
 
-extern ACPI_STATUS init_acpi(unsigned bsp_cpu_id);
+extern ACPI_STATUS init_acpi(void);
 extern void acpi_power_off(void);
 
 #endif /* KTF_ACPICA */

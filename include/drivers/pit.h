@@ -25,6 +25,7 @@
 #ifndef KTF_PIT_H
 #define KTF_PIT_H
 
+#include <cpu.h>
 #include <drivers/pic.h>
 #include <ktf.h>
 
@@ -56,7 +57,7 @@ typedef enum pit_operational_mode pit_operational_mode_t;
 
 #define PIT_BCD_MODE 1
 
-extern void init_pit(uint8_t dst_cpus);
+extern void init_pit(const cpu_t *cpu);
 extern void pit_disable(void);
 
 #endif

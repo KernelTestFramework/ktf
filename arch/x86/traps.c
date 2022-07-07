@@ -117,8 +117,8 @@ static void init_gdt(percpu_t *percpu) {
     init_tss(percpu);
 }
 
-void init_traps(unsigned int cpu) {
-    percpu_t *percpu = get_percpu_page(cpu);
+void init_traps(const cpu_t *cpu) {
+    percpu_t *percpu = cpu->percpu;
 
     BUG_ON(!percpu);
 
@@ -173,7 +173,7 @@ void init_traps(unsigned int cpu) {
 
     init_gdt(percpu);
 
-    wrmsr(MSR_TSC_AUX, cpu);
+    wrmsr(MSR_TSC_AUX, cpu->id);
 }
 
 static void dump_general_regs(const struct cpu_regs *regs) {

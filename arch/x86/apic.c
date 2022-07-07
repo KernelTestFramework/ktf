@@ -24,6 +24,7 @@
  */
 #include <apic.h>
 #include <console.h>
+#include <cpu.h>
 #include <drivers/pit.h>
 #include <ktf.h>
 #include <lib.h>
@@ -107,10 +108,10 @@ void apic_icr_write(const apic_icr_t *icr) {
 
 apic_mode_t apic_get_mode(void) { return apic_mode; }
 
-void init_apic(unsigned int cpu, apic_mode_t mode) {
-    percpu_t *percpu = get_percpu_page(cpu);
+void init_apic(unsigned int cpu_id, apic_mode_t mode) {
     apic_base_t apic_base;
     apic_spiv_t spiv;
+    cpu_t *cpu;
 
     BUG_ON(mode < APIC_MODE_DISABLED);
 
@@ -128,8 +129,8 @@ void init_apic(unsigned int cpu, apic_mode_t mode) {
             BUG();
     }
 
-    printk("CPU%u: Initializing APIC mode: %s -> %s\n", cpu, apic_mode_names[apic_mode],
-           apic_mode_names[mode]);
+    printk("CPU%u: Initializing APIC mode: %s -> %s\n", cpu_id,
+           apic_mode_names[apic_mode], apic_mode_names[mode]);
 
     /* Disable APIC */
     apic_base.en = apic_base.extd = 0;
@@ -146,8 +147,11 @@ void init_apic(unsigned int cpu, apic_mode_t mode) {
     }
 
     apic_mode = mode;
-    percpu->apic_base = apic_base;
-    PERCPU_SET(bsp, apic_base.bsp);
+
+    cpu = !!apic_base.bsp ? get_bsp_cpu() : get_cpu(cpu_id);
+    BUG_ON(!cpu || cpu->id != cpu_id);
+
+    cpu->percpu->apic_base = apic_base;
 
     /* XAPIC requires MMIO accesses, thus the APIC_BASE page needs to be mapped.
      * X2APIC uses MSRs for accesses, so no mapping needed.

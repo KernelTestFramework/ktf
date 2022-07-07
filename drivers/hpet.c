@@ -27,7 +27,7 @@
 #include <drivers/hpet.h>
 #include <ioapic.h>
 
-bool init_hpet(uint8_t dst_cpus) {
+bool init_hpet(const cpu_t *cpu) {
 #ifndef KTF_ACPICA
     acpi_hpet_t *hpet;
 #else
@@ -99,7 +99,7 @@ bool init_hpet(uint8_t dst_cpus) {
     general->leg_repl_cfg = 0; /* Disable legacy route */
     general->enabled = 1;
 
-    configure_isa_irq(HPET_IRQ, HPET_IRQ_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, dst_cpus);
+    configure_isa_irq(HPET_IRQ, HPET_IRQ_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
     dprintk("Initialized HPET\n");
     return true;
 }

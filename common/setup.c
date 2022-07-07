@@ -26,6 +26,7 @@
 #include <apic.h>
 #include <cmdline.h>
 #include <console.h>
+#include <cpu.h>
 #include <cpuid.h>
 #include <drivers/keyboard.h>
 #include <ioapic.h>
@@ -62,11 +63,6 @@
 #endif
 
 boot_flags_t boot_flags;
-
-static unsigned bsp_cpu_id = 0;
-
-unsigned get_bsp_cpu_id(void) { return bsp_cpu_id; }
-void set_bsp_cpu_id(unsigned cpu_id) { bsp_cpu_id = cpu_id; }
 
 #define QEMU_CONSOLE_PORT 0x0e9
 
@@ -204,7 +200,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     init_percpu();
 
-    init_traps(get_bsp_cpu_id());
+    cpu_t *bsp = init_cpus();
+
+    init_traps(bsp);
 
     init_extables();
 
@@ -212,16 +210,16 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* Try to initialize ACPI (and MADT) */
 #ifndef KTF_ACPICA
-    if (init_acpi(get_bsp_cpu_id()) < 0) {
+    if (init_acpi() < 0) {
 #else
-    if (ACPI_FAILURE(init_acpi(get_bsp_cpu_id()))) {
+    if (ACPI_FAILURE(init_acpi())) {
 #endif
         /* Fallback to MP tables when no ACPI */
         if (init_mptables() < 0)
             BUG();
     }
 
-    init_apic(get_bsp_cpu_id(), APIC_MODE_XAPIC);
+    init_apic(bsp->id, APIC_MODE_XAPIC);
 
     init_tasks();
 
@@ -232,20 +230,20 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     init_pci();
 
     /* Initialize console input */
-    init_uart_input(get_bsp_cpu_id());
+    init_uart_input(bsp);
 
     /* Initialize timers */
     bool hpet_initialized = false;
     if (opt_hpet)
-        hpet_initialized = init_hpet(get_bsp_cpu_id());
+        hpet_initialized = init_hpet(bsp);
     if (!hpet_initialized && opt_pit)
-        init_pit(get_bsp_cpu_id());
+        init_pit(bsp);
     if (opt_apic_timer)
         init_apic_timer();
 
     /* Initialize keyboard */
     if (opt_keyboard)
-        init_keyboard(get_bsp_cpu_id());
+        init_keyboard(bsp);
 
     if (opt_fpu) {
         printk("Enabling FPU instructions support\n");

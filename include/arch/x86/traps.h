@@ -33,8 +33,9 @@
 #define X86_RET2KERN_INT 32
 
 #ifndef __ASSEMBLY__
+#include <cpu.h>
 
-extern void init_traps(unsigned int cpu);
+extern void init_traps(const cpu_t *cpu);
 extern void init_boot_traps(void);
 extern void init_rmode_traps(void);
 

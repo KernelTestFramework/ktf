@@ -27,6 +27,8 @@
 #ifndef KTF_HPET_H
 #define KTF_HPET_H
 
+#include <cpu.h>
+
 #ifndef KTF_ACPICA
 #include <acpi_ktf.h>
 #else
@@ -109,6 +111,6 @@ enum {
 
 /* External Declarations */
 
-extern bool init_hpet(uint8_t dst_cpus);
+extern bool init_hpet(const cpu_t *cpu);
 
 #endif /* KTF_HPET_H */
