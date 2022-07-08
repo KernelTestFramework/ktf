@@ -204,6 +204,14 @@ name ## _end:
 4:.align 4;
 /* clang-format on */
 
+#else
+
+#if defined(__x86_64__)
+#define POPF() "popfq\n"
+#else
+#define POPF() "popf\n"
+#endif
+
 #endif
 
 #endif /* KTF_ASM_MACROS_H */
