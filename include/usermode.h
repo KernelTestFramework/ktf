@@ -26,6 +26,7 @@
 #define KTF_USERMODE_H
 
 #define SYSCALL_EXIT   0
+#define SYSCALL_PRINTF 1
 #define SYSCALL_MMAP   2
 #define SYSCALL_MUNMAP 3
 
@@ -53,6 +54,8 @@ extern void __naked syscall_handler(void);
 extern void init_usermode(percpu_t *percpu);
 
 extern void __user_text exit(unsigned long exit_code);
+extern void __user_text printf(const char *fmt, unsigned long arg1, unsigned long arg2,
+                               unsigned long arg3);
 extern void *__user_text mmap(void *va, unsigned long order);
 extern void __user_text munmap(void *va, unsigned long order);
 

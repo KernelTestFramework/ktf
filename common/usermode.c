@@ -95,6 +95,11 @@ void __naked syscall_handler(void) {
     (void) param1;
     register unsigned long param2 asm(STR(_ASM_SI));
     (void) param2;
+    register unsigned long param3 asm(STR(_ASM_BX));
+    (void) param3;
+    register unsigned long param4 asm(STR(_ASM_DX));
+    (void) param4;
+
     SAVE_CLOBBERED_REGS();
     switch_address_space(&cr3);
     swapgs();
@@ -106,6 +111,11 @@ void __naked syscall_handler(void) {
         syscall_restore();
         _sys_exit();
         UNREACHABLE();
+
+    case SYSCALL_PRINTF:
+        printk(_ptr(param1), param2, param3, param4);
+        syscall_return(0);
+        break;
 
     case SYSCALL_MMAP: {
         void *va = _ptr(param1);
@@ -176,6 +186,22 @@ static inline void __user_text sys_exit(unsigned long exit_code) {
     asm volatile("syscall" ::"A"(SYSCALL_EXIT), "D"(exit_code) : STR(_ASM_CX), "r11");
 }
 
+static inline long __user_text sys_printf(const char *fmt, unsigned long arg1,
+                                          unsigned long arg2, unsigned long arg3) {
+    register unsigned long rax asm(STR(_ASM_AX));
+
+    /* clang-format off */
+    asm volatile(
+        "syscall"
+        : "=A"(rax)
+        : "0"(SYSCALL_PRINTF), "D"(fmt), "S"(arg1), "b"(arg2), "d"(arg3)
+        : STR(_ASM_CX), "r11"
+    );
+    /* clang-format on */
+
+    return rax;
+}
+
 static inline long __user_text sys_mmap(void *va, unsigned long order) {
     register unsigned long rax asm(STR(_ASM_AX));
 
@@ -207,6 +233,11 @@ static inline long __user_text sys_munmap(void *va, unsigned long order) {
 
 void __user_text exit(unsigned long exit_code) {
     sys_exit(exit_code);
+}
+
+void __user_text printf(const char *fmt, unsigned long arg1, unsigned long arg2,
+                        unsigned long arg3) {
+    sys_printf(fmt, arg1, arg2, arg3);
 }
 
 void *__user_text mmap(void *va, unsigned long order) {
