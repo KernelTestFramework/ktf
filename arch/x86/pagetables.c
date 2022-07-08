@@ -31,6 +31,7 @@
 #include <string.h>
 
 cr3_t cr3;
+cr3_t user_cr3;
 
 static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
     /* clang-format off */
@@ -211,6 +212,17 @@ void *vmap_kern(void *va, mfn_t mfn, unsigned int order,
     return _vmap(&cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
 }
 
+void *vmap_user(void *va, mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                unsigned long l4_flags,
+#endif
+                unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
+    unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(order);
+
+    return _vmap(&user_cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags,
+                 l1_flags);
+}
+
 void init_pagetables(void) {
     for_each_memory_range (r) {
         switch (r->base) {
@@ -223,8 +235,12 @@ void init_pagetables(void) {
                 kmap_4k(mfn, r->flags);
             break;
         case VIRT_USER_BASE:
-            for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)
-                vmap_4k(mfn_to_virt_user(mfn), mfn, r->flags);
+            for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++) {
+                void *va = mfn_to_virt_user(mfn);
+
+                vmap_4k(va, mfn, r->flags);
+                vmap_user_4k(va, mfn, r->flags);
+            }
             break;
         default:
             break;
