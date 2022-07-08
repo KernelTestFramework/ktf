@@ -220,7 +220,7 @@ static void dump_stack(const struct cpu_regs *regs, unsigned words) {
     unsigned lines = DUMP_STACK_LINES;
 
     printk("STACK[%p]:", sp);
-    for (unsigned i = 0; i == 0 || (_ul(&sp[i]) % PAGE_SIZE_2M); i++) {
+    for (unsigned i = 0; i == 0 || (_ul(&sp[i]) % PAGE_SIZE); i++) {
         if ((i % words) == 0) {
             if (lines-- == 0)
                 break;
