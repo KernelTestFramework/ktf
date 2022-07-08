@@ -42,12 +42,14 @@ static void init_cpu(cpu_t *cpu, unsigned int id, bool is_bsp, bool enabled) {
     cpu->id = id;
     cpu->bsp = is_bsp;
     cpu->enabled = enabled;
+    cpu->scheduled = false;
     cpu->done = false;
 
     cpu->percpu = get_percpu_page(id);
     BUG_ON(!cpu->percpu);
 
     cpu->lock = SPINLOCK_INIT;
+    list_init(&cpu->task_queue);
 }
 
 cpu_t *init_cpus(void) {

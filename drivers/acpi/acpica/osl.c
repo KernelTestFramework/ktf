@@ -374,12 +374,16 @@ ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Functio
         return AE_NO_MEMORY;
 
     set_task_group(task, TASK_GROUP_ACPI);
-    schedule_task(task, cpu->id);
+    schedule_task(task, cpu);
 
     return AE_OK;
 }
 
-void AcpiOsWaitEventsComplete(void) { wait_for_task_group(TASK_GROUP_ACPI); }
+void AcpiOsWaitEventsComplete(void) {
+    cpu_t *cpu = get_cpu(smp_processor_id());
+
+    wait_for_task_group(cpu, TASK_GROUP_ACPI);
+}
 
 /* Synchronization and locking functions */
 

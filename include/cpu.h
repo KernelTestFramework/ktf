@@ -35,11 +35,13 @@ struct cpu {
     list_head_t list;
 
     unsigned int id;
-    unsigned int bsp : 1, enabled : 1, done : 1;
+    unsigned int bsp : 1, enabled : 1, scheduled : 1, done : 1;
 
     percpu_t *percpu;
 
     spinlock_t lock;
+
+    list_head_t task_queue;
 };
 typedef struct cpu cpu_t;
 

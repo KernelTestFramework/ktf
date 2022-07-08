@@ -59,7 +59,7 @@ void __noreturn ap_startup(void) {
     ap_callin = true;
     smp_wmb();
 
-    run_tasks(cpu->id);
+    run_tasks(cpu);
 
     while (true)
         halt();

@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <cpu.h>
 #include <errno.h>
 #include <ktf.h>
 #include <lib.h>
@@ -36,15 +37,12 @@
 
 #include <mm/slab.h>
 
-static list_head_t tasks;
 static tid_t next_tid;
-
-static spinlock_t lock = SPINLOCK_INIT;
 
 void init_tasks(void) {
     printk("Initializing tasks\n");
 
-    list_init(&tasks);
+    next_tid = 0;
 }
 
 static const char *task_state_names[] = {
@@ -86,12 +84,7 @@ static task_t *create_task(void) {
     memset(task, 0, sizeof(*task));
     task->id = next_tid++;
     task->gid = TASK_GROUP_ALL;
-    task->cpu = INVALID_CPU;
     set_task_state(task, TASK_STATE_NEW);
-
-    spin_lock(&lock);
-    list_add(&task->list, &tasks);
-    spin_unlock(&lock);
 
     return task;
 }
@@ -101,10 +94,9 @@ static void destroy_task(task_t *task) {
     if (!task)
         return;
 
-    spin_lock(&lock);
+    spin_lock(&task->cpu->lock);
     list_unlink(&task->list);
-    spin_unlock(&lock);
-
+    spin_unlock(&task->cpu->lock);
     kfree(task);
 }
 
@@ -112,9 +104,6 @@ static int prepare_task(task_t *task, const char *name, task_func_t func, void *
                         task_type_t type) {
     if (!task)
         return -EINVAL;
-
-    if (get_task_by_name(name))
-        return -EEXIST;
 
     BUG_ON(get_task_state(task) > TASK_STATE_READY);
 
@@ -148,21 +137,10 @@ task_t *new_task(const char *name, task_func_t func, void *arg, task_type_t type
     return task;
 }
 
-task_t *get_task_by_id(tid_t id) {
+task_t *get_task_by_name(cpu_t *cpu, const char *name) {
     task_t *task;
 
-    list_for_each_entry (task, &tasks, list) {
-        if (task->id == id)
-            return task;
-    }
-
-    return NULL;
-}
-
-task_t *get_task_by_name(const char *name) {
-    task_t *task;
-
-    list_for_each_entry (task, &tasks, list) {
+    list_for_each_entry (task, &cpu->task_queue, list) {
         if (string_equal(task->name, name))
             return task;
     }
@@ -170,29 +148,26 @@ task_t *get_task_by_name(const char *name) {
     return NULL;
 }
 
-task_t *get_task_for_cpu(unsigned int cpu) {
-    task_t *task;
-
-    list_for_each_entry (task, &tasks, list) {
-        if (task->cpu == cpu)
-            return task;
-    }
-
-    return NULL;
-}
-
-void schedule_task(task_t *task, unsigned int cpu) {
+int schedule_task(task_t *task, cpu_t *cpu) {
     ASSERT(task);
 
-    if (cpu > get_nr_cpus() - 1)
-        panic("CPU[%u] does not exist.\n", cpu);
+    if (!cpu) {
+        printk("Unable to schedule task: %s. CPU does not exist.", task->name);
+        return -EEXIST;
+    }
 
     BUG_ON(get_task_state(task) != TASK_STATE_READY);
 
-    printk("CPU[%u]: Scheduling task %s[%u]\n", cpu, task->name, task->id);
+    printk("CPU[%u]: Scheduling task %s[%u]\n", cpu->id, task->name, task->id);
 
+    spin_lock(&cpu->lock);
+    list_add_tail(&task->list, &cpu->task_queue);
     task->cpu = cpu;
+    cpu->scheduled = true;
     set_task_state(task, TASK_STATE_SCHEDULED);
+    spin_unlock(&cpu->lock);
+
+    return 0;
 }
 
 static void run_task(task_t *task) {
@@ -201,21 +176,21 @@ static void run_task(task_t *task) {
 
     wait_for_task_state(task, TASK_STATE_SCHEDULED);
 
-    printk("CPU[%u]: Running task %s[%u]\n", task->cpu, task->name, task->id);
+    printk("CPU[%u]: Running task %s[%u]\n", task->cpu->id, task->name, task->id);
 
     set_task_state(task, TASK_STATE_RUNNING);
     task->result = task->func(task->arg);
     set_task_state(task, TASK_STATE_DONE);
 }
 
-void wait_for_task_group(task_group_t group) {
-    task_t *task;
+void wait_for_task_group(const cpu_t *cpu, task_group_t group) {
+    task_t *task, *safe;
     bool busy;
 
     do {
         busy = false;
 
-        list_for_each_entry (task, &tasks, list) {
+        list_for_each_entry_safe (task, safe, &cpu->task_queue, list) {
             /* When group is unspecified the functions waits for all tasks. */
             if (group != TASK_GROUP_ALL && task->gid != group)
                 continue;
@@ -229,21 +204,40 @@ void wait_for_task_group(task_group_t group) {
     } while (busy);
 }
 
-void run_tasks(unsigned int cpu) {
-    task_t *task;
+void run_tasks(cpu_t *cpu) {
+    task_t *task, *safe;
 
-    while ((task = get_task_for_cpu(cpu))) {
-        switch (task->state) {
-        case TASK_STATE_DONE:
-            printk("Task '%s' finished with result %lu\n", task->name, task->result);
-            destroy_task(task);
-            break;
-        case TASK_STATE_SCHEDULED:
-            run_task(task);
-            break;
-        default:
-            break;
-        }
-        cpu_relax();
+    spin_lock(&cpu->lock);
+    if (!cpu->scheduled) {
+        cpu->done = true;
+        spin_unlock(&cpu->lock);
+        return;
     }
+    spin_unlock(&cpu->lock);
+
+    while (list_is_empty(&cpu->task_queue))
+        cpu_relax();
+
+    do {
+        list_for_each_entry_safe (task, safe, &cpu->task_queue, list) {
+            switch (task->state) {
+            case TASK_STATE_DONE:
+                printk("%s task '%s' finished on CPU[%u] with result %ld\n",
+                       task->type == TASK_TYPE_KERNEL ? "Kernel" : "User", task->name,
+                       cpu->id, task->result);
+                destroy_task(task);
+                break;
+            case TASK_STATE_SCHEDULED:
+                run_task(task);
+                break;
+            default:
+                BUG();
+            }
+            cpu_relax();
+        }
+    } while (!list_is_empty(&cpu->task_queue));
+
+    spin_lock(&cpu->lock);
+    cpu->done = true;
+    spin_unlock(&cpu->lock);
 }
