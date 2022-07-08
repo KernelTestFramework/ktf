@@ -25,7 +25,9 @@
 #ifndef KTF_USERMODE_H
 #define KTF_USERMODE_H
 
-#define SYSCALL_EXIT 0
+#define SYSCALL_EXIT   0
+#define SYSCALL_MMAP   2
+#define SYSCALL_MUNMAP 3
 
 #ifndef __ASSEMBLY__
 #include <percpu.h>
@@ -51,6 +53,9 @@ extern void __naked syscall_handler(void);
 extern void init_usermode(percpu_t *percpu);
 
 extern void __user_text exit(unsigned long exit_code);
+extern void *__user_text mmap(void *va, unsigned long order);
+extern void __user_text munmap(void *va, unsigned long order);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_USERMODE_H */
