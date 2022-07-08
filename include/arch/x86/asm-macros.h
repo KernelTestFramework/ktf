@@ -258,6 +258,37 @@ name ## _end:
     "pop %%" STR(_ASM_CX) "\n" \
     "pop %%" STR(_ASM_BX) "\n" \
     "pop %%" STR(_ASM_AX) "\n"
+
+#if defined(__x86_64__)
+#define SAVE_CLOBBERED_REGS64() \
+    "push %%r8\n" \
+    "push %%r9\n" \
+    "push %%r10\n" \
+    "push %%r11\n" \
+
+#define RESTORE_CLOBBERED_REGS64() \
+    "pop %%" STR(r11) "\n" \
+    "pop %%" STR(r10) "\n" \
+    "pop %%" STR(r9) "\n" \
+    "pop %%" STR(r8) "\n"
+#else
+#define SAVE_CLOBBERED_REGS64()
+#define RESTORE_CLOBBERED_REGS64()
+#endif
+
+#define SAVE_CLOBBERED_REGS() \
+    "push %%" STR(_ASM_CX) "\n" \
+    "push %%" STR(_ASM_DX) "\n" \
+    "push %%" STR(_ASM_SI) "\n" \
+    "push %%" STR(_ASM_DI) "\n" \
+    SAVE_CLOBBERED_REGS64()
+
+#define RESTORE_CLOBBERED_REGS() \
+    RESTORE_CLOBBERED_REGS64() \
+    "pop %%" STR(_ASM_DI) "\n" \
+    "pop %%" STR(_ASM_SI) "\n" \
+    "pop %%" STR(_ASM_DX) "\n" \
+    "pop %%" STR(_ASM_CX) "\n" \
 /* clang-format on */
 
 #if defined(__x86_64__)
