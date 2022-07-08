@@ -27,6 +27,7 @@
 #include <drivers/keyboard.h>
 #include <drivers/pit.h>
 #include <drivers/serial.h>
+#include <errno.h>
 #include <extables.h>
 #include <ktf.h>
 #include <mm/regions.h>
@@ -34,9 +35,9 @@
 #include <segment.h>
 #include <symbols.h>
 #include <traps.h>
+#include <usermode.h>
 
 #include <mm/vmm.h>
-#include <usermode.h>
 
 extern void asm_interrupt_handler_uart(void);
 extern void asm_interrupt_handler_keyboard(void);
@@ -298,7 +299,7 @@ static bool extables_fixup(struct cpu_regs *regs) {
 void do_exception(struct cpu_regs *regs) {
     static char ec_str[32], panic_str[128];
 
-    if (extables_fixup(regs))
+    if (!from_usermode(regs->cs) && extables_fixup(regs))
         return;
 
     dump_regs(regs);
@@ -311,6 +312,12 @@ void do_exception(struct cpu_regs *regs) {
              "#%s %sat IP: 0x%02x:0x%016lx SP: 0x%02x:0x%016lx\n",
              exception_names[regs->vector], ec_str, regs->cs, regs->_ASM_IP, regs->ss,
              regs->_ASM_SP);
+
+    /* Handle user tasks' exceptions */
+    if (from_usermode(regs->cs)) {
+        printk("Task exception: %s\n", panic_str);
+        goto_syscall_exit(-EFAULT);
+    }
 
     panic(panic_str);
 }
