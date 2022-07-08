@@ -107,7 +107,7 @@ static void init_gdt(percpu_t *percpu) {
     percpu->gdt[GDT_USER_DS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL3, S, DATA, W, A), 0x0, 0xfffff);
 
     /* Assign identity mapping of the percpu, because GDT has only 32-bit base. */
-    percpu->gdt[GDT_PERCPU].desc = GDT_ENTRY(DESC_FLAGS(GR, L, P, DPL3, S, CODE, R, A), virt_to_paddr(percpu), PAGE_SIZE);
+    percpu->gdt[GDT_PERCPU].desc = GDT_ENTRY(DESC_FLAGS(GR, L, P, DPL0, S, CODE, R, A), virt_to_paddr(percpu), PAGE_SIZE);
     /* clang-format on */
 
     percpu->gdt_ptr.size = sizeof(percpu->gdt) - 1;
@@ -117,6 +117,7 @@ static void init_gdt(percpu_t *percpu) {
     lgdt(&percpu->gdt_ptr);
 
     write_gs(GDT_PERCPU << 3);
+    wrmsr(MSR_KERNEL_GS_BASE, 0x0);
 
     init_tss(percpu);
 }
