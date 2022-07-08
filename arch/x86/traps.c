@@ -99,10 +99,12 @@ static void init_gdt(percpu_t *percpu) {
     percpu->gdt[GDT_KERN_CS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, CODE, R, A), 0x0, 0xfffff);
     percpu->gdt[GDT_KERN_DS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, DATA, W, A), 0x0, 0xfffff);
     percpu->gdt[GDT_KERN_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, CODE, R, A), 0x0, 0x00000);
+    percpu->gdt[GDT_KERN_DS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, DATA, W, A), 0x0, 0x00000);
 
     percpu->gdt[GDT_USER_CS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL3, S, CODE, R, A), 0x0, 0xfffff);
     percpu->gdt[GDT_USER_DS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL3, S, DATA, W, A), 0x0, 0xfffff);
-    percpu->gdt[GDT_USER_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL3, S, CODE, R, A), 0x0, 0x00000);
+    percpu->gdt[GDT_USER_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL3, S, CODE, R, A), 0x0, 0xfffff);
+    percpu->gdt[GDT_USER_DS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL3, S, DATA, W, A), 0x0, 0xfffff);
 
     /* Assign identity mapping of the percpu, because GDT has only 32-bit base. */
     percpu->gdt[GDT_PERCPU].desc = GDT_ENTRY(DESC_FLAGS(GR, L, P, DPL3, S, CODE, R, A), virt_to_paddr(percpu), PAGE_SIZE);
