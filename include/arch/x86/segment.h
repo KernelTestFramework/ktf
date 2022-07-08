@@ -33,32 +33,35 @@
 #define GDT_KERN_CS32 0x1
 #define GDT_KERN_DS32 0x2
 #define GDT_KERN_CS64 0x3
+#define GDT_KERN_DS64 0x4
 
-#define GDT_RMODE_CS16 0x4
-#define GDT_RMODE_DS16 0x5
+#define GDT_RMODE_CS16 0x5
+#define GDT_RMODE_DS16 0x6
 
-#define GDT_BOOT_TSS    0x4
-#define GDT_BOOT_TSS_DF 0x5
+#define GDT_BOOT_TSS    0x5
+#define GDT_BOOT_TSS_DF 0x6
 
-#define GDT_USER_CS32 0x4
-#define GDT_USER_DS32 0x5
-#define GDT_USER_CS64 0x6
+#define GDT_USER_CS32 0x5
+#define GDT_USER_DS32 0x6
+#define GDT_USER_CS64 0x7
+#define GDT_USER_DS64 0x8
 
-#define GDT_TSS    0x7
-#define GDT_TSS_DF 0x8
+#define GDT_TSS    0x9
+#define GDT_TSS_DF 0xa
 
-#define GDT_RMODE_TSS    0x6
-#define GDT_RMODE_TSS_DF 0x7
+#define GDT_RMODE_TSS    0x7
+#define GDT_RMODE_TSS_DF 0x8
 
-#define GDT_PERCPU 0x9
+#define GDT_PERCPU 0xb
 
-#define NR_BOOT_GDT_ENTRIES  6
-#define NR_RMODE_GDT_ENTRIES 8
-#define NR_GDT_ENTRIES       10
+#define NR_BOOT_GDT_ENTRIES  7
+#define NR_RMODE_GDT_ENTRIES 9
+#define NR_GDT_ENTRIES       12
 
 #define __KERN_CS32 (GDT_KERN_CS32 << 3)
 #define __KERN_DS32 (GDT_KERN_DS32 << 3)
 #define __KERN_CS64 (GDT_KERN_CS64 << 3)
+#define __KERN_DS64 (GDT_KERN_DS64 << 3)
 
 #define __KERN_CS16 (GDT_RMODE_CS16 << 3)
 #define __KERN_DS16 (GDT_RMODE_DS16 << 3)
@@ -66,7 +69,7 @@
 #define __USER_CS32 ((GDT_USER_CS32 << 3) | 3)
 #define __USER_DS32 ((GDT_USER_DS32 << 3) | 3)
 #define __USER_CS64 ((GDT_USER_CS64 << 3) | 3)
-#define __USER_DS64 ((GDT_USER_DS32 << 3) | 3)
+#define __USER_DS64 ((GDT_USER_DS64 << 3) | 3)
 
 #if defined(__i386__)
 #define __KERN_CS __KERN_CS32
@@ -76,7 +79,7 @@
 #define __USER_DS __USER_DS32
 #else
 #define __KERN_CS __KERN_CS64
-#define __KERN_DS (0)
+#define __KERN_DS __KERN_DS64
 
 #define __USER_CS __USER_CS64
 #define __USER_DS __USER_DS64
