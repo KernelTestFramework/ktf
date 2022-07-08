@@ -153,7 +153,7 @@ typedef unsigned long mfn_t;
 #define PADDR_INVALID (0UL)
 #define MFN_INVALID   (0UL)
 
-#define IS_ADDR_SPACE_VA(va, as) ((_ul(va) & (as)) == (as))
+#define IS_ADDR_SPACE_VA(va, as) (_ul(va) >= (as))
 
 /* External declarations */
 
@@ -210,6 +210,7 @@ static inline void *mfn_to_virt(mfn_t mfn) { return paddr_to_virt(mfn << PAGE_SH
 static inline paddr_t virt_to_paddr(const void *va) {
     paddr_t pa = (paddr_t) va;
 
+    /* Order matters here */
     if (IS_ADDR_SPACE_VA(va, VIRT_KERNEL_BASE))
         return pa - VIRT_KERNEL_BASE;
     if (IS_ADDR_SPACE_VA(va, VIRT_KERNEL_MAP))
