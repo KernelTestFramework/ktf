@@ -29,8 +29,6 @@
 #include <lib.h>
 #include <processor.h>
 
-#define INVALID_CPU (~0U)
-
 /* External declarations */
 
 extern void init_smp(void);

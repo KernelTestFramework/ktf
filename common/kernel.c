@@ -53,6 +53,7 @@ static void __noreturn echo_loop(void) {
 
 void kernel_main(void) {
     task_t *tests_task;
+    cpu_t *cpu;
 
     printk("\nKTF - Kernel Test Framework!\n");
 
@@ -63,11 +64,12 @@ void kernel_main(void) {
     }
 
     tests_task = new_kernel_task("tests", test_main, NULL);
-    schedule_task(tests_task, smp_processor_id());
+    cpu = get_bsp_cpu();
+    schedule_task(tests_task, cpu);
 
-    run_tasks(smp_processor_id());
+    run_tasks(cpu);
 
-    wait_for_all_tasks();
+    wait_for_all_cpus();
 
     printk("All tasks done.\n");
 

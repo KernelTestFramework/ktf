@@ -25,6 +25,7 @@
 #ifndef KTF_SCHED_H
 #define KTF_SCHED_H
 
+#include <cpu.h>
 #include <ktf.h>
 #include <lib.h>
 #include <list.h>
@@ -66,7 +67,7 @@ struct task {
     task_group_t gid;
     task_state_t state;
 
-    unsigned int cpu;
+    cpu_t *cpu;
 
     const char *name;
     task_func_t func;
@@ -79,19 +80,19 @@ typedef struct task task_t;
 /* External declarations */
 
 extern void init_tasks(void);
-extern task_t *get_task_by_id(tid_t id);
-extern task_t *get_task_by_name(const char *name);
-extern task_t *get_task_for_cpu(unsigned int cpu);
-extern void schedule_task(task_t *task, unsigned int cpu);
-extern void run_tasks(unsigned int cpu);
-extern void wait_for_task_group(task_group_t group);
+extern task_t *get_task_by_name(cpu_t *cpu, const char *name);
 extern task_t *new_task(const char *name, task_func_t func, void *arg, task_type_t type);
+extern int schedule_task(task_t *task, cpu_t *cpu);
+extern void run_tasks(cpu_t *cpu);
+extern void wait_for_task_group(const cpu_t *cpu, task_group_t group);
 
 /* Static declarations */
 
 static inline void set_task_group(task_t *task, task_group_t gid) { task->gid = gid; }
 
-static inline void wait_for_all_tasks(void) { wait_for_task_group(TASK_GROUP_ALL); }
+static inline void wait_for_cpu_tasks(cpu_t *cpu) {
+    wait_for_task_group(cpu, TASK_GROUP_ALL);
+}
 
 static inline task_t *new_kernel_task(const char *name, task_func_t func, void *arg) {
     return new_task(name, func, arg, TASK_TYPE_KERNEL);
