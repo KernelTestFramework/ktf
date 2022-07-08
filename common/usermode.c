@@ -24,6 +24,7 @@
  */
 #include <lib.h>
 #include <pagetable.h>
+#include <percpu.h>
 #include <processor.h>
 #include <usermode.h>
 
@@ -92,6 +93,8 @@ void __naked syscall_handler(void) {
     register unsigned long syscall_nr asm(STR(_ASM_AX));
     register unsigned long param1 asm(STR(_ASM_DI));
     (void) param1;
+    register unsigned long param2 asm(STR(_ASM_SI));
+    (void) param2;
     SAVE_CLOBBERED_REGS();
     switch_address_space(&cr3);
     swapgs();
@@ -103,6 +106,27 @@ void __naked syscall_handler(void) {
         syscall_restore();
         _sys_exit();
         UNREACHABLE();
+
+    case SYSCALL_MMAP: {
+        void *va = _ptr(param1);
+        unsigned int order = _u(param2);
+        frame_t *frame;
+
+        frame = get_free_frames(order);
+        if (!va)
+            va = mfn_to_virt_user(frame->mfn);
+
+        va = vmap_user(va, frame->mfn, order, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER,
+                       L1_PROT_USER);
+        syscall_return(_ul(va));
+    } break;
+
+    case SYSCALL_MUNMAP: {
+        void *va = _ptr(param1);
+        unsigned int order = _u(param2);
+
+        vunmap_user(va, order);
+    } break;
 
     default:
         printk("Unknown syscall: %lu\n", syscall_nr);
@@ -152,6 +176,43 @@ static inline void __user_text sys_exit(unsigned long exit_code) {
     asm volatile("syscall" ::"A"(SYSCALL_EXIT), "D"(exit_code) : STR(_ASM_CX), "r11");
 }
 
+static inline long __user_text sys_mmap(void *va, unsigned long order) {
+    register unsigned long rax asm(STR(_ASM_AX));
+
+    /* clang-format off */
+    asm volatile(
+        "syscall"
+        : "=A"(rax)
+        : "0"(SYSCALL_MMAP), "D"(va), "S"(order)
+        : STR(_ASM_CX), "r11"
+    );
+    /* clang-format on */
+
+    return rax;
+}
+
+static inline long __user_text sys_munmap(void *va, unsigned long order) {
+    register unsigned long rax asm(STR(_ASM_AX));
+
+    /* clang-format off */
+    asm volatile(
+        "syscall"
+        ::"A"(SYSCALL_MUNMAP), "D"(va), "S"(order)
+        : STR(_ASM_CX), "r11"
+    );
+    /* clang-format on */
+
+    return rax;
+}
+
 void __user_text exit(unsigned long exit_code) {
     sys_exit(exit_code);
+}
+
+void *__user_text mmap(void *va, unsigned long order) {
+    return _ptr(sys_mmap(va, order));
+}
+
+void __user_text munmap(void *va, unsigned long order) {
+    sys_munmap(va, order);
 }
