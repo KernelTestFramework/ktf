@@ -166,6 +166,12 @@ extern void *vmap_kern(void *va, mfn_t mfn, unsigned int order,
                        unsigned long l3_flags, unsigned long l2_flags,
                        unsigned long l1_flags);
 
+extern void *vmap_user(void *va, mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                       unsigned long l4_flags,
+#endif
+                       unsigned long l3_flags, unsigned long l2_flags,
+                       unsigned long l1_flags);
 
 extern void pat_set_type(pat_field_t field, pat_memory_type_t type);
 extern pat_memory_type_t pat_get_type(pat_field_t field);
@@ -231,6 +237,10 @@ static inline void vunmap_kern(void *va, unsigned int order) {
     vmap_kern(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS);
 }
 
+static inline void vunmap_user(void *va, unsigned int order) {
+    vmap_user(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS);
+}
+
 static inline void *kmap(mfn_t mfn, unsigned int order,
 #if defined(__x86_64__)
                          unsigned long l4_flags,
@@ -266,6 +276,27 @@ static inline void *kmap_2m(mfn_t mfn, unsigned long l2_flags) {
 
 static inline void *kmap_4k(mfn_t mfn, unsigned long l1_flags) {
     return kmap(mfn, PAGE_ORDER_4K, L4_PROT, L3_PROT, L2_PROT, l1_flags);
+}
+
+static inline void *vmap_user_1g(void *va, mfn_t mfn, unsigned long l3_flags) {
+    unsigned long user = l3_flags & _PAGE_USER;
+
+    return vmap_user(va, mfn, PAGE_ORDER_1G, L4_PROT | user, l3_flags | user, PT_NO_FLAGS,
+                     PT_NO_FLAGS);
+}
+
+static inline void *vmap_user_2m(void *va, mfn_t mfn, unsigned long l2_flags) {
+    unsigned long user = l2_flags & _PAGE_USER;
+
+    return vmap_user(va, mfn, PAGE_ORDER_2M, L4_PROT | user, L3_PROT | user,
+                     l2_flags | user, PT_NO_FLAGS);
+}
+
+static inline void *vmap_user_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
+    unsigned long user = l1_flags & _PAGE_USER;
+
+    return vmap_user(va, mfn, PAGE_ORDER_4K, L4_PROT | user, L3_PROT | user,
+                     L2_PROT | user, l1_flags);
 }
 
 #endif /* __ASSEMBLY__ */

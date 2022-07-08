@@ -45,19 +45,29 @@ void *get_free_pages(unsigned int order, uint32_t flags) {
     if (flags == GFP_USER) {
         va = vmap_kern(mfn_to_virt_user(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
                        L1_PROT);
+        vmap_user(mfn_to_virt_user(mfn), mfn, order, L4_PROT_USER, L3_PROT_USER,
+                  L2_PROT_USER, L1_PROT_USER);
     }
 
     if (flags & GFP_IDENT) {
         va = vmap_kern(mfn_to_virt(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
+        if (flags & GFP_USER)
+            vmap_user(mfn_to_virt(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
     }
 
     if (flags & GFP_KERNEL) {
         va = kmap(mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
+        if (flags & GFP_USER)
+            vmap_user(mfn_to_virt_kern(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
+                      L1_PROT);
     }
 
     if (flags & GFP_KERNEL_MAP) {
         va = vmap_kern(mfn_to_virt_map(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
                        L1_PROT);
+        if (flags & GFP_USER)
+            vmap_user(mfn_to_virt_map(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
+                      L1_PROT);
     }
 
     return va;

@@ -137,6 +137,7 @@ union cr3 {
 typedef union cr3 cr3_t;
 
 extern cr3_t cr3;
+extern cr3_t user_cr3;
 
 typedef unsigned int pt_index_t;
 

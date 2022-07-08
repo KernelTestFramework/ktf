@@ -77,7 +77,7 @@ static void init_tss(percpu_t *percpu) {
     percpu->tss.ss0 = __KERN_DS;
     percpu->tss.cr3 = _ul(cr3.reg);
 #elif defined(__x86_64__)
-    percpu->tss.rsp0 = _ul(get_free_page_top(GFP_KERNEL));
+    percpu->tss.rsp0 = _ul(get_free_page_top(GFP_KERNEL | GFP_USER));
     percpu->tss.ist[0] = _ul(get_free_page_top(GFP_KERNEL));
 #endif
     percpu->tss.iopb = sizeof(percpu->tss);
@@ -124,7 +124,7 @@ void init_traps(unsigned int cpu) {
 
     BUG_ON(!percpu);
 
-    percpu->idt = get_free_page(GFP_KERNEL);
+    percpu->idt = get_free_page(GFP_KERNEL | GFP_USER);
     BUG_ON(!percpu->idt);
 
     percpu->idt_ptr.size = (sizeof(percpu->idt) * MAX_INT) - 1;
