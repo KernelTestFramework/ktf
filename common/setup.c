@@ -105,7 +105,7 @@ void zap_boot_mappings(void) {
                 memset(r->start, 0, r->end - r->start);
 
             for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++) {
-                vunmap(mfn_to_virt(mfn), PAGE_ORDER_4K);
+                vunmap_kern(mfn_to_virt(mfn), PAGE_ORDER_4K);
                 reclaim_frame(mfn, PAGE_ORDER_4K);
             }
         }

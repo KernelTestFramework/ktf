@@ -159,13 +159,13 @@ typedef unsigned long mfn_t;
 
 /* External declarations */
 
-extern void *vmap(void *va, mfn_t mfn, unsigned int order,
+extern void *vmap_kern(void *va, mfn_t mfn, unsigned int order,
 #if defined(__x86_64__)
-                  unsigned long l4_flags,
+                       unsigned long l4_flags,
 #endif
-                  unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags);
+                       unsigned long l3_flags, unsigned long l2_flags,
+                       unsigned long l1_flags);
 
-extern void vunmap(void *va, unsigned int order);
 
 extern void pat_set_type(pat_field_t field, pat_memory_type_t type);
 extern pat_memory_type_t pat_get_type(pat_field_t field);
@@ -227,68 +227,45 @@ static inline mfn_t virt_to_mfn(const void *va) {
     return paddr_to_mfn(virt_to_paddr(va));
 }
 
+static inline void vunmap_kern(void *va, unsigned int order) {
+    vmap_kern(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS);
+}
+
 static inline void *kmap(mfn_t mfn, unsigned int order,
 #if defined(__x86_64__)
                          unsigned long l4_flags,
 #endif
                          unsigned long l3_flags, unsigned long l2_flags,
                          unsigned long l1_flags) {
-    return vmap(mfn_to_virt_kern(mfn), mfn, order,
+    return vmap_kern(mfn_to_virt_kern(mfn), mfn, order,
 #if defined(__x86_64__)
-                l4_flags,
+                     l4_flags,
 #endif
-                l3_flags, l2_flags, l1_flags);
-}
-
-static inline void *mmap(mfn_t mfn, unsigned int order,
-#if defined(__x86_64__)
-                         unsigned long l4_flags,
-#endif
-                         unsigned long l3_flags, unsigned long l2_flags,
-                         unsigned long l1_flags) {
-    return vmap(mfn_to_virt_map(mfn), mfn, order,
-#if defined(__x86_64__)
-                l4_flags,
-#endif
-                l3_flags, l2_flags, l1_flags);
+                     l3_flags, l2_flags, l1_flags);
 }
 
 static inline void *vmap_1g(void *va, mfn_t mfn, unsigned long l3_flags) {
-    return vmap(va, mfn, PAGE_ORDER_1G, L4_PROT_USER, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
+    return vmap_kern(va, mfn, PAGE_ORDER_1G, L4_PROT, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
 }
 
 static inline void *vmap_2m(void *va, mfn_t mfn, unsigned long l2_flags) {
-    return vmap(va, mfn, PAGE_ORDER_2M, L4_PROT_USER, L3_PROT_USER, l2_flags,
-                PT_NO_FLAGS);
+    return vmap_kern(va, mfn, PAGE_ORDER_2M, L4_PROT, L3_PROT, l2_flags, PT_NO_FLAGS);
 }
 
 static inline void *vmap_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
-    return vmap(va, mfn, PAGE_ORDER_4K, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER,
-                l1_flags);
+    return vmap_kern(va, mfn, PAGE_ORDER_4K, L4_PROT, L3_PROT, L2_PROT, l1_flags);
 }
 
 static inline void *kmap_1g(mfn_t mfn, unsigned long l3_flags) {
-    return kmap(mfn, PAGE_ORDER_1G, L4_PROT_USER, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
+    return kmap(mfn, PAGE_ORDER_1G, L4_PROT, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
 }
 
 static inline void *kmap_2m(mfn_t mfn, unsigned long l2_flags) {
-    return kmap(mfn, PAGE_ORDER_2M, L4_PROT_USER, L3_PROT_USER, l2_flags, PT_NO_FLAGS);
+    return kmap(mfn, PAGE_ORDER_2M, L4_PROT, L3_PROT, l2_flags, PT_NO_FLAGS);
 }
 
 static inline void *kmap_4k(mfn_t mfn, unsigned long l1_flags) {
-    return kmap(mfn, PAGE_ORDER_4K, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER, l1_flags);
-}
-
-static inline void *mmap_1g(mfn_t mfn, unsigned long l3_flags) {
-    return mmap(mfn, PAGE_ORDER_1G, L4_PROT_USER, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
-}
-
-static inline void *mmap_2m(mfn_t mfn, unsigned long l2_flags) {
-    return mmap(mfn, PAGE_ORDER_2M, L4_PROT_USER, L3_PROT_USER, l2_flags, PT_NO_FLAGS);
-}
-
-static inline void *mmap_4k(mfn_t mfn, unsigned long l1_flags) {
-    return mmap(mfn, PAGE_ORDER_4K, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER, l1_flags);
+    return kmap(mfn, PAGE_ORDER_4K, L4_PROT, L3_PROT, L2_PROT, l1_flags);
 }
 
 #endif /* __ASSEMBLY__ */
