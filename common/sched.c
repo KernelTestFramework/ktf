@@ -108,7 +108,8 @@ static void destroy_task(task_t *task) {
     kfree(task);
 }
 
-static int prepare_task(task_t *task, const char *name, task_func_t func, void *arg) {
+static int prepare_task(task_t *task, const char *name, task_func_t func, void *arg,
+                        task_type_t type) {
     if (!task)
         return -EINVAL;
 
@@ -120,6 +121,7 @@ static int prepare_task(task_t *task, const char *name, task_func_t func, void *
     task->name = name;
     task->func = func;
     task->arg = arg;
+    task->type = type;
     set_task_state(task, TASK_STATE_READY);
     return ESUCCESS;
 }
@@ -132,13 +134,13 @@ static void wait_for_task_state(task_t *task, task_state_t state) {
         cpu_relax();
 }
 
-task_t *new_task(const char *name, task_func_t func, void *arg) {
+task_t *new_task(const char *name, task_func_t func, void *arg, task_type_t type) {
     task_t *task = create_task();
 
     if (!task)
         return NULL;
 
-    if (unlikely(prepare_task(task, name, func, arg) != ESUCCESS)) {
+    if (unlikely(prepare_task(task, name, func, arg, type) != ESUCCESS)) {
         destroy_task(task);
         return NULL;
     }

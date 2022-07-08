@@ -369,7 +369,7 @@ ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Functio
 
     cb.Function = Function;
     cb.Context = Context;
-    task = new_task(name, _osd_exec_cb_wrapper, &cb);
+    task = new_kernel_task(name, _osd_exec_cb_wrapper, &cb);
     if (!task)
         return AE_NO_MEMORY;
 
