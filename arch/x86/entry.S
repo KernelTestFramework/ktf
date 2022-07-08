@@ -160,7 +160,10 @@ ENTRY(usermode_stub)
     xchg %_ASM_DI, %_ASM_SI
     call *%_ASM_SI
 
-    int $X86_RET2KERN_INT
+    /* sys_exit */
+    mov %_ASM_AX, %_ASM_DI
+    xor %_ASM_AX, %_ASM_AX
+    syscall
 END_FUNC(usermode_stub)
 
 SECTION(.data.rmode, "aw", 16)

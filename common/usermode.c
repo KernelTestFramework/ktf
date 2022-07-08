@@ -52,6 +52,15 @@ static inline long syscall_return(long return_code) {
     return ret;
 }
 
+static inline void stack_switch(void) {
+    /* clang-format off */
+    asm volatile(
+        "xchg %%gs:%[private], %%" STR(_ASM_SP) "\n"
+        ::[private] "m"(ACCESS_ONCE(PERCPU_VAR(usermode_private)))
+    );
+    /* clang-format on */
+}
+
 static inline void switch_address_space(const cr3_t *cr3) {
     /* clang-format off */
     asm volatile(
@@ -65,7 +74,49 @@ static inline void switch_address_space(const cr3_t *cr3) {
     /* clang-format on */
 }
 
+static inline void _sys_exit(void) {
+    /* clang-format off */
+    asm volatile (
+        "mov %%" STR(_ASM_DI)", %%gs:%[private]\n"
+        POPF()
+        RESTORE_ALL_REGS()
+        "mov %%gs:%[private], %%" STR(_ASM_AX) "\n"
+        "ret\n"
+        :: [ private ] "m"(ACCESS_ONCE(PERCPU_VAR(usermode_private)))
+        : STR(_ASM_AX)
+    );
+    /* clang-format on */
+}
+
 void __naked syscall_handler(void) {
+    register unsigned long syscall_nr asm(STR(_ASM_AX));
+    register unsigned long param1 asm(STR(_ASM_DI));
+    (void) param1;
+    asm volatile(SAVE_CLOBBERED_REGS():::);
+    switch_address_space(&cr3);
+    swapgs();
+    stack_switch();
+    syscall_save();
+
+    switch (syscall_nr) {
+    case SYSCALL_EXIT:
+        syscall_restore();
+        _sys_exit();
+        UNREACHABLE();
+
+    default:
+        printk("Unknown syscall: %lu\n", syscall_nr);
+        syscall_return(-1L);
+        break;
+    }
+
+    syscall_restore();
+    stack_switch();
+    swapgs();
+    switch_address_space(&user_cr3);
+
+    asm volatile(RESTORE_CLOBBERED_REGS():::);
+
     sysret();
 }
 
@@ -92,5 +143,15 @@ static void init_syscall(void) {
 void init_usermode(percpu_t *percpu) {
     vmap_user_4k(&cr3, virt_to_mfn(&cr3), L1_PROT);
     vmap_user_4k(&enter_usermode, virt_to_mfn(&enter_usermode), L1_PROT);
+    vmap_user_4k(&syscall_handler, virt_to_mfn(&syscall_handler), L1_PROT);
+
     init_syscall();
+}
+
+static inline void __user_text sys_exit(unsigned long exit_code) {
+    asm volatile("syscall" ::"A"(SYSCALL_EXIT), "D"(exit_code) : STR(_ASM_CX), "r11");
+}
+
+void __user_text exit(unsigned long exit_code) {
+    sys_exit(exit_code);
 }
