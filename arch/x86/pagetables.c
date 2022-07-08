@@ -161,7 +161,7 @@ void *vmap(void *va, mfn_t mfn, unsigned int order,
     mfn_t l1t_mfn, l2t_mfn, l3t_mfn;
     pgentry_t *tab, *entry;
 
-    if (!va || _ul(va) & ~PAGE_MASK)
+    if (!va || (_ul(va) & ~PAGE_ORDER_TO_MASK(order)))
         return NULL;
 
     dprintk("%s: va: %p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
