@@ -24,8 +24,20 @@
  */
 #include <lib.h>
 #include <pagetable.h>
-#include <percpu.h>
 #include <processor.h>
+
+static inline void switch_address_space(const cr3_t *cr3) {
+    /* clang-format off */
+    asm volatile(
+        "push %%" STR(_ASM_AX) "\n"
+        "mov %[cr3], %%" STR(_ASM_AX) "\n"
+        "mov %%" STR(_ASM_AX) ", %%cr3\n"
+        "pop %%" STR(_ASM_AX) "\n"
+        :: [cr3] "m" (*cr3)
+        : STR(_ASM_AX)
+    );
+    /* clang-format on */
+}
 
 void __naked syscall_handler(void) {
     sysret();
