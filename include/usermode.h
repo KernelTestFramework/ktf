@@ -37,6 +37,11 @@ static inline bool from_usermode(uint16_t cs) {
     return (cs & 0x3) != 0;
 }
 
+static inline void goto_syscall_exit(long exit_code) {
+    swapgs();
+    asm volatile("jmp syscall_handler" ::"A"(SYSCALL_EXIT), "D"(exit_code));
+}
+
 /* External declarations */
 
 extern unsigned long enter_usermode(task_func_t fn, void *fn_arg,
