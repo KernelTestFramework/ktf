@@ -64,13 +64,7 @@ static void cpu_freq_expect(const char *cpu_str, uint64_t expectation) {
     return;
 }
 
-static int __user_text func(void *arg) {
-    return 0;
-}
-
 int unit_tests(void *_unused) {
-    usermode_call(func, NULL);
-
     printk("\nLet the UNITTESTs begin\n");
     printk("Commandline parsing: %s\n", kernel_cmdline);
 

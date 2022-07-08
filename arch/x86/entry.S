@@ -121,17 +121,22 @@ interrupt_handler keyboard keyboard_interrupt_handler
 interrupt_handler acpi acpi_interrupt_handler
 #endif
 
-ENTRY(usermode_call_asm)
+ENTRY(enter_usermode)
     /* FIXME: Add 32-bit support */
 
     /* will be restored on entering back in kernel mode */
+    SAVE_ALL_REGS
     PUSHF
 
-    mov %_ASM_SP, %gs:(%rdx)
+    /* Save stack pointer onto per-cpu */
+    mov %_ASM_SP, %gs:(%_ASM_DX)
+
+    /* Move to user stack */
+    mov %_ASM_CX, %_ASM_SP
 
     /* SS + SP */
     push $__USER_DS
-    push %gs:(%rcx)
+    push %_ASM_CX
 
     /* EFLAGS */
     PUSHF
@@ -144,7 +149,7 @@ ENTRY(usermode_call_asm)
 
     to_usermode
     IRET
-END_FUNC(usermode_call_asm)
+END_FUNC(enter_usermode)
 
 SECTION(.text.user, "ax", 16)
 ENTRY(usermode_stub)

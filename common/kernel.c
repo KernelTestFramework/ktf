@@ -35,14 +35,6 @@
 #include <perfmon/pfmlib.h>
 #endif
 
-extern int usermode_call_asm(user_func_t fn, void *fn_arg, unsigned long ret2kern_sp,
-                             unsigned long user_stack);
-
-int usermode_call(user_func_t fn, void *fn_arg) {
-    return usermode_call_asm(fn, fn_arg, PERCPU_OFFSET(ret2kern_sp),
-                             PERCPU_OFFSET(user_stack));
-}
-
 static void __noreturn echo_loop(void) {
     while (1) {
         io_delay();

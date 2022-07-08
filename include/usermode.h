@@ -26,6 +26,8 @@
 #define KTF_USERMODE_H
 
 #ifndef __ASSEMBLY__
+#include <percpu.h>
+#include <sched.h>
 
 /* Static declarations */
 
@@ -35,6 +37,8 @@ static inline bool from_usermode(uint16_t cs) {
 
 /* External declarations */
 
+extern unsigned long enter_usermode(task_func_t fn, void *fn_arg,
+                                    unsigned long usermode_private, void *user_stack);
 extern void __naked syscall_handler(void);
 
 extern void init_usermode(percpu_t *percpu);
