@@ -38,11 +38,7 @@
 
 typedef uint16_t io_port_t;
 
-typedef int (*user_func_t)(void *arg);
-
 extern bool opt_debug;
-
-extern int usermode_call(user_func_t fn, void *fn_arg);
 
 extern void kernel_main(void) __noreturn;
 extern unsigned long test_main(void *unused);
