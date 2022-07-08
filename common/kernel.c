@@ -62,7 +62,7 @@ void kernel_main(void) {
         display_multiboot_mmap();
     }
 
-    tests_task = new_task("tests", test_main, NULL);
+    tests_task = new_kernel_task("tests", test_main, NULL);
     schedule_task(tests_task, smp_processor_id());
 
     run_tasks(smp_processor_id());

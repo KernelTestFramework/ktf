@@ -48,12 +48,21 @@ enum task_group {
 };
 typedef enum task_group task_group_t;
 
+enum task_type {
+    TASK_TYPE_KERNEL = 0,
+    TASK_TYPE_USER,
+    TASK_TYPE_INTERRUPT,
+    TASK_TYPE_ACPI_SERVICE,
+};
+typedef enum task_type task_type_t;
+
 typedef unsigned int tid_t;
 
 struct task {
     list_head_t list;
 
     tid_t id;
+    task_type_t type;
     task_group_t gid;
     task_state_t state;
 
@@ -73,15 +82,23 @@ extern void init_tasks(void);
 extern task_t *get_task_by_id(tid_t id);
 extern task_t *get_task_by_name(const char *name);
 extern task_t *get_task_for_cpu(unsigned int cpu);
-extern task_t *new_task(const char *name, task_func_t func, void *arg);
 extern void schedule_task(task_t *task, unsigned int cpu);
 extern void run_tasks(unsigned int cpu);
 extern void wait_for_task_group(task_group_t group);
+extern task_t *new_task(const char *name, task_func_t func, void *arg, task_type_t type);
 
 /* Static declarations */
 
 static inline void set_task_group(task_t *task, task_group_t gid) { task->gid = gid; }
 
 static inline void wait_for_all_tasks(void) { wait_for_task_group(TASK_GROUP_ALL); }
+
+static inline task_t *new_kernel_task(const char *name, task_func_t func, void *arg) {
+    return new_task(name, func, arg, TASK_TYPE_KERNEL);
+}
+
+static inline task_t *new_user_task(const char *name, task_func_t func, void *arg) {
+    return new_task(name, func, arg, TASK_TYPE_USER);
+}
 
 #endif /* KTF_SCHED_H */
