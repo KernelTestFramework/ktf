@@ -53,7 +53,6 @@ percpu_t *get_percpu_page(unsigned int cpu) {
     BUG_ON(!percpu);
 
     percpu->cpu_id = cpu;
-    percpu->user_stack = get_free_page_top(GFP_USER);
 
     list_add(&percpu->list, &percpu_frames);
     return percpu;

@@ -57,8 +57,7 @@ struct percpu {
     x86_tss_t tss_df __aligned(16);
 #endif
 
-    unsigned long ret2kern_sp;
-    void *user_stack;
+    unsigned long usermode_private;
 } __aligned(PAGE_SIZE);
 typedef struct percpu percpu_t;
 

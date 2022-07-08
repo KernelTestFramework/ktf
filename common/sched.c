@@ -32,10 +32,12 @@
 #include <setup.h>
 #include <spinlock.h>
 #include <string.h>
+#include <usermode.h>
 
 #include <smp/smp.h>
 
 #include <mm/slab.h>
+#include <mm/vmm.h>
 
 static tid_t next_tid;
 
@@ -96,7 +98,10 @@ static void destroy_task(task_t *task) {
 
     spin_lock(&task->cpu->lock);
     list_unlink(&task->list);
+    if (task->stack)
+        put_page_top(task->stack);
     spin_unlock(&task->cpu->lock);
+
     kfree(task);
 }
 
@@ -111,6 +116,8 @@ static int prepare_task(task_t *task, const char *name, task_func_t func, void *
     task->func = func;
     task->arg = arg;
     task->type = type;
+    if (task->type == TASK_TYPE_USER)
+        task->stack = get_free_page_top(GFP_USER);
     set_task_state(task, TASK_STATE_READY);
     return ESUCCESS;
 }
@@ -178,7 +185,11 @@ static void run_task(task_t *task) {
     printk("CPU[%u]: Running task %s[%u]\n", task->cpu->id, task->name, task->id);
 
     set_task_state(task, TASK_STATE_RUNNING);
-    task->result = task->func(task->arg);
+    if (task->type == TASK_TYPE_USER)
+        task->result = enter_usermode(task->func, task->arg,
+                                      PERCPU_OFFSET(usermode_private), task->stack);
+    else
+        task->result = task->func(task->arg);
     set_task_state(task, TASK_STATE_DONE);
 }
 

@@ -25,6 +25,7 @@
 #include <lib.h>
 #include <pagetable.h>
 #include <processor.h>
+#include <usermode.h>
 
 static inline void syscall_save(void) {
     /* clang-format off */
@@ -90,5 +91,6 @@ static void init_syscall(void) {
 
 void init_usermode(percpu_t *percpu) {
     vmap_user_4k(&cr3, virt_to_mfn(&cr3), L1_PROT);
+    vmap_user_4k(&enter_usermode, virt_to_mfn(&enter_usermode), L1_PROT);
     init_syscall();
 }
