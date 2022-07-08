@@ -1,4 +1,5 @@
 /*
+ * Copyright © 2022 Open Source Security, Inc.
  * Copyright © 2020 Amazon.com, Inc. or its affiliates.
  * Copyright © 2014,2015 Citrix Systems Ltd.
  * All Rights Reserved.
@@ -35,6 +36,7 @@
 #include <traps.h>
 
 #include <mm/vmm.h>
+#include <usermode.h>
 
 extern void asm_interrupt_handler_uart(void);
 extern void asm_interrupt_handler_keyboard(void);
@@ -174,6 +176,8 @@ void init_traps(const cpu_t *cpu) {
     init_gdt(percpu);
 
     wrmsr(MSR_TSC_AUX, cpu->id);
+
+    init_usermode(percpu);
 }
 
 static void dump_general_regs(const struct cpu_regs *regs) {
