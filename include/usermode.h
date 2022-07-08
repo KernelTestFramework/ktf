@@ -25,6 +25,8 @@
 #ifndef KTF_USERMODE_H
 #define KTF_USERMODE_H
 
+#define SYSCALL_EXIT 0
+
 #ifndef __ASSEMBLY__
 #include <percpu.h>
 #include <sched.h>
@@ -43,6 +45,7 @@ extern void __naked syscall_handler(void);
 
 extern void init_usermode(percpu_t *percpu);
 
+extern void __user_text exit(unsigned long exit_code);
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_USERMODE_H */

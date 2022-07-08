@@ -30,8 +30,6 @@
 
 #define MAX_INT 256
 
-#define X86_RET2KERN_INT 32
-
 #ifndef __ASSEMBLY__
 #include <cpu.h>
 

@@ -42,14 +42,6 @@ extern void asm_interrupt_handler_uart(void);
 extern void asm_interrupt_handler_keyboard(void);
 extern void asm_interrupt_handler_timer(void);
 
-static void ret2kern_handler(void) {
-    /* clang-format off */
-    asm volatile("mov %%gs:%[sp], %%" STR(_ASM_SP) "\n"
-                 "POPF \n"
-                 :: [ sp ] "m"(ACCESS_ONCE(PERCPU_VAR(usermode_private))));
-    /* clang-format on */
-}
-
 static void init_tss(percpu_t *percpu) {
 #if defined(__i386__)
     percpu->tss_df.iopb = sizeof(percpu->tss_df);
@@ -154,10 +146,6 @@ void init_traps(const cpu_t *cpu) {
 #if defined(__x86_64__)
     set_intr_gate(&percpu->idt[X86_EX_DF],  __KERN_CS, _ul(entry_DF),  GATE_DPL0, GATE_PRESENT, 1);
 #endif
-
-    /* User mode return to kernel handler */
-    set_intr_gate(&percpu->idt[X86_RET2KERN_INT], __KERN_CS, _ul(ret2kern_handler), GATE_DPL3, GATE_PRESENT, 0);
-    /* clang-format on */
 
     set_intr_gate(&percpu->idt[COM1_IRQ0_OFFSET], __KERN_CS,
                   _ul(asm_interrupt_handler_uart), GATE_DPL0, GATE_PRESENT, 0);
