@@ -152,6 +152,13 @@
 #endif
 .endm
 
+.macro SET_CR3 val
+    push %_ASM_AX
+    mov (\val), %_ASM_AX
+    mov %_ASM_AX, %cr3
+    pop %_ASM_AX
+.endm
+
 #define GLOBAL(name) \
     .global name;    \
 name:
