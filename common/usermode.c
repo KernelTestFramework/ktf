@@ -26,6 +26,31 @@
 #include <pagetable.h>
 #include <processor.h>
 
+static inline void syscall_save(void) {
+    /* clang-format off */
+    asm volatile(
+        "push %%" STR(_ASM_CX) "\n"
+        "push %%r11"
+        ::: "memory"
+    );
+    /* clang-format on */
+}
+
+static inline void syscall_restore(void) {
+    /* clang-format off */
+    asm volatile(
+        "pop %%r11\n"
+        "pop %%" STR(_ASM_CX)
+        ::: "memory"
+    );
+    /* clang-format on */
+}
+
+static inline long syscall_return(long return_code) {
+    register long ret asm(STR(_ASM_AX)) = return_code;
+    return ret;
+}
+
 static inline void switch_address_space(const cr3_t *cr3) {
     /* clang-format off */
     asm volatile(
