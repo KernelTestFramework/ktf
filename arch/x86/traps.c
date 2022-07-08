@@ -282,7 +282,7 @@ void print_callstack(const void *sp, const void *ip) {
 
     printk("CALLSTACK:\n");
     print_symbol(ip);
-    for (int i = 0; _ul(&_sp[i]) % PAGE_SIZE_2M; i++)
+    for (int i = 0; _ul(&_sp[i]) % PAGE_SIZE; i++)
         print_symbol(_ptr(_sp[i]));
     printk("\n");
 }
