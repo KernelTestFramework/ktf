@@ -206,6 +206,53 @@ name ## _end:
 
 #else
 
+/* clang-format off */
+#if defined(__x86_64__)
+#define SAVE_ALL_REGS64() \
+    "push %%r8\n" \
+    "push %%r9\n" \
+    "push %%r10\n" \
+    "push %%r11\n" \
+    "push %%r12\n" \
+    "push %%r13\n" \
+    "push %%r14\n" \
+    "push %%r15\n"
+
+#define RESTORE_ALL_REGS64() \
+    "pop %%" STR(r15) "\n" \
+    "pop %%" STR(r14) "\n" \
+    "pop %%" STR(r13) "\n" \
+    "pop %%" STR(r12) "\n" \
+    "pop %%" STR(r11) "\n" \
+    "pop %%" STR(r10) "\n" \
+    "pop %%" STR(r9) "\n" \
+    "pop %%" STR(r8) "\n"
+#else
+#define SAVE_ALL_REGS64()
+#define RESTORE_ALL_REGS64()
+#endif
+
+#define SAVE_ALL_REGS() \
+    "push %%" STR(_ASM_AX) "\n" \
+    "push %%" STR(_ASM_BX) "\n" \
+    "push %%" STR(_ASM_CX) "\n" \
+    "push %%" STR(_ASM_DX) "\n" \
+    "push %%" STR(_ASM_SI) "\n" \
+    "push %%" STR(_ASM_DI) "\n" \
+    "push %%" STR(_ASM_BP) "\n" \
+    SAVE_ALL_REGS64()
+
+#define RESTORE_ALL_REGS() \
+    RESTORE_ALL_REGS64() \
+    "pop %%" STR(_ASM_BP) "\n" \
+    "pop %%" STR(_ASM_DI) "\n" \
+    "pop %%" STR(_ASM_SI) "\n" \
+    "pop %%" STR(_ASM_DX) "\n" \
+    "pop %%" STR(_ASM_CX) "\n" \
+    "pop %%" STR(_ASM_BX) "\n" \
+    "pop %%" STR(_ASM_AX) "\n"
+/* clang-format on */
+
 #if defined(__x86_64__)
 #define POPF() "popfq\n"
 #else
