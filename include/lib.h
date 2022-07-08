@@ -308,6 +308,18 @@ static inline void flush_tlb(void) { write_cr3(read_cr3()); }
 
 static inline void ud2(void) { asm volatile("ud2"); }
 
+static inline void swapgs(void) { asm volatile("swapgs"); }
+
+static inline void syscall(void) { asm volatile("syscall"); }
+
+static inline void sysret(void) {
+#if defined(__i386__)
+    asm volatile("sysret");
+#else
+    asm volatile("sysretq");
+#endif
+}
+
 #define BUG()                                                                            \
     do {                                                                                 \
         panic("BUG in %s() at line %u\n", __func__, __LINE__);                           \
