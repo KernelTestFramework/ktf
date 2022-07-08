@@ -46,7 +46,7 @@ static void ret2kern_handler(void) {
     /* clang-format off */
     asm volatile("mov %%gs:%[sp], %%" STR(_ASM_SP) "\n"
                  "POPF \n"
-                 :: [ sp ] "m"(ACCESS_ONCE(PERCPU_VAR(ret2kern_sp))));
+                 :: [ sp ] "m"(ACCESS_ONCE(PERCPU_VAR(usermode_private))));
     /* clang-format on */
 }
 

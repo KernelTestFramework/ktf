@@ -68,6 +68,7 @@ struct task {
     task_state_t state;
 
     cpu_t *cpu;
+    void *stack;
 
     const char *name;
     task_func_t func;
