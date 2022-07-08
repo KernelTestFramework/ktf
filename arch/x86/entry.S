@@ -43,9 +43,9 @@ END_FUNC(entry_\sym)
 .macro interrupt_handler sym func
 ENTRY(asm_interrupt_handler_\sym)
     cld
-    SAVE_REGS
+    SAVE_ALL_REGS
     call \func
-    RESTORE_REGS
+    RESTORE_ALL_REGS
     IRET
 END_FUNC(asm_interrupt_handler_\sym)
 .endm
@@ -75,12 +75,12 @@ exception_handler SE  X86_EX_SE  1
 
 ENTRY(handle_exception)
     cld
-    SAVE_REGS
+    SAVE_ALL_REGS
 
     mov %_ASM_SP, %_ASM_DI
     call do_exception
 
-    RESTORE_REGS
+    RESTORE_ALL_REGS
 
 #if defined(__x86_64__)
     add $8, %_ASM_SP

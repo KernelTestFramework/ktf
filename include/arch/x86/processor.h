@@ -26,6 +26,7 @@
 #ifndef KTF_PROCESSOR_H
 #define KTF_PROCESSOR_H
 
+#include <asm-macros.h>
 #include <compiler.h>
 
 /*

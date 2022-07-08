@@ -63,9 +63,9 @@ GLOBAL(_start)
     mov   %eax, %cr3
 
 #if defined (KTF_UNIT_TEST)
-    SAVE_REGS_32
+    SAVE_ALL_REGS32
     call  prot_to_real
-    RESTORE_REGS_32
+    RESTORE_ALL_REGS32
 #endif
 
     /* Enable long mode */
