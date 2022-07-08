@@ -55,4 +55,8 @@ static inline void *get_free_page_top(uint32_t flags) {
 
 static inline void put_page(void *page) { put_pages(page, PAGE_ORDER_4K); }
 
+static inline void put_page_top(void *page) {
+    put_pages(page - PAGE_SIZE, PAGE_ORDER_4K);
+}
+
 #endif /* KTF_VMM_H */
