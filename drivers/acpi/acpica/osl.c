@@ -294,7 +294,8 @@ void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
         void *_va;
 
         if (!frame) {
-            _va = mmap_4k(mfn, L1_PROT);
+            _va = vmap_kern(mfn_to_virt_map(mfn), mfn, PAGE_ORDER_4K, L4_PROT, L3_PROT,
+                            L2_PROT, L1_PROT);
             if (!_va) {
                 spin_unlock(&map_lock);
                 return NULL;
@@ -327,7 +328,7 @@ void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
         if (--frame->refcount > 0)
             continue;
 
-        vunmap(mfn_to_virt_map(mfn), PAGE_ORDER_4K);
+        vunmap_kern(mfn_to_virt_map(mfn), PAGE_ORDER_4K);
         list_unlink(&frame->list);
         kfree(frame);
     }
@@ -351,7 +352,6 @@ typedef struct osd_exec_cb_wrapper osd_exec_cb_wrapper_t;
 
 unsigned long _osd_exec_cb_wrapper(void *arg) {
     osd_exec_cb_wrapper_t *cb = arg;
-
     cb->Function(cb->Context);
     return 0;
 }

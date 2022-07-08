@@ -152,11 +152,11 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
     return mfn;
 }
 
-void *vmap(void *va, mfn_t mfn, unsigned int order,
+void *_vmap(cr3_t *cr3, void *va, mfn_t mfn, unsigned int order,
 #if defined(__x86_64__)
-           unsigned long l4_flags,
+            unsigned long l4_flags,
 #endif
-           unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
+            unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
     static spinlock_t lock = SPINLOCK_INIT;
     mfn_t l1t_mfn, l2t_mfn, l3t_mfn;
     pgentry_t *tab, *entry;
@@ -169,9 +169,9 @@ void *vmap(void *va, mfn_t mfn, unsigned int order,
     spin_lock(&lock);
 
 #if defined(__x86_64__)
-    l3t_mfn = get_pgentry_mfn(get_cr3_mfn(&cr3), l4_table_index(va), l4_flags);
+    l3t_mfn = get_pgentry_mfn(get_cr3_mfn(cr3), l4_table_index(va), l4_flags);
 #else
-    l3t_mfn = get_cr3_mfn(&cr3);
+    l3t_mfn = get_cr3_mfn(cr3);
 #endif
 
     if (order == PAGE_ORDER_1G) {
@@ -201,8 +201,14 @@ done:
     return va;
 }
 
-void vunmap(void *va, unsigned int order) {
-    vmap(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS);
+void *vmap_kern(void *va, mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                unsigned long l4_flags,
+#endif
+                unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
+    unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(order);
+
+    return _vmap(&cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
 }
 
 void init_pagetables(void) {
