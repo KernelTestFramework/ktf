@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <lib.h>
+#include <pagetable.h>
 #include <percpu.h>
 #include <processor.h>
 
@@ -51,5 +52,6 @@ static void init_syscall(void) {
 }
 
 void init_usermode(percpu_t *percpu) {
+    vmap_user_4k(&cr3, virt_to_mfn(&cr3), L1_PROT);
     init_syscall();
 }

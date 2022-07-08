@@ -29,6 +29,10 @@
 
 /* Static declarations */
 
+static inline bool from_usermode(uint16_t cs) {
+    return (cs & 0x3) != 0;
+}
+
 /* External declarations */
 
 extern void __naked syscall_handler(void);

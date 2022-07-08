@@ -29,8 +29,26 @@
 #include <page.h>
 #include <traps.h>
 
+.macro _handle_usermode cr3
+    testb $0x3, 8(%_ASM_SP)
+    jz 1f /* skip if from kernel mode */
+        SET_CR3 \cr3
+        swapgs
+    1:
+.endm
+
+.macro from_usermode
+    _handle_usermode cr3
+.endm
+
+.macro to_usermode
+    _handle_usermode user_cr3
+.endm
+
 .macro exception_handler sym vec has_error_code
 ENTRY(entry_\sym)
+    from_usermode
+
     .if \has_error_code == 0
         push $0
     .endif
@@ -42,10 +60,14 @@ END_FUNC(entry_\sym)
 
 .macro interrupt_handler sym func
 ENTRY(asm_interrupt_handler_\sym)
+    from_usermode
+
     cld
     SAVE_ALL_REGS
     call \func
     RESTORE_ALL_REGS
+
+    to_usermode
     IRET
 END_FUNC(asm_interrupt_handler_\sym)
 .endm
@@ -87,6 +109,8 @@ ENTRY(handle_exception)
 #else
     add $4, %_ASM_SP
 #endif
+
+    to_usermode
     IRET
 END_FUNC(handle_exception)
 
@@ -118,6 +142,7 @@ ENTRY(usermode_call_asm)
     pushq $__USER_CS
     push $usermode_stub
 
+    to_usermode
     IRET
 END_FUNC(usermode_call_asm)
 
