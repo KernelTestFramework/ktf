@@ -23,20 +23,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <apic.h>
-#include <console.h>
 #include <drivers/keyboard.h>
 #include <drivers/pit.h>
 #include <drivers/serial.h>
 #include <extables.h>
 #include <ktf.h>
-#include <lib.h>
 #include <mm/regions.h>
 #include <percpu.h>
-#include <processor.h>
 #include <segment.h>
-#include <setup.h>
-#include <string.h>
 #include <symbols.h>
 #include <traps.h>
 
@@ -83,8 +77,9 @@ static void init_tss(percpu_t *percpu) {
     percpu->tss.iopb = sizeof(percpu->tss);
 
     /* Assign identity mapping of the tss, because GDT has only 32-bit base. */
-    percpu->gdt[GDT_TSS].desc = GDT_ENTRY(
-        DESC_FLAGS(SZ, P, CODE, A), virt_to_paddr(&percpu->tss), sizeof(percpu->tss) - 1);
+    percpu->gdt[GDT_TSS].desc =
+        GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, CODE, A), virt_to_paddr(&percpu->tss),
+                  sizeof(percpu->tss) - 1);
 #if defined(__x86_64__)
     percpu->gdt[GDT_TSS + 1].desc = GDT_ENTRY(0x0, 0x0, 0x0);
 #endif
