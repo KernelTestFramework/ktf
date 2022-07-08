@@ -271,6 +271,16 @@ struct cpu_regs {
 };
 typedef struct cpu_regs cpu_regs_t;
 
+union msr_star {
+    uint64_t reg;
+    struct __packed {
+        uint32_t eip;
+        uint16_t kern_cs;
+        uint16_t user_cs;
+    };
+};
+typedef union msr_star msr_star_t;
+
 static inline bool has_error_code(uint32_t vector) {
     return !!((1U << vector) & X86_EX_HAS_ERROR_CODE);
 }
