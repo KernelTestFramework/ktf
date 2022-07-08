@@ -49,7 +49,7 @@ percpu_t *get_percpu_page(unsigned int cpu) {
     /* Per CPU page must be identity mapped,
      * because GDT descriptor has 32-bit base.
      */
-    percpu = get_free_page(GFP_IDENT | GFP_KERNEL);
+    percpu = get_free_page(GFP_IDENT | GFP_KERNEL | GFP_USER);
     BUG_ON(!percpu);
 
     percpu->cpu_id = cpu;
