@@ -216,14 +216,15 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 #endif
         /* Fallback to MP tables when no ACPI */
         if (init_mptables() < 0)
-            BUG();
+            boot_flags.nosmp = true;
     }
 
     init_apic(bsp->id, APIC_MODE_XAPIC);
 
     init_tasks();
 
-    init_smp();
+    if (!boot_flags.nosmp)
+        init_smp();
 
     init_ioapic();
 
