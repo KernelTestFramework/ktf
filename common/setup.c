@@ -208,7 +208,22 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     init_slab();
 
-    /* Try to initialize ACPI (and MADT) */
+    init_apic(bsp->id, APIC_MODE_XAPIC);
+
+    init_tasks();
+
+    /* Initialize timers */
+    bool hpet_initialized = false;
+    if (opt_hpet)
+        hpet_initialized = init_hpet(bsp);
+
+    if (!hpet_initialized && opt_pit)
+        init_pit(bsp);
+
+    if (opt_apic_timer)
+        init_apic_timer();
+
+        /* Try to initialize ACPI (and MADT) */
 #ifndef KTF_ACPICA
     if (init_acpi() < 0) {
 #else
@@ -219,10 +234,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
             boot_flags.nosmp = true;
     }
 
-    init_apic(bsp->id, APIC_MODE_XAPIC);
-
-    init_tasks();
-
     if (!boot_flags.nosmp)
         init_smp();
 
@@ -232,15 +243,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
 
     /* Initialize console input */
     init_uart_input(bsp);
-
-    /* Initialize timers */
-    bool hpet_initialized = false;
-    if (opt_hpet)
-        hpet_initialized = init_hpet(bsp);
-    if (!hpet_initialized && opt_pit)
-        init_pit(bsp);
-    if (opt_apic_timer)
-        init_apic_timer();
 
     /* Initialize keyboard */
     if (opt_keyboard)
