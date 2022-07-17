@@ -97,7 +97,7 @@ struct pcidev {
     uint8_t hdr;
     uint8_t cap_ptr;
     struct pcidev *bridge;
-    char bdf_str[7];
+    char bdf_str[10];
 };
 typedef struct pcidev pcidev_t;
 

@@ -84,8 +84,8 @@ static void probe_pci_bus(uint8_t bus, uint8_t start_dev, pcidev_t *bridge) {
             BUG_ON(!new_dev);
 
             new_dev->bridge = bridge;
-            snprintf(&new_dev->bdf_str[0], sizeof(new_dev->bdf_str), "%02x:%1x.%1x", bus,
-                     dev, func);
+            snprintf(&new_dev->bdf_str[0], sizeof(new_dev->bdf_str), "%02x:%02x.%02x",
+                     bus, dev, func);
 
             list_add_tail(&new_dev->list, &pci_list);
 
