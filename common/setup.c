@@ -150,6 +150,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     /* Zero-out BSS sections */
     zero_bss();
 
+    /* Initialize console early */
+    init_console();
+
     if (multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC) {
         /* Indentity mapping is still on, so fill in multiboot structures */
         init_multiboot(mbi, &kernel_cmdline);
@@ -159,9 +162,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
     cmdline_parse(kernel_cmdline);
     if (!string_empty(kernel_cmdline))
         printk("Command line: %s\n", kernel_cmdline);
-
-    /* Initialize console early */
-    init_console();
 
     init_boot_traps();
 
