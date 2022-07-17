@@ -150,7 +150,7 @@ static void acpi_table_unmap_pages(void *addr, unsigned mapped_pages) {
     mfn_t mfn = virt_to_mfn(addr);
 
     for (unsigned i = 0; i < mapped_pages; i++, mfn++) {
-        vunmap(mfn_to_virt_kern(mfn), PAGE_ORDER_4K);
+        vunmap_kern(mfn_to_virt_kern(mfn), PAGE_ORDER_4K);
     }
 }
 
