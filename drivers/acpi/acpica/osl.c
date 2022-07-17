@@ -477,8 +477,11 @@ void AcpiOsSleep(UINT64 Miliseconds) { msleep(Miliseconds); }
 /* FIXME: Return in correct 100ns units */
 UINT64 AcpiOsGetTimer(void) { return get_timer_ticks(); }
 
-/* FIXME: Use microseconds granularity */
-void AcpiOsStall(UINT32 Microseconds) { msleep(1); }
+/* FIXME: Use actual microseconds granularity */
+void AcpiOsStall(UINT32 Microseconds) {
+    for (unsigned long i = Microseconds * 1000; i > 0; i--)
+        cpu_relax();
+}
 
 /* PCI Configuration read/write functions */
 
