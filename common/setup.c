@@ -195,7 +195,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
     if (opt_debug)
         dump_pagetables();
 
-    if (init_framebuffer(mbi))
+    if (setup_framebuffer())
         display_banner();
     else
         init_vga_console();

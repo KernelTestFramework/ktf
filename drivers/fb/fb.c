@@ -26,11 +26,13 @@
 #include <drivers/fb.h>
 #include <drivers/logo.h>
 #include <ktf.h>
-#include <multiboot.h>
+#include <multiboot2.h>
 #include <page.h>
 #include <string.h>
 
 extern uint64_t fonts[];
+
+static bool has_fb = false;
 
 static uint32_t width;
 static uint32_t height;
@@ -69,18 +71,15 @@ static void put_pixel32(uint32_t x, uint32_t y, uint32_t color) {
     *(uint32_t *) (video_memory + (y * pitch) + (x * 4)) = color;
 }
 
-bool init_framebuffer(const multiboot_info_t *mbi) {
-    if (!mbi_has_framebuffer())
-        return false;
-
-    video_memory = (void *) mbi->framebuffer_addr;
+void init_framebuffer(const struct multiboot2_tag_framebuffer *fb) {
+    video_memory = (void *) fb->common.framebuffer_addr;
     if (!video_memory)
-        return false;
+        return;
 
-    width = mbi->framebuffer_width;
-    height = mbi->framebuffer_height;
-    pitch = mbi->framebuffer_pitch;
-    bpp = mbi->framebuffer_bpp;
+    width = fb->common.framebuffer_width;
+    height = fb->common.framebuffer_height;
+    pitch = fb->common.framebuffer_pitch;
+    bpp = fb->common.framebuffer_bpp;
 
     buffer_size = (size_t) width * height;
     banner_size = (size_t) width * LOGO_HEIGHT;
@@ -88,7 +87,8 @@ bool init_framebuffer(const multiboot_info_t *mbi) {
     switch (bpp) {
     case 0 ... 7:
         printk("FB: Unsupported framebuffer BPP: %u\n", bpp);
-        return false;
+        has_fb = false;
+        return;
     case 8:
         put_pixel = put_pixel8;
         break;
@@ -112,7 +112,14 @@ bool init_framebuffer(const multiboot_info_t *mbi) {
         BUG();
     }
 
-    map_fb_area(mbi->framebuffer_addr, buffer_size);
+    has_fb = true;
+}
+
+bool setup_framebuffer(void) {
+    if (!has_fb)
+        return false;
+
+    map_fb_area(_paddr(video_memory), buffer_size);
     memset(video_memory, 0, buffer_size);
 
     register_console_callback(fb_console_write, video_memory);

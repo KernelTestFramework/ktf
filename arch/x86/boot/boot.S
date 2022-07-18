@@ -41,5 +41,13 @@ multiboot_header:
     .long MULTIBOOT2_HEADER_FLAGS
     .long MULTIBOOT2_HEADER_SIZE
     .long MULTIBOOT2_CHECKSUM
+framebuffer_tag_start:
+        .short MULTIBOOT2_HEADER_TAG_FRAMEBUFFER
+        .short MULTIBOOT2_HEADER_TAG_OPTIONAL
+        .long framebuffer_tag_end - framebuffer_tag_start
+        .long MULTIBOOT2_FB_WIDTH
+        .long MULTIBOOT2_FB_HEIGHT
+        .long MULTIBOOT2_FB_BPP
+framebuffer_tag_end:
         .quad MULTIBOOT2_HEADER_TAG_END
 multiboot_header_end:
