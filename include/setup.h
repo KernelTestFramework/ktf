@@ -39,6 +39,7 @@ struct boot_flags {
 typedef struct boot_flags boot_flags_t;
 
 extern char cpu_identifier[49];
+extern unsigned long cpu_frequency;
 extern boot_flags_t boot_flags;
 
 /* Static declarations */
