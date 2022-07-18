@@ -10,6 +10,7 @@ Makeconf.local
 .DS_Store
 *.swp
 *.xz
+grub/boot/grub
 drivers/acpi/acpica/source/
 third-party/libpfm/COPYING
 third-party/libpfm/Makefile
