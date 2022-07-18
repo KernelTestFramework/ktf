@@ -153,7 +153,7 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
     return mfn;
 }
 
-void *_vmap(cr3_t *cr3, void *va, mfn_t mfn, unsigned int order,
+void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
 #if defined(__x86_64__)
             unsigned long l4_flags,
 #endif
@@ -170,9 +170,9 @@ void *_vmap(cr3_t *cr3, void *va, mfn_t mfn, unsigned int order,
     spin_lock(&lock);
 
 #if defined(__x86_64__)
-    l3t_mfn = get_pgentry_mfn(get_cr3_mfn(cr3), l4_table_index(va), l4_flags);
+    l3t_mfn = get_pgentry_mfn(get_cr3_mfn(cr3_ptr), l4_table_index(va), l4_flags);
 #else
-    l3t_mfn = get_cr3_mfn(cr3);
+    l3t_mfn = get_cr3_mfn(cr3_ptr);
 #endif
 
     if (order == PAGE_ORDER_1G) {

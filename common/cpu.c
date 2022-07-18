@@ -37,10 +37,10 @@ static unsigned int nr_cpus = 0;
 
 static cpu_t bsp = {0};
 
-static void init_cpu(cpu_t *cpu, unsigned int id, bool bsp, bool enabled) {
+static void init_cpu(cpu_t *cpu, unsigned int id, bool is_bsp, bool enabled) {
     memset(cpu, 0, sizeof(*cpu));
     cpu->id = id;
-    cpu->bsp = bsp;
+    cpu->bsp = is_bsp;
     cpu->enabled = enabled;
     cpu->done = false;
 
@@ -62,13 +62,13 @@ cpu_t *init_cpus(void) {
     return &bsp;
 }
 
-cpu_t *add_cpu(unsigned int id, bool bsp, bool enabled) {
+cpu_t *add_cpu(unsigned int id, bool is_bsp, bool enabled) {
     cpu_t *cpu = kzalloc(sizeof(*cpu));
 
     if (!cpu)
         return NULL;
 
-    init_cpu(cpu, id, bsp, enabled);
+    init_cpu(cpu, id, is_bsp, enabled);
 
     list_add(&cpu->list, &cpus);
     nr_cpus++;
