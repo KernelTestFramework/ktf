@@ -121,6 +121,23 @@ void init_multiboot(unsigned long *addr, const char **cmdline) {
             handle_multiboot_mmap((struct multiboot2_tag_mmap *) tag);
             break;
 
+        case MULTIBOOT2_TAG_TYPE_FRAMEBUFFER: {
+            struct multiboot2_tag_framebuffer *fb =
+                (struct multiboot2_tag_framebuffer *) tag;
+
+            switch (fb->common.framebuffer_type) {
+            case MULTIBOOT2_FRAMEBUFFER_TYPE_INDEXED:
+            case MULTIBOOT2_FRAMEBUFFER_TYPE_RGB:
+                init_framebuffer(fb);
+                break;
+            case MULTIBOOT2_FRAMEBUFFER_TYPE_EGA_TEXT:
+            default:
+                printk("[multiboot2] Unsupported framebuffer type: %u\n",
+                       fb->common.framebuffer_type);
+                break;
+            }
+        } break;
+
         case MULTIBOOT2_TAG_TYPE_EFI32: {
             struct multiboot2_tag_efi32 *efi32 = (struct multiboot2_tag_efi32 *) tag;
 
@@ -252,20 +269,4 @@ found:
     }
 
     return 0;
-}
-
-bool mbi_has_framebuffer(void) {
-    if (!has_mbi_flag(MULTIBOOT_INFO_FRAMEBUFFER_INFO))
-        return false;
-
-    switch (multiboot_info->framebuffer_type) {
-    case MULTIBOOT_FRAMEBUFFER_TYPE_INDEXED:
-    case MULTIBOOT_FRAMEBUFFER_TYPE_RGB:
-        return true;
-    case MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT:
-    default:
-        return false;
-    }
-
-    return false;
 }
