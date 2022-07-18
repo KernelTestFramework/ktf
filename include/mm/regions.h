@@ -101,6 +101,10 @@ static inline bool in_text_section(const void *addr) {
            (addr >= _ptr(__start_text_init) && addr < _ptr(__end_text_init));
 }
 
+static inline bool in_user_text_section(const void *addr) {
+    return (addr >= _ptr(__start_text_user) && addr < _ptr(__end_text_user));
+}
+
 static inline bool in_init_section(const void *addr) {
     return (addr >= _ptr(__start_text_init) && addr < _ptr(__end_text_init)) ||
            (addr >= _ptr(__start_data_init) && addr < _ptr(__end_data_init)) ||
