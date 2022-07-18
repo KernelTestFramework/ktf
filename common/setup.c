@@ -135,7 +135,9 @@ static void display_cpu_info(void) {
         printk("Frequency: %lu MHz\n", cpu_frequency / MHZ(1));
 }
 
-static void display_banner(void) { draw_logo(); }
+static void display_banner(void) {
+    draw_logo();
+}
 
 static void __text_init init_vga_console(void) {
     if (!boot_flags.vga)

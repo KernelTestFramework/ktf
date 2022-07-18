@@ -91,9 +91,13 @@ cpu_t *get_cpu(unsigned int id) {
     return NULL;
 }
 
-unsigned int get_nr_cpus(void) { return nr_cpus; }
+unsigned int get_nr_cpus(void) {
+    return nr_cpus;
+}
 
-cpu_t *get_bsp_cpu(void) { return &bsp; }
+cpu_t *get_bsp_cpu(void) {
+    return &bsp;
+}
 
 void for_each_cpu(void (*func)(cpu_t *cpu)) {
     cpu_t *cpu;

@@ -115,7 +115,9 @@ static inline int64_t atomic64_add_return(atomic64_t *v, int64_t n) {
     return val;
 }
 
-static inline int32_t atomic_inc_return(atomic_t *v) { return atomic_add_return(v, 1); }
+static inline int32_t atomic_inc_return(atomic_t *v) {
+    return atomic_add_return(v, 1);
+}
 
 static inline int64_t atomic64_inc_return(atomic64_t *v) {
     return atomic64_add_return(v, 1);
@@ -155,7 +157,9 @@ static inline int64_t atomic64_sub_return(atomic64_t *v, int64_t n) {
     return atomic64_add_return(v, -n);
 }
 
-static inline int32_t atomic_dec_return(atomic_t *v) { return atomic_sub_return(v, 1); }
+static inline int32_t atomic_dec_return(atomic_t *v) {
+    return atomic_sub_return(v, 1);
+}
 
 static inline int64_t atomic64_dec_return(atomic64_t *v) {
     return atomic64_sub_return(v, 1);

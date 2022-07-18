@@ -178,8 +178,12 @@ extern pat_memory_type_t pat_get_type(pat_field_t field);
 
 /* Static declarations */
 
-static inline mfn_t paddr_to_mfn(paddr_t pa) { return (mfn_t)(pa >> PAGE_SHIFT); }
-static inline paddr_t mfn_to_paddr(mfn_t mfn) { return (paddr_t)(mfn << PAGE_SHIFT); }
+static inline mfn_t paddr_to_mfn(paddr_t pa) {
+    return (mfn_t)(pa >> PAGE_SHIFT);
+}
+static inline paddr_t mfn_to_paddr(mfn_t mfn) {
+    return (paddr_t)(mfn << PAGE_SHIFT);
+}
 
 static inline void *_paddr_to_virt(paddr_t pa, unsigned long addr_space) {
     return _ptr(pa + addr_space);
@@ -213,7 +217,9 @@ static inline void *mfn_to_virt_user(mfn_t mfn) {
     return paddr_to_virt_user(mfn << PAGE_SHIFT);
 }
 
-static inline void *mfn_to_virt(mfn_t mfn) { return paddr_to_virt(mfn << PAGE_SHIFT); }
+static inline void *mfn_to_virt(mfn_t mfn) {
+    return paddr_to_virt(mfn << PAGE_SHIFT);
+}
 
 static inline paddr_t virt_to_paddr(const void *va) {
     paddr_t pa = (paddr_t) va;

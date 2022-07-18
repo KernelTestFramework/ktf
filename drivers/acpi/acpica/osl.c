@@ -222,9 +222,13 @@ ACPI_STATUS AcpiOsPhysicalTableOverride(ACPI_TABLE_HEADER *ExistingTable,
 
 /* Memory management functions */
 
-void *AcpiOsAllocate(ACPI_SIZE Size) { return kmalloc(Size); }
+void *AcpiOsAllocate(ACPI_SIZE Size) {
+    return kmalloc(Size);
+}
 
-void AcpiOsFree(void *Memory) { kfree(Memory); }
+void AcpiOsFree(void *Memory) {
+    kfree(Memory);
+}
 
 BOOLEAN AcpiOsReadable(void *Memory, ACPI_SIZE Length) {
     volatile bool success = false;
@@ -476,10 +480,14 @@ ACPI_STATUS AcpiOsSignalSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units) {
 
 /* Time management functions */
 
-void AcpiOsSleep(UINT64 Miliseconds) { msleep(Miliseconds); }
+void AcpiOsSleep(UINT64 Miliseconds) {
+    msleep(Miliseconds);
+}
 
 /* FIXME: Return in correct 100ns units */
-UINT64 AcpiOsGetTimer(void) { return get_timer_ticks(); }
+UINT64 AcpiOsGetTimer(void) {
+    return get_timer_ticks();
+}
 
 /* FIXME: Use actual microseconds granularity */
 void AcpiOsStall(UINT32 Microseconds) {

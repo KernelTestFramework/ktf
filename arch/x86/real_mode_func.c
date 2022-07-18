@@ -45,4 +45,6 @@ void long_to_real(void) {
     spin_unlock(&lock);
 }
 
-void init_real_mode(void) { init_rmode_traps(); }
+void init_real_mode(void) {
+    init_rmode_traps();
+}

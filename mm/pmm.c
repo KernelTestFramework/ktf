@@ -316,7 +316,9 @@ static inline void display_frames(void) {
     }
 }
 
-void reclaim_frame(mfn_t mfn, unsigned int order) { add_frame(mfn, order); }
+void reclaim_frame(mfn_t mfn, unsigned int order) {
+    add_frame(mfn, order);
+}
 
 static inline void check_early_frames(void) {
     unsigned early_frames_cnt;

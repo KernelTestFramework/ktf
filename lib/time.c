@@ -39,4 +39,6 @@ void sleep(time_t ms) {
     }
 }
 
-time_t get_timer_ticks(void) { return ticks; }
+time_t get_timer_ticks(void) {
+    return ticks;
+}

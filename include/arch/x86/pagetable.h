@@ -215,7 +215,9 @@ static inline pgentry_t pgentry_from_virt(const void *va, unsigned long flags) {
 #define INVALID_PGENTRY(e) (!(e) || mfn_invalid((e)->mfn))
 
 #if defined(__x86_64__)
-static inline pml4_t *get_l4_table(void) { return paddr_to_virt_kern(read_cr3()); }
+static inline pml4_t *get_l4_table(void) {
+    return paddr_to_virt_kern(read_cr3());
+}
 
 static inline pdpe_t *get_l3_table(const void *va) {
     pml4_t *l3e = l4_table_entry(get_l4_table(), va);
@@ -223,7 +225,9 @@ static inline pdpe_t *get_l3_table(const void *va) {
     return INVALID_PGENTRY(l3e) ? NULL : mfn_to_virt_kern(l3e->mfn);
 }
 #elif defined(__i386__)
-static inline pdpe_t *get_l3_table(void) { return paddr_to_virt_kern(read_cr3()); }
+static inline pdpe_t *get_l3_table(void) {
+    return paddr_to_virt_kern(read_cr3());
+}
 #endif
 
 static inline pde_t *get_l2_table(const void *va) {

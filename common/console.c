@@ -72,7 +72,9 @@ void printk(const char *fmt, ...) {
 }
 
 #ifdef KTF_ACPICA
-void AcpiOsVprintf(const char *Format, va_list args) { vprintk(Format, args); }
+void AcpiOsVprintf(const char *Format, va_list args) {
+    vprintk(Format, args);
+}
 
 void AcpiOsPrintf(const char *Format, ...) {
     va_list args;
