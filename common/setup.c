@@ -64,6 +64,8 @@
 
 boot_flags_t boot_flags;
 
+unsigned long cpu_frequency;
+
 #define QEMU_CONSOLE_PORT 0x0e9
 
 static void __text_init init_console(void) {
@@ -123,15 +125,14 @@ static void __text_init map_bios_area(void) {
 
 static void display_cpu_info(void) {
     char cpu_identifier[49];
-    unsigned long freq;
 
     if (!cpu_vendor_string(cpu_identifier))
         return;
 
     printk("CPU: %.48s\n", cpu_identifier);
-    freq = get_cpu_freq(cpu_identifier);
-    if (freq > 0)
-        printk("Frequency: %lu MHz\n", freq / MHZ(1));
+    cpu_frequency = get_cpu_freq(cpu_identifier);
+    if (cpu_frequency > 0)
+        printk("Frequency: %lu MHz\n", cpu_frequency / MHZ(1));
 }
 
 static void display_banner(void) { draw_logo(); }
