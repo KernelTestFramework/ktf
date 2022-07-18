@@ -47,6 +47,8 @@
 
 extern unsigned acpi_get_nr_cpus(void);
 
+extern paddr_t acpi_rsdp;
+
 #ifndef KTF_ACPICA
 #define RSDP_SIGNATURE (('R') | ('S' << 8) | ('D' << 16) | ('P' << 24))
 #define RSDT_SIGNATURE (('R') | ('S' << 8) | ('D' << 16) | ('T' << 24))

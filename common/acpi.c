@@ -28,6 +28,8 @@
 #include <setup.h>
 #include <string.h>
 
+paddr_t acpi_rsdp = 0;
+
 static const char *madt_int_bus_names[] = {
     [ACPI_MADT_INT_BUS_ISA] = "ISA",
 };
@@ -114,6 +116,9 @@ static inline void *find_rsdp(void *from, void *to) {
 static rsdp_rev1_t *acpi_find_rsdp(void) {
     uint32_t ebda_addr;
     rsdp_rev1_t *rsdp;
+
+    if (acpi_rsdp)
+        return (rsdp_rev1_t *) acpi_rsdp;
 
     ebda_addr = get_bios_ebda_addr();
     rsdp =
