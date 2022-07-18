@@ -32,7 +32,7 @@
 #include <ioapic.h>
 #include <ktf.h>
 #include <lib.h>
-#include <multiboot.h>
+#include <multiboot2.h>
 #include <page.h>
 #include <pagetable.h>
 #include <pci.h>
@@ -148,15 +148,14 @@ static void __text_init init_vga_console(void) {
     register_console_callback(vga_console_write, paddr_to_virt_kern(VGA_START_ADDR));
 }
 
-void __noreturn __text_init kernel_start(uint32_t multiboot_magic,
-                                         multiboot_info_t *mbi) {
+void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long *mbi) {
     /* Zero-out BSS sections */
     zero_bss();
 
     /* Initialize console early */
     init_console();
 
-    if (multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC) {
+    if (multiboot_magic == MULTIBOOT2_BOOTLOADER_MAGIC) {
         /* Indentity mapping is still on, so fill in multiboot structures */
         init_multiboot(mbi, &kernel_cmdline);
     }

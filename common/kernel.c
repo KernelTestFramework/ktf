@@ -27,7 +27,7 @@
 #include <drivers/keyboard.h>
 #include <ktf.h>
 #include <lib.h>
-#include <multiboot.h>
+#include <multiboot2.h>
 #include <percpu.h>
 #include <sched.h>
 #include <setup.h>

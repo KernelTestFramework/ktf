@@ -1,5 +1,6 @@
 /*
  * Copyright © 2020 Amazon.com, Inc. or its affiliates.
+ * Copyright © 2022 Open Source Security, Inc.
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,103 +23,155 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <acpi_ktf.h>
 #include <console.h>
-#include <multiboot.h>
+#include <drivers/fb.h>
+#include <mm/pmm.h>
+#include <multiboot2.h>
 
-static multiboot_info_t *multiboot_info;
+#define TAG_ADDR(tag)                                                                    \
+    ((multiboot2_tag_t *) ((multiboot2_uint8_t *) (tag) + (((tag)->size + 7) & ~7)))
+#define TAG_STRING(tag) (((struct multiboot2_tag_string *) (tag))->string)
 
-static multiboot_memory_map_t *multiboot_mmap;
+static void *multiboot2_hdr;
+static size_t multiboot2_hdr_size;
+
+static multiboot2_memory_map_t *multiboot_mmap;
 static unsigned multiboot_mmap_num;
 
+static unsigned multiboot_mem_lower;
+static unsigned multiboot_mem_upper;
+
 static const char *multiboot_region_type_name[] = {
-    [MULTIBOOT_MEMORY_UNDEFINED] = "Undefined",
-    [MULTIBOOT_MEMORY_AVAILABLE] = "Available",
-    [MULTIBOOT_MEMORY_RESERVED] = "Reserved",
-    [MULTIBOOT_MEMORY_ACPI_RECLAIMABLE] = "ACPI Reclaimable",
-    [MULTIBOOT_MEMORY_NVS] = "NVS",
-    [MULTIBOOT_MEMORY_BADRAM] = "Bad RAM",
+    [MULTIBOOT2_MEMORY_AVAILABLE] = "Available",
+    [MULTIBOOT2_MEMORY_RESERVED] = "Reserved",
+    [MULTIBOOT2_MEMORY_ACPI_RECLAIMABLE] = "ACPI Reclaimable",
+    [MULTIBOOT2_MEMORY_NVS] = "NVS",
 };
 
-static inline bool has_mbi_flag(unsigned flag) {
-    return multiboot_info && !!(multiboot_info->flags & flag);
+static void handle_multiboot_mmap(struct multiboot2_tag_mmap *tag) {
+    multiboot2_uint8_t *tag_end = (multiboot2_uint8_t *) tag + tag->size;
+
+    BUG_ON(sizeof(multiboot2_memory_map_t) != tag->entry_size);
+
+    multiboot_mmap = tag->entries;
+
+    for (multiboot2_memory_map_t *mmap = tag->entries; _ptr(mmap) < _ptr(tag_end); mmap++)
+        multiboot_mmap_num++;
 }
 
 void display_multiboot_mmap(void) {
-    if (!has_mbi_flag(MULTIBOOT_INFO_MEMORY))
-        return;
-
-    printk("\nPhysical Memory Map\n");
-
-    if (!has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
-        printk("REGION: [0x%016lx - 0x%016lx] Lower memory\n", 0UL,
-               multiboot_info->mem_lower * KB(1));
-        printk("REGION: [0x%016lx - 0x%016lx] Upper memory\n", MB(1),
-               MB(1) + (multiboot_info->mem_upper * KB(1)));
-        return;
-    }
+    printk("Physical Memory Map\n");
 
     for (unsigned int i = 0; i < multiboot_mmap_num; i++) {
-        multiboot_memory_map_t *entry = &multiboot_mmap[i];
+        multiboot2_memory_map_t *mmap = &multiboot_mmap[i];
 
-        if (entry->type != MULTIBOOT_MEMORY_UNDEFINED) {
-            printk("REGION: [0x%016lx - 0x%016lx] %s\n", entry->addr,
-                   entry->addr + entry->len, multiboot_region_type_name[entry->type]);
-        }
+        printk("REGION: [0x%016lx - 0x%016lx] %s\n", mmap->addr, mmap->addr + mmap->len,
+               multiboot_region_type_name[mmap->type]);
     }
 }
 
-void init_multiboot(multiboot_info_t *mbi, const char **cmdline) {
-    multiboot_info = mbi;
+void init_multiboot(unsigned long *addr, const char **cmdline) {
+    dprintk("Initialize multiboot2\n");
 
-    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
-        multiboot_mmap = (multiboot_memory_map_t *) _ptr(mbi->mmap_addr);
-        multiboot_mmap_num = mbi->mmap_length / sizeof(*multiboot_mmap);
+    multiboot2_hdr = addr;
+    multiboot2_hdr_size = *addr++;
+
+    dprintk("[multiboot2] header at %p of size: %lx\n", multiboot2_hdr,
+            multiboot2_hdr_size);
+
+    for (multiboot2_tag_t *tag = (multiboot2_tag_t *) addr;
+         tag->type != MULTIBOOT2_TAG_TYPE_END; tag = TAG_ADDR(tag)) {
+        switch (tag->type) {
+        case MULTIBOOT2_TAG_TYPE_CMDLINE:
+            *cmdline = TAG_STRING(tag);
+            break;
+
+        case MULTIBOOT2_TAG_TYPE_BOOT_LOADER_NAME:
+            printk("[multiboot2] Boot loader name: %s\n", TAG_STRING(tag));
+            break;
+
+        case MULTIBOOT2_TAG_TYPE_MODULE: {
+            struct multiboot2_tag_module *mod = (struct multiboot2_tag_module *) tag;
+
+            printk("[multiboot2] Module: [0x%08x - 0x%08x], Command line %s\n",
+                   mod->mod_start, mod->mod_end, mod->cmdline);
+        } break;
+
+        case MULTIBOOT2_TAG_TYPE_BASIC_MEMINFO: {
+            struct multiboot2_tag_basic_meminfo *meminfo =
+                (struct multiboot2_tag_basic_meminfo *) tag;
+
+            multiboot_mem_lower = meminfo->mem_lower;
+            multiboot_mem_upper = meminfo->mem_upper;
+
+            printk("[multiboot2] Lower memory: %u KB, Upper memory: %u KB\n",
+                   multiboot_mem_lower, multiboot_mem_upper);
+        } break;
+
+        case MULTIBOOT2_TAG_TYPE_BOOTDEV: {
+            struct multiboot2_tag_bootdev *bootdev =
+                (struct multiboot2_tag_bootdev *) tag;
+
+            printk("[multiboot2] Boot device 0x%x,%x,%x\n", bootdev->biosdev,
+                   bootdev->slice, bootdev->part);
+        } break;
+
+        case MULTIBOOT2_TAG_TYPE_MMAP:
+            handle_multiboot_mmap((struct multiboot2_tag_mmap *) tag);
+            break;
+
+        case MULTIBOOT2_TAG_TYPE_EFI32: {
+            struct multiboot2_tag_efi32 *efi32 = (struct multiboot2_tag_efi32 *) tag;
+
+            printk("[multiboot2] EFI32 Pointer: 0x%p\n", efi32->pointer);
+        } break;
+
+        case MULTIBOOT2_TAG_TYPE_EFI64: {
+            struct multiboot2_tag_efi64 *efi64 = (struct multiboot2_tag_efi64 *) tag;
+
+            printk("[multiboot2] EFI64 Pointer: 0x%p\n", efi64->pointer);
+        } break;
+        case MULTIBOOT2_TAG_TYPE_LOAD_BASE_ADDR: {
+            struct multiboot2_tag_load_base_addr *addr =
+                (struct multiboot2_tag_load_base_addr *) tag;
+
+            printk("[multiboot2] Load base address: 0x%p\n", addr->load_base_addr);
+        } break;
+
+        default:
+            printk("Tag 0x%02x, Size 0x%04x\n", tag->type, tag->size);
+            break;
+        }
     }
-
-    if (has_mbi_flag(MULTIBOOT_INFO_CMDLINE) && cmdline)
-        *cmdline = (const char *) _ptr(mbi->cmdline);
 }
 
 void map_multiboot_areas(void) {
-    paddr_t mbi = _paddr(multiboot_info);
+    paddr_t mbi_start = _paddr(multiboot2_hdr);
+    paddr_t mbi_stop = mbi_start + multiboot2_hdr_size;
 
-    vmap_4k(paddr_to_virt(mbi), paddr_to_mfn(mbi), L1_PROT_RO);
-    kmap_4k(paddr_to_mfn(mbi), L1_PROT_RO);
-
-    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
-        paddr_t mmap_start = _paddr(multiboot_info->mmap_addr);
-        paddr_t mmap_stop = mmap_start + _paddr(multiboot_info->mmap_length);
-
-        for (mfn_t mmap_mfn = paddr_to_mfn(mmap_start);
-             mmap_mfn < paddr_to_mfn(mmap_stop); mmap_mfn++) {
-            vmap_4k(mfn_to_virt(mmap_mfn), mmap_mfn, L1_PROT_RO);
-            kmap_4k(mmap_mfn, L1_PROT_RO);
-        }
-    }
-
-    if (has_mbi_flag(MULTIBOOT_INFO_CMDLINE)) {
-        paddr_t cmdline_start = _paddr(multiboot_info->cmdline);
-        paddr_t cmdline_stop = cmdline_start + strlen((const char *) _ptr(cmdline_start));
-
-        for (mfn_t cmdline_mfn = paddr_to_mfn(cmdline_start);
-             cmdline_mfn < paddr_to_mfn(cmdline_stop); cmdline_mfn++)
-            kmap_4k(cmdline_mfn, L1_PROT_RO);
+    for (mfn_t mfn = paddr_to_mfn(mbi_start); mfn <= paddr_to_mfn(mbi_stop); mfn++) {
+        vmap_4k(mfn_to_virt(mfn), mfn, L1_PROT_RO);
+        kmap_4k(mfn, L1_PROT_RO);
     }
 }
 
 unsigned mbi_get_avail_memory_ranges_num(void) {
     unsigned num = 0;
 
-    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
-        for (unsigned int i = 0; i < multiboot_mmap_num; i++) {
-            multiboot_memory_map_t *entry = &multiboot_mmap[i];
+    for (unsigned i = 0; i < multiboot_mmap_num; i++) {
+        multiboot2_memory_map_t *entry = &multiboot_mmap[i];
 
-            if (entry->type == MULTIBOOT_MEMORY_AVAILABLE)
-                num++;
-        }
+        if (entry->type == MULTIBOOT2_MEMORY_AVAILABLE)
+            num++;
     }
-    else if (has_mbi_flag(MULTIBOOT_INFO_MEMORY))
-        num = 2;
+
+    if (multiboot_mmap_num == 0) {
+        if (multiboot_mem_lower > 0)
+            num++;
+        if (multiboot_mem_upper > 0)
+            num++;
+    }
 
     return num;
 }
@@ -126,29 +179,32 @@ unsigned mbi_get_avail_memory_ranges_num(void) {
 int mbi_get_avail_memory_range(unsigned index, addr_range_t *r) {
     unsigned avail = 0;
 
-    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
-        for (unsigned int i = 0; i < multiboot_mmap_num; i++) {
-            multiboot_memory_map_t *entry = &multiboot_mmap[i];
+    for (unsigned int i = 0; i < multiboot_mmap_num; i++) {
+        multiboot2_memory_map_t *entry = &multiboot_mmap[i];
 
-            if (entry->type != MULTIBOOT_MEMORY_AVAILABLE)
-                continue;
+        if (entry->type != MULTIBOOT2_MEMORY_AVAILABLE)
+            continue;
 
-            if (avail++ == index) {
-                r->start = _ptr(_paddr(entry->addr));
-                r->end = _ptr(_paddr(r->start + entry->len));
-                return 0;
-            }
+        if (avail++ == index) {
+            r->start = _ptr(_paddr(entry->addr));
+            r->end = _ptr(_paddr(r->start + entry->len));
+            return 0;
         }
     }
-    else if (has_mbi_flag(MULTIBOOT_INFO_MEMORY)) {
+
+    if (multiboot_mmap_num == 0) {
         if (index == 0) {
+            BUG_ON(multiboot_mem_lower == 0);
+
             r->start = 0x0;
-            r->end = _ptr(multiboot_info->mem_lower * KB(1));
+            r->end = _ptr(multiboot_mem_lower);
             return 0;
         }
         else if (index == 1) {
+            BUG_ON(multiboot_mem_upper == 0);
+
             r->start = _ptr(MB(1));
-            r->end = r->start + (multiboot_info->mem_upper * KB(1));
+            r->end = r->start + (multiboot_mem_upper);
             return 0;
         }
     }
@@ -159,26 +215,29 @@ int mbi_get_avail_memory_range(unsigned index, addr_range_t *r) {
 int mbi_get_memory_range(paddr_t pa, addr_range_t *r) {
     paddr_t _start, _end;
 
-    if (has_mbi_flag(MULTIBOOT_INFO_MEM_MAP)) {
-        for (unsigned int i = 0; i < multiboot_mmap_num; i++) {
-            multiboot_memory_map_t *entry = &multiboot_mmap[i];
+    for (unsigned int i = 0; i < multiboot_mmap_num; i++) {
+        multiboot2_memory_map_t *entry = &multiboot_mmap[i];
 
-            _start = _paddr(entry->addr);
-            _end = _paddr(_start + entry->len);
+        _start = _paddr(entry->addr);
+        _end = _paddr(_start + entry->len);
 
-            if (pa >= _start && pa < _end)
-                goto found;
-        }
+        if (pa >= _start && pa < _end)
+            goto found;
     }
-    else if (has_mbi_flag(MULTIBOOT_INFO_MEMORY)) {
+
+    if (multiboot_mmap_num == 0) {
+        BUG_ON(multiboot_mem_lower == 0);
+
         _start = 0x0;
-        _end = multiboot_info->mem_lower * KB(1);
+        _end = multiboot_mem_lower;
 
         if (pa < _end)
             goto found;
 
+        BUG_ON(multiboot_mem_upper == 0);
+
         _start = MB(1);
-        _end = _start + multiboot_info->mem_upper * KB(1);
+        _end = _start + multiboot_mem_upper;
 
         if (pa >= _start && pa < _end)
             goto found;
