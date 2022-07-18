@@ -88,7 +88,9 @@ extern void wait_for_task_group(const cpu_t *cpu, task_group_t group);
 
 /* Static declarations */
 
-static inline void set_task_group(task_t *task, task_group_t gid) { task->gid = gid; }
+static inline void set_task_group(task_t *task, task_group_t gid) {
+    task->gid = gid;
+}
 
 static inline void wait_for_cpu_tasks(cpu_t *cpu) {
     wait_for_task_group(cpu, TASK_GROUP_ALL);

@@ -64,7 +64,9 @@ extern void wait_for_all_cpus(void);
 
 /* Static declarations */
 
-static inline void init_cpu_runstate(cpu_t *cpu) { atomic_set(&cpu->run_state, 0); }
+static inline void init_cpu_runstate(cpu_t *cpu) {
+    atomic_set(&cpu->run_state, 0);
+}
 
 static inline bool is_cpu_finished(cpu_t *cpu) {
     return atomic_test_bit(CPU_FINISHED, &cpu->run_state);

@@ -151,13 +151,21 @@ static inline void wrmsr(uint32_t msr_idx, uint64_t value) {
                  "d"((uint32_t)(value >> 32)));
 }
 
-static inline void sti(void) { asm volatile("sti"); }
+static inline void sti(void) {
+    asm volatile("sti");
+}
 
-static inline void cli(void) { asm volatile("cli"); }
+static inline void cli(void) {
+    asm volatile("cli");
+}
 
-static inline void pause(void) { asm volatile("pause"); }
+static inline void pause(void) {
+    asm volatile("pause");
+}
 
-static inline void hlt(void) { asm volatile("hlt"); }
+static inline void hlt(void) {
+    asm volatile("hlt");
+}
 
 static inline unsigned long read_flags(void) {
     unsigned long flags;
@@ -215,7 +223,9 @@ static inline unsigned long read_fs(void) {
     return fs;
 }
 
-static inline void write_fs(unsigned long fs) { asm volatile("mov %0, %%fs" ::"r"(fs)); }
+static inline void write_fs(unsigned long fs) {
+    asm volatile("mov %0, %%fs" ::"r"(fs));
+}
 
 static inline unsigned long read_gs(void) {
     unsigned long gs;
@@ -225,7 +235,9 @@ static inline unsigned long read_gs(void) {
     return gs;
 }
 
-static inline void write_gs(unsigned long gs) { asm volatile("mov %0, %%gs" ::"r"(gs)); }
+static inline void write_gs(unsigned long gs) {
+    asm volatile("mov %0, %%gs" ::"r"(gs));
+}
 
 static inline unsigned long read_cr0(void) {
     unsigned long cr0;
@@ -296,21 +308,33 @@ static inline void ltr(unsigned int selector) {
     asm volatile("ltr %w0" ::"rm"(selector));
 }
 
-static inline void sgdt(gdt_ptr_t *gdt_ptr) { asm volatile("sgdt %0" : "=m"(*gdt_ptr)); }
+static inline void sgdt(gdt_ptr_t *gdt_ptr) {
+    asm volatile("sgdt %0" : "=m"(*gdt_ptr));
+}
 
-static inline void sidt(idt_ptr_t *idt_ptr) { asm volatile("sidt %0" : "=m"(*idt_ptr)); }
+static inline void sidt(idt_ptr_t *idt_ptr) {
+    asm volatile("sidt %0" : "=m"(*idt_ptr));
+}
 
 static inline void str(unsigned int *selector) {
     asm volatile("str %0" : "=m"(*selector));
 }
 
-static inline void flush_tlb(void) { write_cr3(read_cr3()); }
+static inline void flush_tlb(void) {
+    write_cr3(read_cr3());
+}
 
-static inline void ud2(void) { asm volatile("ud2"); }
+static inline void ud2(void) {
+    asm volatile("ud2");
+}
 
-static inline void swapgs(void) { asm volatile("swapgs"); }
+static inline void swapgs(void) {
+    asm volatile("swapgs");
+}
 
-static inline void syscall(void) { asm volatile("syscall"); }
+static inline void syscall(void) {
+    asm volatile("syscall");
+}
 
 static inline void sysret(void) {
 #if defined(__i386__)
@@ -374,7 +398,9 @@ static inline void outd(io_port_t port, uint32_t value) {
     asm volatile("out %0, %1" ::"a"(value), "Nd"(port));
 }
 
-static inline void putc(io_port_t port, int c) { outb(port, c); }
+static inline void putc(io_port_t port, int c) {
+    outb(port, c);
+}
 
 static inline void puts(io_port_t port, const char *buf, size_t len) {
     asm volatile("rep; outsb" : "+S"(buf), "+c"(len) : "d"(port));
@@ -382,7 +408,9 @@ static inline void puts(io_port_t port, const char *buf, size_t len) {
 
 /* I/O port delay is believed to take ~1ms */
 #define IO_DELAY_PORT 0x80
-static inline void io_delay(void) { outb(IO_DELAY_PORT, 0xff); /* Random data write */ }
+static inline void io_delay(void) {
+    outb(IO_DELAY_PORT, 0xff); /* Random data write */
+}
 
 static inline uint64_t rdtsc(void) {
     unsigned int low, high;
@@ -400,7 +428,9 @@ static inline uint64_t rdtscp(void) {
     return ((uint64_t) high << 32) | low;
 }
 
-static inline void rep_nop(void) { asm volatile("rep;nop" ::: "memory"); }
+static inline void rep_nop(void) {
+    asm volatile("rep;nop" ::: "memory");
+}
 #define cpu_relax() rep_nop()
 
 static inline void wait_cycles(unsigned int cycles) {

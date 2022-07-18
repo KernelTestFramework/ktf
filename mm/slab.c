@@ -259,7 +259,9 @@ out:
     return alloc;
 }
 
-void *kmalloc(size_t size) { return ktf_alloc(size); }
+void *kmalloc(size_t size) {
+    return ktf_alloc(size);
+}
 
 void *kzalloc(size_t size) {
     void *ptr = ktf_alloc(size);
@@ -323,7 +325,9 @@ static void ktf_free(void *ptr) {
     UNREACHABLE();
 }
 
-void kfree(void *ptr) { ktf_free(ptr); }
+void kfree(void *ptr) {
+    ktf_free(ptr);
+}
 
 int init_slab(void) {
     int ret = 0;

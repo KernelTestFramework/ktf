@@ -30,7 +30,9 @@
 
 static list_head_t pci_list = LIST_INIT(pci_list);
 
-static inline uint8_t pci_dev_hdr_type(pcidev_t *dev) { return dev->hdr & PCI_HDR_TYPE; }
+static inline uint8_t pci_dev_hdr_type(pcidev_t *dev) {
+    return dev->hdr & PCI_HDR_TYPE;
+}
 
 static inline bool pci_dev_is_multifunc(pcidev_t *dev) {
     return ((dev->hdr & PCI_HDR_MULTIFUNC) != 0);

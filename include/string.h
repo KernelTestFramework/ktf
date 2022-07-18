@@ -27,27 +27,45 @@
 #include <asm-macros.h>
 #include <mm/slab.h>
 
-static inline int isspace(int c) { return c == ' ' || c == '\t'; }
+static inline int isspace(int c) {
+    return c == ' ' || c == '\t';
+}
 
-static inline int iseostr(int c) { return c == '\0'; }
+static inline int iseostr(int c) {
+    return c == '\0';
+}
 
-static inline int ispunct(int c) { return c == '.'; }
+static inline int ispunct(int c) {
+    return c == '.';
+}
 
-static inline int isdigit(int c) { return c >= '0' && c <= '9'; }
+static inline int isdigit(int c) {
+    return c >= '0' && c <= '9';
+}
 
 static inline int isxdigit(int c) {
     return (isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
 }
 
-static inline int isascii(int c) { return c >= 0 && c <= 127; }
+static inline int isascii(int c) {
+    return c >= 0 && c <= 127;
+}
 
-static inline int islower(int c) { return c >= 'a' && c <= 'z'; }
+static inline int islower(int c) {
+    return c >= 'a' && c <= 'z';
+}
 
-static inline int isupper(int c) { return c >= 'A' && c <= 'Z'; }
+static inline int isupper(int c) {
+    return c >= 'A' && c <= 'Z';
+}
 
-static inline int isalpha(int c) { return islower(c) || isupper(c); }
+static inline int isalpha(int c) {
+    return islower(c) || isupper(c);
+}
 
-static inline int isprint(char c) { return c >= 0x20 && c <= 0x7e; }
+static inline int isprint(char c) {
+    return c >= 0x20 && c <= 0x7e;
+}
 
 static inline size_t strlen(const char *str) {
     size_t len = 0;
@@ -236,7 +254,9 @@ static inline const char *string_trim_whitspace(const char *s) {
     return s;
 }
 
-static inline int string_empty(const char *s) { return !s || *s == '\0'; }
+static inline int string_empty(const char *s) {
+    return !s || *s == '\0';
+}
 
 static inline int string_equal(const char *s1, const char *s2) {
     return (!s1 || !s2) ? s1 == s2 : !strcmp(s1, s2);

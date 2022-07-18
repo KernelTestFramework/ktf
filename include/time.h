@@ -32,6 +32,8 @@ extern time_t get_timer_ticks(void);
 
 /* Static declarations */
 
-static inline void msleep(time_t ms) { sleep(ms); }
+static inline void msleep(time_t ms) {
+    sleep(ms);
+}
 
 #endif

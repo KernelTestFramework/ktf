@@ -38,4 +38,6 @@ void init_pit(const cpu_t *cpu) {
     configure_isa_irq(PIT_IRQ, PIT_IRQ0_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
 }
 
-void pit_disable(void) { pic_disable_irq(PIC1_DEVICE_SEL, PIT_IRQ); }
+void pit_disable(void) {
+    pic_disable_irq(PIC1_DEVICE_SEL, PIT_IRQ);
+}

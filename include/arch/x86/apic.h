@@ -505,7 +505,9 @@ static inline void apic_icr_set_dest(apic_icr_t *icr, uint32_t dest) {
         icr->x2apic_dest = dest;
 }
 
-static inline void apic_EOI(void) { apic_write(APIC_EOI, APIC_EOI_SIGNAL); }
+static inline void apic_EOI(void) {
+    apic_write(APIC_EOI, APIC_EOI_SIGNAL);
+}
 
 #endif /* __ASSEMBLY__ */
 

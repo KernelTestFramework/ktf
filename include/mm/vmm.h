@@ -53,7 +53,9 @@ static inline void *get_free_page_top(uint32_t flags) {
     return get_free_page(flags) + PAGE_SIZE;
 }
 
-static inline void put_page(void *page) { put_pages(page, PAGE_ORDER_4K); }
+static inline void put_page(void *page) {
+    put_pages(page, PAGE_ORDER_4K);
+}
 
 static inline void put_page_top(void *page) {
     put_pages(page - PAGE_SIZE, PAGE_ORDER_4K);

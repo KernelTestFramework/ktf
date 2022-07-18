@@ -106,7 +106,9 @@ void apic_icr_write(const apic_icr_t *icr) {
         apic_msr_write(X2APIC_REG(APIC_ICR0), icr->reg);
 }
 
-apic_mode_t apic_get_mode(void) { return apic_mode; }
+apic_mode_t apic_get_mode(void) {
+    return apic_mode;
+}
 
 void init_apic(unsigned int cpu_id, apic_mode_t mode) {
     apic_base_t apic_base;

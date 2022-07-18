@@ -106,6 +106,10 @@ int get_avail_memory_range(unsigned index, addr_range_t *r) {
     return mbi_get_avail_memory_range(index, r);
 }
 
-bool has_memory_range(paddr_t pa) { return mbi_get_memory_range(pa, NULL) == 0; }
+bool has_memory_range(paddr_t pa) {
+    return mbi_get_memory_range(pa, NULL) == 0;
+}
 
-void init_regions(void) { regions_num = mbi_get_avail_memory_ranges_num(); }
+void init_regions(void) {
+    regions_num = mbi_get_avail_memory_ranges_num();
+}

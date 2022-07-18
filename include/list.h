@@ -67,7 +67,9 @@ static inline void list_unlink(list_head_t *entry) {
     entry->prev = NULL;
 }
 
-static inline bool list_is_empty(list_head_t *list) { return list->next == list; }
+static inline bool list_is_empty(list_head_t *list) {
+    return list->next == list;
+}
 
 #define list_entry(elem, type, member) container_of(elem, type, member)
 
