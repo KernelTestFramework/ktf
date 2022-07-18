@@ -37,7 +37,7 @@ static inline bool is_symbol_address(const void *addr, unsigned index) {
 static long symbol_index_by_address(const void *addr) {
     unsigned left, right;
 
-    if (!in_text_section(addr))
+    if (!in_text_section(addr) && !in_user_text_section(addr))
         return -1;
 
     left = 0;
