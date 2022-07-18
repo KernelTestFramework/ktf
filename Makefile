@@ -90,7 +90,7 @@ endif
 GRUB_DIR := grub/boot
 GRUB_FILE := grub-file
 GRUB_MKRESCUE := grub-mkrescue
-GRUB_MODULES := multiboot iso9660 serial normal
+GRUB_MODULES := multiboot2 iso9660 serial normal
 ifneq ($(UNITTEST),)
 GRUB_CONFIG := $(GRUB_DIR)/grub/grub-test.cfg
 else
@@ -254,7 +254,7 @@ $(ISO_FILE): dockerboot.iso
 else
 $(ISO_FILE): $(TARGET)
 	@echo "GEN ISO" $(ISO_FILE)
-	$(VERBOSE) $(GRUB_FILE) --is-x86-multiboot $(TARGET) || { echo "Multiboot not supported"; exit 1; }
+	$(VERBOSE) $(GRUB_FILE) --is-x86-multiboot2 $(TARGET) || { echo "Multiboot not supported"; exit 1; }
 	$(VERBOSE) cp $(TARGET) $(GRUB_DIR)/
 	$(VERBOSE) $(XZ) -q -f $(GRUB_DIR)/$(TARGET)
 	$(VERBOSE) $(GRUB_MKRESCUE) --install-modules="$(GRUB_MODULES)" --fonts=no --compress=xz -o $(ISO_FILE) grub &> /dev/null
