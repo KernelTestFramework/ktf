@@ -92,9 +92,9 @@ GRUB_FILE := grub-file
 GRUB_MKRESCUE := grub-mkrescue
 GRUB_MODULES := multiboot2 iso9660 serial normal
 ifneq ($(UNITTEST),)
-GRUB_CONFIG := $(GRUB_DIR)/grub/grub-test.cfg
+GRUB_CONFIG := grub/grub-test.cfg
 else
-GRUB_CONFIG := $(GRUB_DIR)/grub/grub.cfg
+GRUB_CONFIG := grub/grub-prod.cfg
 endif
 XORRISO := xorriso
 QEMU_BIN := qemu-system-x86_64
@@ -222,6 +222,7 @@ clean:
 	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
 	$(VERBOSE) $(RM) -rf $(ACPICA_DEST_DIR)/source
 	$(VERBOSE) $(RM) -f $(TARGET_DEBUG)
+	$(VERBOSE) $(RM) -rf $(GRUB_DIR)
 
 # Check whether we can use kvm for qemu
 ifeq ($(SYSTEM),LINUX)
@@ -255,7 +256,9 @@ else
 $(ISO_FILE): $(TARGET)
 	@echo "GEN ISO" $(ISO_FILE)
 	$(VERBOSE) $(GRUB_FILE) --is-x86-multiboot2 $(TARGET) || { echo "Multiboot not supported"; exit 1; }
+	$(VERBOSE) $(RM) -rf $(GRUB_DIR) && mkdir -p $(GRUB_DIR)/grub
 	$(VERBOSE) cp $(TARGET) $(GRUB_DIR)/
+	$(VERBOSE) cp $(GRUB_CONFIG) $(GRUB_DIR)/grub/grub.cfg
 	$(VERBOSE) $(XZ) -q -f $(GRUB_DIR)/$(TARGET)
 	$(VERBOSE) $(GRUB_MKRESCUE) --install-modules="$(GRUB_MODULES)" --fonts=no --compress=xz -o $(ISO_FILE) grub &> /dev/null
 endif
