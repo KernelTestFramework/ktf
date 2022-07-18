@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #ifdef KTF_ACPICA
+#include <acpi_ktf.h>
 #include <cpu.h>
 #include <ktf.h>
 #include <mm/slab.h>
@@ -186,7 +187,11 @@ ACPI_STATUS AcpiOsWritePort(ACPI_IO_ADDRESS Address, UINT32 Value, UINT32 Width)
 ACPI_PHYSICAL_ADDRESS AcpiOsGetRootPointer(void) {
     ACPI_PHYSICAL_ADDRESS pa = 0;
 
-    AcpiFindRootPointer(&pa);
+    if (acpi_rsdp)
+        pa = (ACPI_PHYSICAL_ADDRESS) acpi_rsdp;
+    else
+        AcpiFindRootPointer(&pa);
+
     return pa;
 }
 

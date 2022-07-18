@@ -149,6 +149,23 @@ void init_multiboot(unsigned long *addr, const char **cmdline) {
 
             printk("[multiboot2] EFI64 Pointer: 0x%p\n", efi64->pointer);
         } break;
+
+        case MULTIBOOT2_TAG_TYPE_ACPI_OLD: {
+            struct multiboot2_tag_old_acpi *acpi = (struct multiboot2_tag_old_acpi *) tag;
+
+            acpi_rsdp = _paddr(&acpi->rsdp);
+
+            printk("[multiboot2] ACPI RSDPv1: 0x%016lx\n", acpi_rsdp);
+        } break;
+
+        case MULTIBOOT2_TAG_TYPE_ACPI_NEW: {
+            struct multiboot2_tag_new_acpi *acpi = (struct multiboot2_tag_new_acpi *) tag;
+
+            acpi_rsdp = _paddr(&acpi->rsdp);
+
+            printk("[multiboot2] ACPI RSDPv2: 0x%016lx\n", acpi_rsdp);
+        } break;
+
         case MULTIBOOT2_TAG_TYPE_LOAD_BASE_ADDR: {
             struct multiboot2_tag_load_base_addr *addr =
                 (struct multiboot2_tag_load_base_addr *) tag;
