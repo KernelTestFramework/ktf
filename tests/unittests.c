@@ -22,6 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <cmdline.h>
 #include <console.h>
 #include <cpuid.h>
 #include <ktf.h>
@@ -30,8 +31,9 @@
 #include <string.h>
 #include <symbols.h>
 #include <test.h>
+#include <usermode.h>
 
-#include <cmdline.h>
+#include <smp/smp.h>
 
 static char opt_string[4];
 string_cmd("string", opt_string);
@@ -62,6 +64,34 @@ static void cpu_freq_expect(const char *cpu_str, uint64_t expectation) {
 
     printk("Got CPU string '%s' and frequency '%llu'\n", cpu_str, result);
     return;
+}
+
+static unsigned long test_kernel_task_func(void *arg) {
+    printk("CPU[%u]: Executing %s\n", smp_processor_id(), __func__);
+    return _ul(arg);
+}
+
+static unsigned long __user_text test_user_task_func1(void *arg) {
+    static char *fmt_printf __user_data = "printf: %u %x %d\n";
+
+    printf(fmt_printf, 1234, 0x41414141, 9);
+    printf(fmt_printf, 1235, 0x42424242, -9);
+
+    exit(9);
+    return 0;
+}
+
+static unsigned long __user_text test_user_task_func2(void *arg) {
+    static char *fmt_mmap __user_data = "mmap: %lx\n";
+    void *va;
+
+    va = mmap(_ptr(0xfff80000), PAGE_ORDER_4K);
+    printf(fmt_mmap, _ul(va), 0, 0);
+
+    memset(va, 0xcc, 0x1000);
+    ((void (*)(void)) va)();
+
+    return 0;
 }
 
 int unit_tests(void *_unused) {
@@ -131,6 +161,18 @@ int unit_tests(void *_unused) {
     cpu_freq_expect("AMD Ryzen Threadripper 1950X 16-Core Processor", 0);
     cpu_freq_expect("Prototyp Amazing Foo One @ 1GHz", 1000000000);
     cpu_freq_expect("Prototyp Amazing Foo Two @ 1.00GHz", 1000000000);
+
+    task_t *task1, *task2, *task_user1, *task_user2;
+
+    task1 = new_kernel_task("test1", test_kernel_task_func, _ptr(98));
+    task2 = new_kernel_task("test2", test_kernel_task_func, _ptr(-99));
+    task_user1 = new_user_task("test1 user", test_user_task_func1, NULL);
+    task_user2 = new_user_task("test2 user", test_user_task_func2, NULL);
+
+    schedule_task(task1, get_bsp_cpu());
+    schedule_task(task2, get_cpu(1));
+    schedule_task(task_user1, get_bsp_cpu());
+    schedule_task(task_user2, get_cpu(1));
 
     printk("Long mode to real mode transition:\n");
     long_to_real();
