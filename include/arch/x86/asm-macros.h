@@ -261,34 +261,43 @@ name ## _end:
 
 #if defined(__x86_64__)
 #define SAVE_CLOBBERED_REGS64() \
-    "push %%r8\n" \
-    "push %%r9\n" \
-    "push %%r10\n" \
-    "push %%r11\n" \
+    asm volatile (              \
+        "push %%r8\n"           \
+        "push %%r9\n"           \
+        "push %%r10\n"          \
+        "push %%r11\n"          \
+    ::: "memory")
 
 #define RESTORE_CLOBBERED_REGS64() \
-    "pop %%" STR(r11) "\n" \
-    "pop %%" STR(r10) "\n" \
-    "pop %%" STR(r9) "\n" \
-    "pop %%" STR(r8) "\n"
+    asm volatile (                 \
+        "pop %%" STR(r11) "\n"     \
+        "pop %%" STR(r10) "\n"     \
+        "pop %%" STR(r9) "\n"      \
+        "pop %%" STR(r8) "\n"      \
+    ::: "r8", "r9", "r10", "r11")
 #else
 #define SAVE_CLOBBERED_REGS64()
 #define RESTORE_CLOBBERED_REGS64()
 #endif
 
-#define SAVE_CLOBBERED_REGS() \
-    "push %%" STR(_ASM_CX) "\n" \
-    "push %%" STR(_ASM_DX) "\n" \
-    "push %%" STR(_ASM_SI) "\n" \
-    "push %%" STR(_ASM_DI) "\n" \
+#define SAVE_CLOBBERED_REGS()       \
+    asm volatile (                  \
+        "push %%" STR(_ASM_CX) "\n" \
+        "push %%" STR(_ASM_DX) "\n" \
+        "push %%" STR(_ASM_SI) "\n" \
+        "push %%" STR(_ASM_DI) "\n" \
+    ::: "memory");                  \
     SAVE_CLOBBERED_REGS64()
 
-#define RESTORE_CLOBBERED_REGS() \
-    RESTORE_CLOBBERED_REGS64() \
-    "pop %%" STR(_ASM_DI) "\n" \
-    "pop %%" STR(_ASM_SI) "\n" \
-    "pop %%" STR(_ASM_DX) "\n" \
-    "pop %%" STR(_ASM_CX) "\n" \
+#define RESTORE_CLOBBERED_REGS()    \
+    RESTORE_CLOBBERED_REGS64();     \
+    asm volatile (                  \
+        "pop %%" STR(_ASM_DI) "\n"  \
+        "pop %%" STR(_ASM_SI) "\n"  \
+        "pop %%" STR(_ASM_DX) "\n"  \
+        "pop %%" STR(_ASM_CX) "\n"  \
+    ::: STR(_ASM_DI), STR(_ASM_SI), \
+        STR(_ASM_DX), STR(_ASM_CX))
 /* clang-format on */
 
 #if defined(__x86_64__)
