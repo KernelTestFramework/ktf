@@ -36,9 +36,6 @@ typedef struct {
     int64_t counter;
 } atomic64_t;
 
-#define ATOMIC_INIT(i)                                                                   \
-    { (i) }
-
 #define atomic_set(v, i) (ACCESS_ONCE((v)->counter) = (i))
 #define atomic_read(v)   (ACCESS_ONCE((v)->counter))
 
