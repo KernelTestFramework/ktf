@@ -174,8 +174,10 @@ int unit_tests(void *_unused) {
     schedule_task(task_user1, get_bsp_cpu());
     schedule_task(task_user2, get_cpu(1));
 
+#ifdef UNITTEST_LONGMODE
     printk("Long mode to real mode transition:\n");
     long_to_real();
+#endif
 
     return 0;
 }
