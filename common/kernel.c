@@ -31,7 +31,6 @@
 #include <percpu.h>
 #include <sched.h>
 #include <setup.h>
-#include <smp/smp.h>
 #ifdef KTF_PMU
 #include <perfmon/pfmlib.h>
 #endif
@@ -65,10 +64,11 @@ void kernel_main(void) {
 
     tests_task = new_kernel_task("tests", test_main, NULL);
     cpu = get_bsp_cpu();
+
     schedule_task(tests_task, cpu);
 
     run_tasks(cpu);
-
+    unblock_all_cpus();
     wait_for_all_cpus();
 
     printk("All tasks done.\n");

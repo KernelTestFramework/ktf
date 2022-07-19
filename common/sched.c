@@ -163,7 +163,6 @@ int schedule_task(task_t *task, cpu_t *cpu) {
     spin_lock(&cpu->lock);
     list_add_tail(&task->list, &cpu->task_queue);
     task->cpu = cpu;
-    cpu->scheduled = true;
     set_task_state(task, TASK_STATE_SCHEDULED);
     spin_unlock(&cpu->lock);
 
@@ -207,16 +206,7 @@ void wait_for_task_group(const cpu_t *cpu, task_group_t group) {
 void run_tasks(cpu_t *cpu) {
     task_t *task, *safe;
 
-    spin_lock(&cpu->lock);
-    if (!cpu->scheduled) {
-        cpu->done = true;
-        spin_unlock(&cpu->lock);
-        return;
-    }
-    spin_unlock(&cpu->lock);
-
-    while (list_is_empty(&cpu->task_queue))
-        cpu_relax();
+    wait_cpu_unblocked(cpu);
 
     do {
         list_for_each_entry_safe (task, safe, &cpu->task_queue, list) {
@@ -237,7 +227,5 @@ void run_tasks(cpu_t *cpu) {
         }
     } while (!list_is_empty(&cpu->task_queue));
 
-    spin_lock(&cpu->lock);
-    cpu->done = true;
-    spin_unlock(&cpu->lock);
+    set_cpu_finished(cpu);
 }

@@ -42,8 +42,10 @@ static void init_cpu(cpu_t *cpu, unsigned int id, bool is_bsp, bool enabled) {
     cpu->id = id;
     cpu->bsp = is_bsp;
     cpu->enabled = enabled;
-    cpu->scheduled = false;
-    cpu->done = false;
+
+    init_cpu_runstate(cpu);
+    if (is_bsp)
+        set_cpu_unblocked(cpu);
 
     cpu->percpu = get_percpu_page(id);
     BUG_ON(!cpu->percpu);
@@ -100,15 +102,23 @@ void for_each_cpu(void (*func)(cpu_t *cpu)) {
         func(cpu);
 }
 
+void unblock_all_cpus(void) {
+    cpu_t *cpu;
+
+    list_for_each_entry (cpu, &cpus, list)
+        set_cpu_unblocked(cpu);
+}
+
 void wait_for_all_cpus(void) {
     cpu_t *cpu, *safe;
 
     do {
         list_for_each_entry_safe (cpu, safe, &cpus, list) {
-            spin_lock(&cpu->lock);
-            if (cpu->done)
+            if (is_cpu_finished(cpu)) {
+                spin_lock(&cpu->lock);
                 list_unlink(&cpu->list);
-            spin_unlock(&cpu->lock);
+                spin_unlock(&cpu->lock);
+            }
         }
     } while (!list_is_empty(&cpus));
 }
