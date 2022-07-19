@@ -92,7 +92,7 @@ void __naked syscall_handler(void) {
     register unsigned long syscall_nr asm(STR(_ASM_AX));
     register unsigned long param1 asm(STR(_ASM_DI));
     (void) param1;
-    asm volatile(SAVE_CLOBBERED_REGS():::);
+    SAVE_CLOBBERED_REGS();
     switch_address_space(&cr3);
     swapgs();
     stack_switch();
@@ -115,7 +115,7 @@ void __naked syscall_handler(void) {
     swapgs();
     switch_address_space(&user_cr3);
 
-    asm volatile(RESTORE_CLOBBERED_REGS():::);
+    RESTORE_CLOBBERED_REGS();
 
     sysret();
 }
