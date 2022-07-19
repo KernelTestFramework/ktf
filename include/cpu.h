@@ -25,17 +25,23 @@
 #ifndef KTF_CPU_H
 #define KTF_CPU_H
 
+#include <atomic.h>
 #include <ktf.h>
 #include <lib.h>
 #include <list.h>
 #include <percpu.h>
 #include <spinlock.h>
 
+#define CPU_UNBLOCKED (1 << 0)
+#define CPU_FINISHED  (1 << 1)
+
 struct cpu {
     list_head_t list;
 
     unsigned int id;
-    unsigned int bsp : 1, enabled : 1, scheduled : 1, done : 1;
+    unsigned int bsp : 1, enabled : 1;
+
+    atomic_t run_state;
 
     percpu_t *percpu;
 
@@ -53,6 +59,32 @@ extern cpu_t *get_cpu(unsigned int id);
 extern cpu_t *get_bsp_cpu(void);
 extern unsigned int get_nr_cpus(void);
 extern void for_each_cpu(void (*func)(cpu_t *cpu));
+extern void unblock_all_cpus(void);
 extern void wait_for_all_cpus(void);
+
+/* Static declarations */
+
+static inline void init_cpu_runstate(cpu_t *cpu) { atomic_set(&cpu->run_state, 0); }
+
+static inline bool is_cpu_finished(cpu_t *cpu) {
+    return atomic_test_bit(CPU_FINISHED, &cpu->run_state);
+}
+
+static inline void set_cpu_finished(cpu_t *cpu) {
+    atomic_test_and_set_bit(CPU_FINISHED, &cpu->run_state);
+}
+
+static inline bool is_cpu_unblocked(cpu_t *cpu) {
+    return atomic_test_bit(CPU_UNBLOCKED, &cpu->run_state);
+}
+
+static inline void set_cpu_unblocked(cpu_t *cpu) {
+    atomic_test_and_set_bit(CPU_UNBLOCKED, &cpu->run_state);
+}
+
+static inline void wait_cpu_unblocked(cpu_t *cpu) {
+    while (!is_cpu_unblocked(cpu))
+        cpu_relax();
+}
 
 #endif /* KTF_CPU_H */
