@@ -86,7 +86,7 @@ bool init_hpet(const cpu_t *cpu) {
     *main_counter = 0;
 
     /* 1 fs = 10^15s */
-    uint64_t freq_hz = 1000000000000000 / general->counter_clock_period;
+    uint64_t freq_hz = 1000000000000000UL / general->counter_clock_period;
     uint64_t ticks = freq_hz / 1000; /* Interrupt every 1ms */
 
     config->cfg_int_enabled = 1;

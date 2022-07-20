@@ -75,7 +75,7 @@ void init_keyboard(const cpu_t *cpu) {
     outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_DISABLE_PORT_2);
 
     /* Flush output buffer */
-    for (unsigned short i = 0; i; i++) {
+    for (unsigned short i = 1; i; i++) {
         if ((inb(KEYBOARD_PORT_CMD) & KEYBOARD_STATUS_OUT_FULL) == 0)
             break;
     }

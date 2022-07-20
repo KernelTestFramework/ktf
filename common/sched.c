@@ -58,7 +58,7 @@ static const char *task_state_names[] = {
 static inline void set_task_state(task_t *task, task_state_t state) {
     ASSERT(task);
 
-    dprintk("CPU[%u]: state transition %s -> %s\n", task->cpu,
+    dprintk("CPU[%u]: state transition %s -> %s\n", task->cpu->id,
             task_state_names[task->state], task_state_names[state]);
 
     ACCESS_ONCE(task->state) = state;
