@@ -44,7 +44,7 @@ typedef struct {
 static inline bool atomic_test_bit(unsigned int bit, volatile void *addr) {
     bool status;
 
-    asm volatile("bt %[bit], %[addr];"
+    asm volatile("btl %[bit], %[addr];"
                  "setc %[status];"
                  : [ status ] "=r"(status)
                  : [ bit ] "Ir"(bit), [ addr ] "m"(*(uint8_t *) addr)

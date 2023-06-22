@@ -41,10 +41,10 @@
 #endif
 
 static unsigned baseline, counts[2];
-cache_channel_t *channel;
+static cache_channel_t *channel;
 
-cache_line_t *cl0;
-cache_line_t *cl1;
+static cache_line_t *cl0;
+static cache_line_t *cl1;
 
 #define CHANNEL_ADDR      0x200000
 #define CACHE_LINE_0_ADDR 0x2007c0
