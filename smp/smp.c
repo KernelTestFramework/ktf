@@ -59,6 +59,8 @@ void __noreturn ap_startup(void) {
     ap_callin = true;
     smp_wmb();
 
+    init_timers(cpu);
+
     run_tasks(cpu);
 
     while (true)

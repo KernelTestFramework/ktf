@@ -51,6 +51,7 @@ extern void set_bsp_cpu_id(unsigned cpu_id);
 
 extern void zap_boot_mappings(void);
 
+extern void init_timers(cpu_t *cpu);
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_SETUP_H */
