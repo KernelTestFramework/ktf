@@ -61,6 +61,9 @@ void __noreturn ap_startup(void) {
 
     init_timers(cpu);
 
+    if (opt_fpu)
+        enable_fpu();
+
     run_tasks(cpu);
 
     while (true)
