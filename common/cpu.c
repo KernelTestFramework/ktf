@@ -113,6 +113,20 @@ void unblock_all_cpus(void) {
         set_cpu_unblocked(cpu);
 }
 
+void block_all_cpus(void) {
+    cpu_t *cpu;
+
+    list_for_each_entry (cpu, &cpus, list)
+        set_cpu_blocked(cpu);
+}
+
+void finish_all_cpus(void) {
+    cpu_t *cpu;
+
+    list_for_each_entry (cpu, &cpus, list)
+        set_cpu_finished(cpu);
+}
+
 void wait_for_all_cpus(void) {
     cpu_t *cpu, *safe;
 
