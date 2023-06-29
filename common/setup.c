@@ -148,6 +148,21 @@ static void __text_init init_vga_console(void) {
     register_console_callback(vga_console_write, paddr_to_virt_kern(VGA_START_ADDR));
 }
 
+void __text_init init_timers(cpu_t *cpu) {
+    if (cpu->bsp) {
+        bool hpet_initialized = false;
+
+        if (opt_hpet)
+            hpet_initialized = init_hpet(cpu);
+
+        if (!hpet_initialized && opt_pit)
+            init_pit(cpu);
+    }
+
+    if (opt_apic_timer)
+        init_apic_timer();
+}
+
 void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long *mbi) {
     /* Zero-out BSS sections */
     zero_bss();
@@ -215,17 +230,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
     init_tasks();
 
     /* Initialize timers */
-    bool hpet_initialized = false;
-    if (opt_hpet)
-        hpet_initialized = init_hpet(bsp);
+    init_timers(bsp);
 
-    if (!hpet_initialized && opt_pit)
-        init_pit(bsp);
-
-    if (opt_apic_timer)
-        init_apic_timer();
-
-        /* Try to initialize ACPI (and MADT) */
+    /* Try to initialize ACPI (and MADT) */
 #ifndef KTF_ACPICA
     if (init_acpi() < 0) {
 #else
