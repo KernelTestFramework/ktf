@@ -60,6 +60,8 @@ extern cpu_t *get_bsp_cpu(void);
 extern unsigned int get_nr_cpus(void);
 extern void for_each_cpu(void (*func)(cpu_t *cpu));
 extern void unblock_all_cpus(void);
+extern void block_all_cpus(void);
+extern void finish_all_cpus(void);
 extern void wait_for_all_cpus(void);
 
 /* Static declarations */
@@ -76,12 +78,20 @@ static inline void set_cpu_finished(cpu_t *cpu) {
     atomic_test_and_set_bit(CPU_FINISHED, &cpu->run_state);
 }
 
+static inline void set_cpu_unfinished(cpu_t *cpu) {
+    atomic_test_and_reset_bit(CPU_FINISHED, &cpu->run_state);
+}
+
 static inline bool is_cpu_unblocked(cpu_t *cpu) {
     return atomic_test_bit(CPU_UNBLOCKED, &cpu->run_state);
 }
 
 static inline void set_cpu_unblocked(cpu_t *cpu) {
     atomic_test_and_set_bit(CPU_UNBLOCKED, &cpu->run_state);
+}
+
+static inline void set_cpu_blocked(cpu_t *cpu) {
+    atomic_test_and_reset_bit(CPU_UNBLOCKED, &cpu->run_state);
 }
 
 static inline void wait_cpu_unblocked(cpu_t *cpu) {
