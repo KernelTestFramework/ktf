@@ -51,12 +51,12 @@ void kernel_main(void) {
         display_multiboot_mmap();
     }
 
-    test_main(NULL);
-    run_tasks(cpu);
-    unblock_all_cpus();
-    wait_for_all_cpus();
+    execute_tasks();
 
+    test_main(NULL);
     printk("All tasks done.\n");
+
+    execute_tasks();
 
 #ifdef KTF_PMU
     pfm_terminate();
