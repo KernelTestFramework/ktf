@@ -301,6 +301,11 @@ style:
 	$(VERBOSE) docker run --rm --workdir /src -v $(PWD):/src$(DOCKER_MOUNT_OPTS) clang-format-lint --clang-format-executable /clang-format/clang-format10 \
           -r $(SOURCES) $(HEADERS) | grep -v -E '^Processing [0-9]* files:' | patch -s -p1 ||:
 
+.PHONY: commit_style
+commit_style:
+	@echo "COMMIT_STYLE"
+	$(VERBOSE) git clang-format HEAD^1 > /dev/null
+
 DOCKERFILE  := $(shell find $(KTF_ROOT) -type f -name Dockerfile)
 DOCKERIMAGE := "ktf:build"
 DOCKERUSERFLAGS := --user $(shell id -u):$(shell id -g) $(shell printf -- "--group-add=%q " $(shell id -G))
