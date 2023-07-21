@@ -87,6 +87,8 @@ static task_t *create_task(void) {
     task->id = next_tid++;
     task->gid = TASK_GROUP_ALL;
     set_task_state(task, TASK_STATE_NEW);
+    atomic_set(&task->exec_count, 0);
+    set_task_once(task);
 
     return task;
 }
@@ -155,6 +157,20 @@ task_t *get_task_by_name(cpu_t *cpu, const char *name) {
     return NULL;
 }
 
+static const char *task_repeat_string(task_repeat_t repeat) {
+    static char buf[20] = {0};
+
+    switch (repeat) {
+    case TASK_REPEAT_ONCE:
+        return "ONCE";
+    case TASK_REPEAT_LOOP:
+        return "LOOP";
+    default:
+        snprintf(buf, sizeof(buf), "%u times", repeat);
+        return buf;
+    }
+}
+
 int schedule_task(task_t *task, cpu_t *cpu) {
     ASSERT(task);
 
@@ -165,7 +181,8 @@ int schedule_task(task_t *task, cpu_t *cpu) {
 
     BUG_ON(get_task_state(task) != TASK_STATE_READY);
 
-    printk("CPU[%u]: Scheduling task %s[%u]\n", cpu->id, task->name, task->id);
+    printk("CPU[%u]: Scheduling task %s[%u] (%s)\n", cpu->id, task->name, task->id,
+           task_repeat_string(task->repeat));
 
     spin_lock(&cpu->lock);
     list_add_tail(&task->list, &cpu->task_queue);
@@ -182,7 +199,8 @@ static void run_task(task_t *task) {
 
     wait_for_task_state(task, TASK_STATE_SCHEDULED);
 
-    printk("CPU[%u]: Running task %s[%u]\n", task->cpu->id, task->name, task->id);
+    if (atomic64_inc_return(&task->exec_count) == 0)
+        printk("CPU[%u]: Running task %s[%u]\n", task->cpu->id, task->name, task->id);
 
     set_task_state(task, TASK_STATE_RUNNING);
     if (task->type == TASK_TYPE_USER)
@@ -214,6 +232,24 @@ void wait_for_task_group(const cpu_t *cpu, task_group_t group) {
     } while (busy);
 }
 
+void process_task_repeat(task_t *task) {
+    switch (task->repeat) {
+    case TASK_REPEAT_ONCE:
+        printk("%s task '%s' finished on CPU[%u] with result %ld (Run: %lu times)\n",
+               task->type == TASK_TYPE_KERNEL ? "Kernel" : "User", task->name,
+               task->cpu->id, task->result, atomic_read(&task->exec_count));
+        destroy_task(task);
+        break;
+    case TASK_REPEAT_LOOP:
+        set_task_state(task, TASK_STATE_SCHEDULED);
+        break;
+    default:
+        task->repeat--;
+        set_task_state(task, TASK_STATE_SCHEDULED);
+        break;
+    }
+}
+
 void run_tasks(cpu_t *cpu) {
     task_t *task, *safe;
 
@@ -225,10 +261,7 @@ void run_tasks(cpu_t *cpu) {
         list_for_each_entry_safe (task, safe, &cpu->task_queue, list) {
             switch (task->state) {
             case TASK_STATE_DONE:
-                printk("%s task '%s' finished on CPU[%u] with result %ld\n",
-                       task->type == TASK_TYPE_KERNEL ? "Kernel" : "User", task->name,
-                       cpu->id, task->result);
-                destroy_task(task);
+                process_task_repeat(task);
                 break;
             case TASK_STATE_SCHEDULED:
                 run_task(task);
