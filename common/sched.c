@@ -217,7 +217,9 @@ void wait_for_task_group(const cpu_t *cpu, task_group_t group) {
 void run_tasks(cpu_t *cpu) {
     task_t *task, *safe;
 
-    wait_cpu_unblocked(cpu);
+    if (!cpu->bsp)
+        wait_cpu_unblocked(cpu);
+    set_cpu_unfinished(cpu);
 
     do {
         list_for_each_entry_safe (task, safe, &cpu->task_queue, list) {
@@ -238,5 +240,7 @@ void run_tasks(cpu_t *cpu) {
         }
     } while (!list_is_empty(&cpu->task_queue));
 
+    if (!cpu->bsp)
+        set_cpu_blocked(cpu);
     set_cpu_finished(cpu);
 }
