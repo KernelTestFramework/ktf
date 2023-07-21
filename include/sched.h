@@ -105,4 +105,9 @@ static inline task_t *new_user_task(const char *name, task_func_t func, void *ar
     return new_task(name, func, arg, TASK_TYPE_USER);
 }
 
+static inline void execute_tasks(void) {
+    unblock_all_cpus();
+    run_tasks(get_bsp_cpu());
+    wait_for_all_cpus();
+}
 #endif /* KTF_SCHED_H */

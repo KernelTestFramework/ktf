@@ -71,6 +71,8 @@ unsigned long test_main(void *unused) {
 
         printk("Running test: %s\n", name);
         rc = fn(NULL);
+        execute_tasks();
+
         printk("Test %s returned: 0x%x\n", name, rc);
         n++;
     }
