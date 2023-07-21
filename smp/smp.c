@@ -64,10 +64,8 @@ void __noreturn ap_startup(void) {
     if (opt_fpu)
         enable_fpu();
 
-    run_tasks(cpu);
-
     while (true)
-        halt();
+        run_tasks(cpu);
 
     UNREACHABLE();
 }
