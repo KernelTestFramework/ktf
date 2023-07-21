@@ -128,15 +128,13 @@ void finish_all_cpus(void) {
 }
 
 void wait_for_all_cpus(void) {
-    cpu_t *cpu, *safe;
+    cpu_t *cpu;
 
-    do {
-        list_for_each_entry_safe (cpu, safe, &cpus, list) {
-            if (is_cpu_finished(cpu)) {
-                spin_lock(&cpu->lock);
-                list_unlink(&cpu->list);
-                spin_unlock(&cpu->lock);
-            }
-        }
-    } while (!list_is_empty(&cpus));
+    list_for_each_entry (cpu, &cpus, list) {
+        if (cpu->bsp)
+            continue;
+
+        while (!is_cpu_finished(cpu) || !list_is_empty(&cpu->task_queue))
+            cpu_relax();
+    }
 }
