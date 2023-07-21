@@ -43,9 +43,6 @@ static void __noreturn echo_loop(void) {
 }
 
 void kernel_main(void) {
-    task_t *tests_task;
-    cpu_t *cpu;
-
     printk("\nKTF - Kernel Test Framework!\n");
 
     zap_boot_mappings();
@@ -54,11 +51,7 @@ void kernel_main(void) {
         display_multiboot_mmap();
     }
 
-    tests_task = new_kernel_task("tests", test_main, NULL);
-    cpu = get_bsp_cpu();
-
-    schedule_task(tests_task, cpu);
-
+    test_main(NULL);
     run_tasks(cpu);
     unblock_all_cpus();
     wait_for_all_cpus();
