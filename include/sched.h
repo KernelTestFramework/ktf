@@ -59,6 +59,11 @@ typedef enum task_type task_type_t;
 
 typedef unsigned int tid_t;
 
+typedef enum task_repeat {
+    TASK_REPEAT_LOOP = 0,
+    TASK_REPEAT_ONCE = 1,
+} task_repeat_t;
+
 struct task {
     list_head_t list;
 
@@ -66,6 +71,8 @@ struct task {
     task_type_t type;
     task_group_t gid;
     task_state_t state;
+    task_repeat_t repeat;
+    atomic64_t exec_count;
 
     cpu_t *cpu;
     void *stack;
@@ -110,4 +117,18 @@ static inline void execute_tasks(void) {
     run_tasks(get_bsp_cpu());
     wait_for_all_cpus();
 }
+
+static inline void set_task_repeat(task_t *task, task_repeat_t value) {
+    ASSERT(task);
+    task->repeat = value;
+}
+
+static inline void set_task_loop(task_t *task) {
+    set_task_repeat(task, TASK_REPEAT_LOOP);
+}
+
+static inline void set_task_once(task_t *task) {
+    set_task_repeat(task, TASK_REPEAT_ONCE);
+}
+
 #endif /* KTF_SCHED_H */

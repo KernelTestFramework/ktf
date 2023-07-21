@@ -169,6 +169,7 @@ int unit_tests(void *_unused) {
     task_user1 = new_user_task("test1 user", test_user_task_func1, NULL);
     task_user2 = new_user_task("test2 user", test_user_task_func2, NULL);
 
+    set_task_repeat(task1, 10);
     schedule_task(task1, get_bsp_cpu());
     schedule_task(task2, get_cpu(1));
     schedule_task(task_user1, get_bsp_cpu());
