@@ -266,15 +266,23 @@ name ## _end:
         "push %%r9\n"           \
         "push %%r10\n"          \
         "push %%r11\n"          \
+        "push %%r12\n"          \
+        "push %%r13\n"          \
+        "push %%r14\n"          \
+        "push %%r15\n"          \
     ::: "memory")
 
 #define RESTORE_CLOBBERED_REGS64() \
     asm volatile (                 \
+        "pop %%" STR(r15) "\n"     \
+        "pop %%" STR(r14) "\n"     \
+        "pop %%" STR(r13) "\n"     \
+        "pop %%" STR(r12) "\n"     \
         "pop %%" STR(r11) "\n"     \
         "pop %%" STR(r10) "\n"     \
         "pop %%" STR(r9) "\n"      \
         "pop %%" STR(r8) "\n"      \
-    ::: "r8", "r9", "r10", "r11")
+    ::: "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15")
 #else
 #define SAVE_CLOBBERED_REGS64()
 #define RESTORE_CLOBBERED_REGS64()
