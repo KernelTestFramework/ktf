@@ -286,18 +286,20 @@ name ## _end:
         "push %%" STR(_ASM_DX) "\n" \
         "push %%" STR(_ASM_SI) "\n" \
         "push %%" STR(_ASM_DI) "\n" \
+        "push %%" STR(_ASM_BP) "\n" \
     ::: "memory");                  \
     SAVE_CLOBBERED_REGS64()
 
 #define RESTORE_CLOBBERED_REGS()    \
     RESTORE_CLOBBERED_REGS64();     \
     asm volatile (                  \
+        "pop %%" STR(_ASM_BP) "\n"  \
         "pop %%" STR(_ASM_DI) "\n"  \
         "pop %%" STR(_ASM_SI) "\n"  \
         "pop %%" STR(_ASM_DX) "\n"  \
         "pop %%" STR(_ASM_CX) "\n"  \
-    ::: STR(_ASM_DI), STR(_ASM_SI), \
-        STR(_ASM_DX), STR(_ASM_CX))
+    ::: STR(_ASM_BP), STR(_ASM_DI), \
+    STR(_ASM_SI), STR(_ASM_DX), STR(_ASM_CX))
 /* clang-format on */
 
 #if defined(__x86_64__)
