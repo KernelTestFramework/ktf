@@ -49,12 +49,7 @@ static inline void syscall_restore(void) {
 }
 
 static inline long syscall_return(long return_code) {
-    /* clang-format off */
-    asm volatile(
-            "mov %[ret], %%" STR(_ASM_AX) "\n"
-            ::[ret] "r"(return_code)
-    );
-    /* clang-format on */
+    asm volatile("" ::"a"(return_code));
     return return_code;
 }
 
