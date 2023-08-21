@@ -47,8 +47,7 @@ static inline void goto_syscall_exit(long exit_code) {
 
 /* External declarations */
 
-extern unsigned long enter_usermode(task_func_t fn, void *fn_arg,
-                                    unsigned long usermode_private, void *user_stack);
+extern unsigned long enter_usermode(task_func_t fn, void *fn_arg, void *user_stack);
 extern void __naked syscall_handler(void);
 
 extern void init_usermode(percpu_t *percpu);

@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <asm-macros.h>
+#include <asm-offsets.h>
 #include <processor.h>
 #include <segment.h>
 #include <page.h>
@@ -129,14 +130,14 @@ ENTRY(enter_usermode)
     PUSHF
 
     /* Save stack pointer onto per-cpu */
-    mov %_ASM_SP, %gs:(%_ASM_DX)
+    mov %_ASM_SP, %gs:usermode_private
 
     /* Move to user stack */
-    mov %_ASM_CX, %_ASM_SP
+    mov %_ASM_DX, %_ASM_SP
 
     /* SS + SP */
     push $__USER_DS
-    push %_ASM_CX
+    push %_ASM_DX
 
     /* EFLAGS */
     PUSHF
