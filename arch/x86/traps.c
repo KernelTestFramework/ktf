@@ -299,7 +299,7 @@ static bool extables_fixup(struct cpu_regs *regs) {
 void do_exception(struct cpu_regs *regs) {
     static char ec_str[32], panic_str[128];
 
-    if (!from_usermode(regs->cs) && extables_fixup(regs))
+    if (!enter_from_usermode(regs->cs) && extables_fixup(regs))
         return;
 
     dump_regs(regs);
@@ -314,7 +314,7 @@ void do_exception(struct cpu_regs *regs) {
              regs->_ASM_SP);
 
     /* Handle user tasks' exceptions */
-    if (from_usermode(regs->cs)) {
+    if (enter_from_usermode(regs->cs)) {
         printk("Task exception: %s\n", panic_str);
         goto_syscall_exit(-EFAULT);
     }
