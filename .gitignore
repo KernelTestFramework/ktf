@@ -10,6 +10,8 @@ Makeconf.local
 .DS_Store
 *.swp
 *.xz
+asm-offsets.s
+asm-offsets.h
 grub/boot/grub
 drivers/acpi/acpica/source/
 third-party/libpfm/COPYING

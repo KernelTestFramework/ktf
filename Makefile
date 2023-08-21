@@ -144,9 +144,15 @@ ACPICA_INSTALL := $(shell [ -d $(ACPICA_DEST_DIR)/source ] ||                   
                           $(HARDLINK) $(ACPICA_DEST_DIR)/acktf.h $(ACPICA_INCLUDE)/platform/acktf.h)
 endif
 
-SOURCES     := $(shell find . -name \*.c)
+ASM_OFFSETS_C := asm-offsets.c
+ASM_OFFSETS_S := asm-offsets.s
+ASM_OFFSETS_H := asm-offsets.h
+ASM_OFFSETS_SH := $(KTF_ROOT)/tools/asm-offsets/asm-offsets.sh
+
+SOURCES     := $(shell find . -name \*.c -and -not -name $(ASM_OFFSETS_C))
 HEADERS     := $(shell find . -name \*.h)
 ASM_SOURCES := $(shell find . -name \*.S)
+ASM_OFFSETS := $(shell find . -name $(ASM_OFFSETS_C))
 LINK_SCRIPT := $(shell find . -name \*.ld)
 
 SYMBOLS_NAME := symbols
@@ -198,13 +204,18 @@ $(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
 	$(VERBOSE) cp $(PFMLIB_DIR)/lib/$(PFMLIB_NAME).a $(PFMLIB_DIR)/
 	$(VERBOSE) find $(PFMLIB_DIR) -name \*.c -delete
 
-%.o: %.S
+%.o: %.S $(ASM_OFFSETS_H)
 	@echo "AS " $@
 	$(VERBOSE) $(CC) -c -o $@ $(AFLAGS) $<
 
 %.o: %.c $(PFMLIB_ARCHIVE)
 	@echo "CC " $@
 	$(VERBOSE) $(CC) -c -o $@ $(CFLAGS) $<
+
+$(ASM_OFFSETS_H): $(ASM_OFFSETS)
+	@echo "GEN" include/$(shell dirname $<)/$(ASM_OFFSETS_H)
+	$(VERBOSE) $(CC) $(CFLAGS) -S -g0 -o $(KTF_ROOT)/$(shell dirname $<)/$(ASM_OFFSETS_S) $<
+	$(VERBOSE) $(ASM_OFFSETS_SH) $(KTF_ROOT)/$(shell dirname $<)/$(ASM_OFFSETS_S) $(KTF_ROOT)/include/$(shell dirname $<)/$(ASM_OFFSETS_H)
 
 DEPFILES := $(OBJS:.o=.d)
 -include $(wildcard $(DEPFILES))
@@ -219,6 +230,8 @@ clean:
 	$(VERBOSE) find $(KTF_ROOT) -name \*.img -delete
 	$(VERBOSE) find $(KTF_ROOT) -name \*.xz -delete
 	$(VERBOSE) find $(KTF_ROOT) -name cscope.\* -delete
+	$(VERBOSE) find $(KTF_ROOT) -name $(ASM_OFFSETS_S) -delete
+	$(VERBOSE) find $(KTF_ROOT) -name $(ASM_OFFSETS_H) -delete
 	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
 	$(VERBOSE) $(RM) -rf $(ACPICA_DEST_DIR)/source
 	$(VERBOSE) $(RM) -f $(TARGET_DEBUG)
