@@ -23,8 +23,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <asm-macros.h>
 #include <asm-offsets.h>
+#include <asm-macros.h>
 #include <processor.h>
 #include <segment.h>
 #include <page.h>
@@ -38,17 +38,17 @@
     1:
 .endm
 
-.macro from_usermode
+.macro enter_from_usermode
     _handle_usermode cr3
 .endm
 
-.macro to_usermode
+.macro enter_to_usermode
     _handle_usermode user_cr3
 .endm
 
 .macro exception_handler sym vec has_error_code
 ENTRY(entry_\sym)
-    from_usermode
+    enter_from_usermode
 
     .if \has_error_code == 0
         push $0
@@ -61,14 +61,14 @@ END_FUNC(entry_\sym)
 
 .macro interrupt_handler sym func
 ENTRY(asm_interrupt_handler_\sym)
-    from_usermode
+    enter_from_usermode
 
     cld
     SAVE_ALL_REGS
     call \func
     RESTORE_ALL_REGS
 
-    to_usermode
+    enter_to_usermode
     IRET
 END_FUNC(asm_interrupt_handler_\sym)
 .endm
@@ -111,7 +111,7 @@ ENTRY(handle_exception)
     add $4, %_ASM_SP
 #endif
 
-    to_usermode
+    enter_to_usermode
     IRET
 END_FUNC(handle_exception)
 
@@ -145,10 +145,10 @@ ENTRY(enter_usermode)
     orl $X86_EFLAGS_IOPL, (%_ASM_SP)
 
     /* CS + IP */
-    pushq $__USER_CS
+    push $__USER_CS
     push $usermode_stub
 
-    to_usermode
+    enter_to_usermode
     IRET
 END_FUNC(enter_usermode)
 
