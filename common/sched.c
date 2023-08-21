@@ -204,8 +204,7 @@ static void run_task(task_t *task) {
 
     set_task_state(task, TASK_STATE_RUNNING);
     if (task->type == TASK_TYPE_USER)
-        task->result = enter_usermode(task->func, task->arg,
-                                      PERCPU_OFFSET(usermode_private), task->stack);
+        task->result = enter_usermode(task->func, task->arg, task->stack);
     else
         task->result = task->func(task->arg);
     set_task_state(task, TASK_STATE_DONE);
