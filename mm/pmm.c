@@ -30,8 +30,6 @@
 #include <mm/regions.h>
 #include <mm/vmm.h>
 
-#define PMM_FIRST_AVAIL_REGION 1
-
 size_t total_phys_memory;
 
 static list_head_t frames;
@@ -246,7 +244,27 @@ static inline unsigned int find_max_avail_order(size_t size) {
     return PAGE_ORDER_4K;
 }
 
-static size_t process_memory_range(unsigned index) {
+static unsigned find_first_avail_region(void) {
+    addr_range_t range;
+
+    for (unsigned int i = 0; i < regions_num; i++) {
+        if (get_avail_memory_range(i, &range) < 0)
+            continue;
+
+        if (_paddr(range.start) < _paddr(MB(1)))
+            continue;
+
+        if (_paddr(range.end) - _paddr(range.start) < MB(EARLY_VIRT_MEM))
+            continue;
+
+        return i;
+    }
+
+    panic("PMM: Cannot obtain first available physical memory address range\n");
+    UNREACHABLE();
+}
+
+static size_t process_memory_range(unsigned index, unsigned first_avail_region) {
     paddr_t start, end, cur;
     unsigned int max_order;
     addr_range_t range;
@@ -267,7 +285,7 @@ static size_t process_memory_range(unsigned index) {
 
     /* Add initial 4K frames and align to 2M. */
     while ((cur < MB(EARLY_VIRT_MEM) || cur % PAGE_SIZE_2M) && cur + PAGE_SIZE <= end) {
-        if (index <= PMM_FIRST_AVAIL_REGION)
+        if (index <= first_avail_region)
             add_early_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
         else
             add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
@@ -320,11 +338,11 @@ void reclaim_frame(mfn_t mfn, unsigned int order) {
     add_frame(mfn, order);
 }
 
-static inline void check_early_frames(void) {
+static inline void check_early_frames(unsigned first_avail_region) {
     unsigned early_frames_cnt;
     addr_range_t range;
 
-    if (get_avail_memory_range(PMM_FIRST_AVAIL_REGION, &range) < 0)
+    if (get_avail_memory_range(first_avail_region, &range) < 0)
         panic("PMM: Cannot obtain first available physical memory address range\n");
 
     early_frames_cnt =
@@ -336,6 +354,8 @@ static inline void check_early_frames(void) {
 }
 
 void init_pmm(void) {
+    unsigned first_region_index;
+
     printk("Initialize Physical Memory Manager\n");
 
     BUILD_BUG_ON(sizeof(frames_array_t) > PAGE_SIZE);
@@ -348,13 +368,15 @@ void init_pmm(void) {
         list_init(&busy_frames[order]);
     }
 
+    first_region_index = find_first_avail_region();
+
     /* Skip low memory range */
-    for (unsigned int i = PMM_FIRST_AVAIL_REGION; i < regions_num; i++)
-        total_phys_memory += process_memory_range(i);
+    for (unsigned int i = first_region_index; i < regions_num; i++)
+        total_phys_memory += process_memory_range(i, first_region_index);
 
     display_frames_count();
 
-    check_early_frames();
+    check_early_frames(first_region_index);
 
     if (opt_debug)
         display_frames();
