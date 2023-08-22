@@ -228,8 +228,8 @@ name ## _end:
 /* clang-format off */
 #if defined(__x86_64__)
 #define SAVE_ALL_REGS64() \
-    "push %%r8\n" \
-    "push %%r9\n" \
+    "push %%r8\n"  \
+    "push %%r9\n"  \
     "push %%r10\n" \
     "push %%r11\n" \
     "push %%r12\n" \
@@ -238,14 +238,14 @@ name ## _end:
     "push %%r15\n"
 
 #define RESTORE_ALL_REGS64() \
-    "pop %%" STR(r15) "\n" \
-    "pop %%" STR(r14) "\n" \
-    "pop %%" STR(r13) "\n" \
-    "pop %%" STR(r12) "\n" \
-    "pop %%" STR(r11) "\n" \
-    "pop %%" STR(r10) "\n" \
-    "pop %%" STR(r9) "\n" \
-    "pop %%" STR(r8) "\n"
+    "pop %%r15\n" \
+    "pop %%r14\n" \
+    "pop %%r13\n" \
+    "pop %%r12\n" \
+    "pop %%r11\n" \
+    "pop %%r10\n" \
+    "pop %%r9\n"  \
+    "pop %%r8\n"
 #else
 #define SAVE_ALL_REGS64()
 #define RESTORE_ALL_REGS64()
