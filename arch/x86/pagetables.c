@@ -36,7 +36,7 @@ cr3_t user_cr3;
 static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
     /* clang-format off */
     snprintf(buf, size, "%c %c%c%c%c%c%c%c%c%c",
-        pte.NX  ? 'X' : '-',
+        pte.NX  ? '-' : 'X',
         pte.G   ? 'G' : '-',
         pte.PAT ? 'p' : '-',
         pte.D   ? 'D' : '-',
