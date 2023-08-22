@@ -48,6 +48,18 @@
     _handle_usermode user_cr3
 .endm
 
+.macro syscall_from_usermode
+    SET_CR3 cr3
+    swapgs
+    SWITCH_STACK
+.endm
+
+.macro syscall_to_usermode
+    SWITCH_STACK
+    swapgs
+    SET_CR3 user_cr3
+.endm
+
 .macro exception_handler sym vec has_error_code
 ENTRY(entry_\sym)
     enter_from_usermode
@@ -154,6 +166,16 @@ ENTRY(enter_usermode)
     IRET
 END_FUNC(enter_usermode)
 
+ENTRY(syscall_exit)
+    POPF
+
+    /* Save exit code to return value register (AX) */
+    mov %_ASM_SI, cpu_regs_ax(%_ASM_SP)
+    RESTORE_ALL_REGS
+
+    ret
+END_FUNC(syscall_exit)
+
 ENTRY(terminate_user_task)
     SWITCH_STACK
     POPF
@@ -163,6 +185,29 @@ ENTRY(terminate_user_task)
 
     ret
 END_FUNC(terminate_user_task)
+
+.align PAGE_SIZE
+ENTRY(syscall_handler_entry)
+    SAVE_CALLEE_SAVED_REGS
+    syscall_from_usermode
+
+    cmp $SYSCALL_EXIT, %_ASM_AX
+    jz syscall_exit
+
+    push %_ASM_CX
+    push %r11
+
+    mov %_ASM_DI, %_ASM_CX
+    mov %_ASM_AX, %_ASM_DI
+    call syscall_handler
+
+    pop %r11
+    pop %_ASM_CX
+
+    syscall_to_usermode
+    RESTORE_CALLEE_SAVED_REGS
+    SYSRET
+END_FUNC(syscall_handler_entry)
 
 SECTION(.text.user, "ax", 16)
 ENTRY(usermode_stub)

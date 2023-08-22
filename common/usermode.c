@@ -28,98 +28,20 @@
 #include <processor.h>
 #include <usermode.h>
 
-static inline void syscall_save(void) {
-    /* clang-format off */
-    asm volatile(
-        "push %%" STR(_ASM_CX) "\n"
-        "push %%r11"
-        ::: "memory"
-    );
-    /* clang-format on */
-}
-
-static inline void syscall_restore(void) {
-    /* clang-format off */
-    asm volatile(
-        "pop %%r11\n"
-        "pop %%" STR(_ASM_CX)
-        ::: "memory"
-    );
-    /* clang-format on */
-}
-
-static inline long syscall_return(long return_code) {
-    asm volatile("" ::"a"(return_code));
-    return return_code;
-}
-
-static inline void stack_switch(void) {
-    /* clang-format off */
-    asm volatile(
-        "xchg %%gs:%[private], %%" STR(_ASM_SP) "\n"
-        ::[private] "m"(ACCESS_ONCE(PERCPU_VAR(usermode_private)))
-    );
-    /* clang-format on */
-}
-
-static inline void switch_address_space(const cr3_t *cr3) {
-    /* clang-format off */
-    asm volatile(
-        "push %%" STR(_ASM_AX) "\n"
-        "mov %[cr3], %%" STR(_ASM_AX) "\n"
-        "mov %%" STR(_ASM_AX) ", %%cr3\n"
-        "pop %%" STR(_ASM_AX) "\n"
-        :: [cr3] "m" (*cr3)
-        : STR(_ASM_AX)
-    );
-    /* clang-format on */
-}
-
-static inline void _sys_exit(void) {
-    /* clang-format off */
-    asm volatile (
-        "mov %%" STR(_ASM_DI)", %%gs:%[private]\n"
-        POPF()
-        RESTORE_ALL_REGS()
-        "mov %%gs:%[private], %%" STR(_ASM_AX) "\n"
-        "ret\n"
-        :: [ private ] "m"(ACCESS_ONCE(PERCPU_VAR(usermode_private)))
-        : STR(_ASM_AX)
-    );
-    /* clang-format on */
-}
-
-void __naked syscall_handler(void) {
-    register unsigned long syscall_nr asm(STR(_ASM_AX));
-    register unsigned long param1 asm(STR(_ASM_DI));
-    (void) param1;
-    register unsigned long param2 asm(STR(_ASM_SI));
-    (void) param2;
-    register unsigned long param3 asm(STR(_ASM_BX));
-    (void) param3;
-    register unsigned long param4 asm(STR(_ASM_DX));
-    (void) param4;
-
-    SAVE_CLOBBERED_REGS();
-    switch_address_space(&cr3);
-    swapgs();
-    stack_switch();
-    syscall_save();
-
+long syscall_handler(long syscall_nr, long arg1, long arg2, long arg3, long arg4,
+                     long arg5) {
     switch (syscall_nr) {
     case SYSCALL_EXIT:
-        syscall_restore();
-        _sys_exit();
+        /* SYSCALL_EXIT is handled by asm routine syscall_exit() */
         UNREACHABLE();
 
     case SYSCALL_PRINTF:
-        printk(_ptr(param1), param2, param3, param4);
-        syscall_return(0);
-        break;
+        vprintk(_ptr(arg1), _ptr(arg2));
+        return 0;
 
     case SYSCALL_MMAP: {
-        void *va = _ptr(param1);
-        unsigned int order = _u(param2);
+        void *va = _ptr(arg1);
+        unsigned int order = _u(arg2);
         frame_t *frame;
 
         frame = get_free_frames(order);
@@ -128,41 +50,32 @@ void __naked syscall_handler(void) {
 
         va = vmap_user(va, frame->mfn, order, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER,
                        L1_PROT_USER);
-        syscall_return(_ul(va));
-    } break;
+        return _ul(va);
+    }
 
     case SYSCALL_MUNMAP: {
-        void *va = _ptr(param1);
-        unsigned int order = _u(param2);
+        void *va = _ptr(arg1);
+        unsigned int order = _u(arg2);
 
         vunmap_user(va, order);
-    } break;
+        return 0;
+    }
 
     default:
         printk("Unknown syscall: %lu\n", syscall_nr);
-        syscall_return(-1L);
-        break;
+        return -1;
     }
-
-    syscall_restore();
-    stack_switch();
-    swapgs();
-    switch_address_space(&user_cr3);
-
-    RESTORE_CLOBBERED_REGS();
-
-    sysret();
 }
 
 static void init_syscall(void) {
     msr_star_t star;
 
-    star.eip = _u(_ul(&syscall_handler));
+    star.eip = _u(_ul(&syscall_handler_entry));
     star.kern_cs = __KERN_CS64;
     star.user_cs = __USER_CS64;
 
     wrmsr(MSR_STAR, star.reg);
-    wrmsr(MSR_LSTAR, _ul(&syscall_handler));
+    wrmsr(MSR_LSTAR, _ul(&syscall_handler_entry));
     /* FIXME: Add compat support */
     wrmsr(MSR_CSTAR, _ul(NULL));
 
@@ -177,67 +90,61 @@ static void init_syscall(void) {
 void init_usermode(percpu_t *percpu) {
     vmap_user_4k(&cr3, virt_to_mfn(&cr3), L1_PROT);
     vmap_user_4k(&enter_usermode, virt_to_mfn(&enter_usermode), L1_PROT);
-    vmap_user_4k(&syscall_handler, virt_to_mfn(&syscall_handler), L1_PROT);
-
+    vmap_user_4k(&syscall_handler_entry, virt_to_mfn(&syscall_handler_entry), L1_PROT);
     init_syscall();
 }
 
-static inline void __user_text sys_exit(unsigned long exit_code) {
-    asm volatile("syscall" ::"A"(SYSCALL_EXIT), "D"(exit_code) : STR(_ASM_CX), "r11");
-}
-
-static inline long __user_text sys_printf(const char *fmt, unsigned long arg1,
-                                          unsigned long arg2, unsigned long arg3) {
-    register unsigned long rax asm(STR(_ASM_AX));
+static inline long __user_text syscall(long syscall_nr, long arg1, long arg2, long arg3,
+                                       long arg4, long arg5) {
+    register long return_code asm(STR(_ASM_AX));
+    register long _arg4 asm("r8") = arg4;
+    register long _arg5 asm("r9") = arg5;
 
     /* clang-format off */
     asm volatile(
-        "syscall"
-        : "=A"(rax)
-        : "0"(SYSCALL_PRINTF), "D"(fmt), "S"(arg1), "b"(arg2), "d"(arg3)
+        "syscall\n"
+        : "=a"(return_code)
+        : "0"(syscall_nr), "S"(arg1), "d"(arg2), "D" (arg3), "r"(_arg4), "r"(_arg5)
         : STR(_ASM_CX), "r11"
     );
     /* clang-format on */
 
-    return rax;
+    return return_code;
+}
+
+#define syscall0(nr)                     syscall((nr), 0, 0, 0, 0, 0)
+#define syscall1(nr, a1)                 syscall((nr), (a1), 0, 0, 0, 0)
+#define syscall2(nr, a1, a2)             syscall((nr), (a1), (a2), 0, 0, 0)
+#define syscall3(nr, a1, a2, a3)         syscall((nr), (a1), (a2), (a3), 0, 0)
+#define syscall4(nr, a1, a2, a3, a4)     syscall((nr), (a1), (a2), (a3), (a4), 0)
+#define syscall5(nr, a1, a2, a3, a4, a5) syscall((nr), (a1), (a2), (a3), (a4), (a5))
+
+static inline void __user_text sys_exit(unsigned long exit_code) {
+    syscall1(SYSCALL_EXIT, exit_code);
+}
+
+static inline long __user_text sys_printf(const char *fmt, va_list args) {
+    return syscall2(SYSCALL_PRINTF, _ul(fmt), _ul(args));
 }
 
 static inline long __user_text sys_mmap(void *va, unsigned long order) {
-    register unsigned long rax asm(STR(_ASM_AX));
-
-    /* clang-format off */
-    asm volatile(
-        "syscall"
-        : "=A"(rax)
-        : "0"(SYSCALL_MMAP), "D"(va), "S"(order)
-        : STR(_ASM_CX), "r11"
-    );
-    /* clang-format on */
-
-    return rax;
+    return syscall2(SYSCALL_MMAP, _ul(va), order);
 }
 
 static inline long __user_text sys_munmap(void *va, unsigned long order) {
-    register unsigned long rax asm(STR(_ASM_AX));
-
-    /* clang-format off */
-    asm volatile(
-        "syscall"
-        ::"A"(SYSCALL_MUNMAP), "D"(va), "S"(order)
-        : STR(_ASM_CX), "r11"
-    );
-    /* clang-format on */
-
-    return rax;
+    return syscall2(SYSCALL_MUNMAP, _ul(va), order);
 }
 
 void __user_text exit(unsigned long exit_code) {
     sys_exit(exit_code);
 }
 
-void __user_text printf(const char *fmt, unsigned long arg1, unsigned long arg2,
-                        unsigned long arg3) {
-    sys_printf(fmt, arg1, arg2, arg3);
+void __user_text printf(const char *fmt, ...) {
+    va_list args;
+
+    va_start(args, fmt);
+    sys_printf(fmt, args);
+    va_end(args);
 }
 
 void *__user_text mmap(void *va, unsigned long order) {
