@@ -272,55 +272,31 @@ name ## _end:
     "pop %%" STR(_ASM_AX) "\n"
 
 #if defined(__x86_64__)
-#define SAVE_CLOBBERED_REGS64() \
-    asm volatile (              \
-        "push %%r8\n"           \
-        "push %%r9\n"           \
-        "push %%r10\n"          \
-        "push %%r11\n"          \
-        "push %%r12\n"          \
-        "push %%r13\n"          \
-        "push %%r14\n"          \
-        "push %%r15\n"          \
-    ::: "memory")
+#define SAVE_CALLEE_SAVED_REGS64() \
+    "push %%r12\n" \
+    "push %%r13\n" \
+    "push %%r14\n" \
+    "push %%r15\n"
 
-#define RESTORE_CLOBBERED_REGS64() \
-    asm volatile (                 \
-        "pop %%" STR(r15) "\n"     \
-        "pop %%" STR(r14) "\n"     \
-        "pop %%" STR(r13) "\n"     \
-        "pop %%" STR(r12) "\n"     \
-        "pop %%" STR(r11) "\n"     \
-        "pop %%" STR(r10) "\n"     \
-        "pop %%" STR(r9) "\n"      \
-        "pop %%" STR(r8) "\n"      \
-    ::: "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15")
+#define RESTORE_CALLEE_SAVED_REGS64() \
+    "pop %%r15\n" \
+    "pop %%r14\n" \
+    "pop %%r13\n" \
+    "pop %%r12\n"
 #else
-#define SAVE_CLOBBERED_REGS64()
-#define RESTORE_CLOBBERED_REGS64()
+#define SAVE_CALLEE_SAVED_REGS64()
+#define RESTORE_CALLEE_SAVED_REGS64()
 #endif
 
-#define SAVE_CLOBBERED_REGS()       \
-    asm volatile (                  \
-        "push %%" STR(_ASM_CX) "\n" \
-        "push %%" STR(_ASM_DX) "\n" \
-        "push %%" STR(_ASM_SI) "\n" \
-        "push %%" STR(_ASM_DI) "\n" \
-        "push %%" STR(_ASM_BP) "\n" \
-    ::: "memory");                  \
-    SAVE_CLOBBERED_REGS64()
+#define SAVE_CALLEE_SAVED_REGS() \
+    "push %%" STR(_ASM_BX) "\n"  \
+    "push %%" STR(_ASM_BP) "\n"  \
+    SAVE_CALLEE_SAVED_REGS64()
 
-#define RESTORE_CLOBBERED_REGS()    \
-    RESTORE_CLOBBERED_REGS64();     \
-    asm volatile (                  \
-        "pop %%" STR(_ASM_BP) "\n"  \
-        "pop %%" STR(_ASM_DI) "\n"  \
-        "pop %%" STR(_ASM_SI) "\n"  \
-        "pop %%" STR(_ASM_DX) "\n"  \
-        "pop %%" STR(_ASM_CX) "\n"  \
-    ::: STR(_ASM_BP), STR(_ASM_DI), \
-    STR(_ASM_SI), STR(_ASM_DX), STR(_ASM_CX))
-/* clang-format on */
+#define RESTORE_CALLEE_SAVED_REGS() \
+    RESTORE_CALLEE_SAVED_REGS64()   \
+    "pop %%" STR(_ASM_BP) "\n"      \
+    "pop %%" STR(_ASM_BX) "\n"
 
 #if defined(__x86_64__)
 #define POPF() "popfq\n"

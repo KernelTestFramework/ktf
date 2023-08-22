@@ -43,13 +43,12 @@ static inline bool enter_from_usermode(uint16_t cs) {
 /* External declarations */
 
 extern unsigned long enter_usermode(task_func_t fn, void *fn_arg, void *user_stack);
-extern void __naked syscall_handler(void);
+extern void syscall_handler_entry(void);
 
 extern void init_usermode(percpu_t *percpu);
 
 extern void __user_text exit(unsigned long exit_code);
-extern void __user_text printf(const char *fmt, unsigned long arg1, unsigned long arg2,
-                               unsigned long arg3);
+extern void __user_text printf(const char *fmt, ...);
 extern void *__user_text mmap(void *va, unsigned long order);
 extern void __user_text munmap(void *va, unsigned long order);
 

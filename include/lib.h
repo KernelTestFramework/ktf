@@ -332,10 +332,6 @@ static inline void swapgs(void) {
     asm volatile("swapgs");
 }
 
-static inline void syscall(void) {
-    asm volatile("syscall");
-}
-
 static inline void sysret(void) {
 #if defined(__i386__)
     asm volatile("sysret");
