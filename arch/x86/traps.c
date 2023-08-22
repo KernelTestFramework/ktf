@@ -181,7 +181,7 @@ static void dump_general_regs(const struct cpu_regs *regs) {
            "\nRIP=0x%016lx\n\n",
            regs->_ASM_AX, regs->r8, regs->_ASM_BX, regs->r9, regs->_ASM_CX, regs->r10,
            regs->_ASM_DX, regs->r11, regs->_ASM_SI, regs->r12, regs->_ASM_DI, regs->r13,
-           regs->_ASM_BP, regs->r14, regs->_ASM_SP, regs->r15, regs->_ASM_IP);
+           regs->_ASM_BP, regs->r14, regs->exc._ASM_SP, regs->r15, regs->exc._ASM_IP);
 }
 
 static void dump_control_regs(const struct cpu_regs *regs) {
@@ -197,17 +197,17 @@ static void dump_segment_regs(const struct cpu_regs *regs) {
            "ES=0x%04lx FS=0x%04lx GS=0x%04lx\n"
            "EXCEPTION:\n"
            "CS=0x%04x SS=0x%04x\n\n",
-           read_cs(), read_ds(), read_ss(), read_es(), read_fs(), read_gs(), regs->cs,
-           regs->ss);
+           read_cs(), read_ds(), read_ss(), read_es(), read_fs(), read_gs(), regs->exc.cs,
+           regs->exc.ss);
 }
 
 static void dump_flags(const struct cpu_regs *regs) {
-    printk("RFLAGS=0x%016lx\n\n", regs->_ASM_FLAGS);
+    printk("RFLAGS=0x%016lx\n\n", regs->exc._ASM_FLAGS);
 }
 
 #define DUMP_STACK_LINES 32
 static void dump_stack(const struct cpu_regs *regs, unsigned words) {
-    unsigned long *sp = (unsigned long *) regs->_ASM_SP;
+    unsigned long *sp = (unsigned long *) regs->exc._ASM_SP;
     unsigned lines = DUMP_STACK_LINES;
 
     printk("STACK[%p]:", sp);
@@ -282,11 +282,11 @@ void print_callstack(const void *sp, const void *ip) {
 
 static bool extables_fixup(struct cpu_regs *regs) {
     for (extable_entry_t *cur = __start_extables; cur < __stop_extables; ++cur) {
-        if (regs->_ASM_IP != cur->fault_addr)
+        if (regs->exc._ASM_IP != cur->fault_addr)
             continue;
 
         if (cur->fixup)
-            regs->_ASM_IP = cur->fixup;
+            regs->exc._ASM_IP = cur->fixup;
         else if (cur->cb)
             cur->cb(regs);
 
@@ -299,22 +299,22 @@ static bool extables_fixup(struct cpu_regs *regs) {
 void do_exception(struct cpu_regs *regs) {
     static char ec_str[32], panic_str[128];
 
-    if (!enter_from_usermode(regs->cs) && extables_fixup(regs))
+    if (!enter_from_usermode(regs->exc.cs) && extables_fixup(regs))
         return;
 
     dump_regs(regs);
-    print_callstack(_ptr(regs->_ASM_SP), _ptr(regs->_ASM_IP));
+    print_callstack(_ptr(regs->exc._ASM_SP), _ptr(regs->exc._ASM_IP));
 
-    if (has_error_code(regs->vector))
-        x86_ex_decode_error_code(ec_str, sizeof(ec_str), regs->vector, regs->error_code);
+    if (has_error_code(regs->exc.vector))
+        x86_ex_decode_error_code(ec_str, sizeof(ec_str), regs->exc.vector, regs->exc.error_code);
 
     snprintf(panic_str, sizeof(panic_str),
              "#%s %sat IP: 0x%02x:0x%016lx SP: 0x%02x:0x%016lx\n",
-             exception_names[regs->vector], ec_str, regs->cs, regs->_ASM_IP, regs->ss,
-             regs->_ASM_SP);
+             exception_names[regs->exc.vector], ec_str, regs->exc.cs, regs->exc._ASM_IP, regs->exc.ss,
+             regs->exc._ASM_SP);
 
     /* Handle user tasks' exceptions */
-    if (enter_from_usermode(regs->cs)) {
+    if (enter_from_usermode(regs->exc.cs)) {
         printk("Task exception: %s\n", panic_str);
         goto_syscall_exit(-EFAULT);
     }

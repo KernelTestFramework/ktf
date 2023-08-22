@@ -31,7 +31,7 @@
 #include <traps.h>
 
 .macro _handle_usermode cr3
-    testb $0x3, 8(%_ASM_SP)
+    testb $0x3, cpu_exc_cs(%_ASM_SP)
     jz 1f /* skip if from kernel mode */
         SET_CR3 \cr3
         swapgs
@@ -54,7 +54,7 @@ ENTRY(entry_\sym)
         push $0
     .endif
 
-    movl $\vec, 0x4(%_ASM_SP)
+    movl $\vec, cpu_exc_vector(%_ASM_SP)
     jmp handle_exception
 END_FUNC(entry_\sym)
 .endm
