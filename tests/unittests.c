@@ -72,21 +72,19 @@ static unsigned long test_kernel_task_func(void *arg) {
 }
 
 static unsigned long __user_text test_user_task_func1(void *arg) {
-    static char *fmt_printf __user_data = "printf: %u %x %d\n";
 
-    printf(fmt_printf, 1234, 0x41414141, 9);
-    printf(fmt_printf, 1235, 0x42424242, -9);
+    printf(USTR("printf: %u %x %d\n"), 1234, 0x41414141, 9);
+    printf(USTR("printf: %u %x %d\n"), 1235, 0x42424242, -9);
 
     exit(9);
     return 0;
 }
 
 static unsigned long __user_text test_user_task_func2(void *arg) {
-    static char *fmt_mmap __user_data = "mmap: %lx\n";
     void *va;
 
     va = mmap(_ptr(0xfff80000), PAGE_ORDER_4K);
-    printf(fmt_mmap, _ul(va), 0, 0);
+    printf(USTR("mmap: %lx\n"), _ul(va));
 
     memset(va, 0xcc, 0x1000);
     ((void (*)(void)) va)();
