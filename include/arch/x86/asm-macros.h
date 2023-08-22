@@ -162,11 +162,23 @@
 #endif
 .endm
 
+.macro SYSRET
+#if defined(__x86_64__)
+    sysretq
+#else
+    sysret
+#endif
+.endm
+
 .macro SET_CR3 val
     push %_ASM_AX
     mov (\val), %_ASM_AX
     mov %_ASM_AX, %cr3
     pop %_ASM_AX
+.endm
+
+.macro SWITCH_STACK
+    xchg %_ASM_SP, %gs:usermode_private
 .endm
 
 #define GLOBAL(name) \
