@@ -208,7 +208,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
 
     WRITE_SP(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL));
     if (opt_debug)
-        dump_pagetables();
+        dump_pagetables(cr3);
 
     if (setup_framebuffer())
         display_banner();
