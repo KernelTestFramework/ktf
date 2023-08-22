@@ -43,6 +43,8 @@ extern void asm_interrupt_handler_uart(void);
 extern void asm_interrupt_handler_keyboard(void);
 extern void asm_interrupt_handler_timer(void);
 
+extern void terminate_user_task(void);
+
 static void init_tss(percpu_t *percpu) {
 #if defined(__i386__)
     percpu->tss_df.iopb = sizeof(percpu->tss_df);
@@ -316,7 +318,7 @@ void do_exception(struct cpu_regs *regs) {
     /* Handle user tasks' exceptions */
     if (enter_from_usermode(regs->exc.cs)) {
         printk("Task exception: %s\n", panic_str);
-        goto_syscall_exit(-EFAULT);
+        terminate_user_task();
     }
 
     panic(panic_str);
