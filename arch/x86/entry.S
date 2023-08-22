@@ -29,6 +29,7 @@
 #include <segment.h>
 #include <page.h>
 #include <traps.h>
+#include <usermode.h>
 
 .macro _handle_usermode cr3
     testb $0x3, cpu_exc_cs(%_ASM_SP)
@@ -163,7 +164,7 @@ ENTRY(usermode_stub)
 
     /* sys_exit */
     mov %_ASM_AX, %_ASM_DI
-    xor %_ASM_AX, %_ASM_AX
+    mov $SYSCALL_EXIT, %_ASM_AX
     syscall
 END_FUNC(usermode_stub)
 
