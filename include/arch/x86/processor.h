@@ -241,6 +241,20 @@ typedef uint64_t x86_reg_t;
 typedef uint32_t x86_reg_t;
 #endif
 
+struct cpu_exc {
+    x86_ex_error_code_t error_code;
+    /* Populated by exception entry */
+    uint32_t vector;
+
+    /* Hardware exception */
+    x86_reg_t _ASM_IP;
+    uint16_t cs, _pad_cs[3];
+    x86_reg_t _ASM_FLAGS;
+    x86_reg_t _ASM_SP;
+    uint16_t ss, _pad_ss[3];
+} __packed;
+typedef struct cpu_exc cpu_exc_t;
+
 struct cpu_regs {
     x86_reg_t r15;
     x86_reg_t r14;
@@ -258,17 +272,8 @@ struct cpu_regs {
     x86_reg_t _ASM_BX;
     x86_reg_t _ASM_AX;
 
-    x86_ex_error_code_t error_code;
-    /* Populated by exception entry */
-    uint32_t vector;
-
-    /* Hardware exception */
-    x86_reg_t _ASM_IP;
-    uint16_t cs, _pad_cs[3];
-    x86_reg_t _ASM_FLAGS;
-    x86_reg_t _ASM_SP;
-    uint16_t ss, _pad_ss[3];
-};
+    cpu_exc_t exc;
+} __packed;
 typedef struct cpu_regs cpu_regs_t;
 
 union msr_star {
