@@ -35,6 +35,7 @@ struct console_callback_entry {
 };
 typedef struct console_callback_entry console_callback_entry_t;
 
+extern void vprintk(const char *fmt, va_list args);
 extern void printk(const char *fmt, ...);
 
 #define dprintk(fmt, ...)                                                                \
