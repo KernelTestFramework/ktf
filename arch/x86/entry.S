@@ -30,6 +30,7 @@
 #include <page.h>
 #include <traps.h>
 #include <usermode.h>
+#include <errno.h>
 
 .macro _handle_usermode cr3
     testb $0x3, cpu_exc_cs(%_ASM_SP)
@@ -152,6 +153,16 @@ ENTRY(enter_usermode)
     enter_to_usermode
     IRET
 END_FUNC(enter_usermode)
+
+ENTRY(terminate_user_task)
+    SWITCH_STACK
+    POPF
+
+    movl $-EFAULT, cpu_regs_ax(%_ASM_SP)
+    RESTORE_ALL_REGS
+
+    ret
+END_FUNC(terminate_user_task)
 
 SECTION(.text.user, "ax", 16)
 ENTRY(usermode_stub)
