@@ -148,4 +148,10 @@ typedef uint64_t off_t;
 
 #define __always_inline __inline __attribute__((always_inline))
 
+#define USTR(str)                                                                        \
+    ({                                                                                   \
+        static char _str[] __user_data = str;                                            \
+        _str;                                                                            \
+    })
+
 #endif /* KTF_COMPILER_H */
