@@ -41,7 +41,7 @@
 static console_callback_entry_t console_callbacks[2];
 static unsigned int num_console_callbacks;
 
-static void vprintk(const char *fmt, va_list args) {
+void vprintk(const char *fmt, va_list args) {
     static char buf[VPRINTK_BUF_SIZE];
     static spinlock_t lock = SPINLOCK_INIT;
     unsigned int i;
