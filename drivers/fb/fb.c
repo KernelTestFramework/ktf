@@ -36,6 +36,7 @@ extern uint64_t fonts[];
 #define TEXT_AREA_FIRST_ROW (((LOGO_HEIGHT + FONT_SIZE) / FONT_SIZE) * FONT_SIZE)
 
 static bool has_fb = false;
+static bool scroll = false;
 
 static uint32_t width;
 static uint32_t height;
@@ -134,6 +135,7 @@ bool setup_framebuffer(void) {
     memset(video_memory, 0, buffer_size);
 
     register_console_callback(fb_console_write, video_memory);
+    scroll = opt_fb_scroll;
     return true;
 }
 
@@ -169,9 +171,17 @@ void draw_logo(void) {
     draw_line(0, LOGO_HEIGHT + 2, width, LOGO_HEIGHT + 2, FB_WHITE);
 }
 
-void scroll_up_line(void) {
+void set_fb_scroll(bool state) {
+    scroll = state;
+}
+
+static inline void scroll_up_line(void) {
     memmove(first_line_addr, first_line_addr + line_width,
             last_line_addr - first_line_addr);
+}
+
+static inline void clear_screen(void) {
+    memset(first_line_addr, 0, last_line_addr - first_line_addr);
 }
 
 void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color) {
@@ -186,8 +196,14 @@ void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color) {
         }
 
         if ((row + FONT_SIZE) >= height) {
-            scroll_up_line();
-            row -= FONT_SIZE;
+            if (scroll) {
+                scroll_up_line();
+                row -= FONT_SIZE;
+            }
+            else {
+                clear_screen();
+                row = TEXT_AREA_FIRST_ROW;
+            }
             col = 0;
         }
 

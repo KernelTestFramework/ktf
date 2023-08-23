@@ -67,6 +67,7 @@ extern bool opt_hpet;
 extern bool opt_fpu;
 extern bool opt_qemu_console;
 extern bool opt_poweroff;
+extern bool opt_fb_scroll;
 
 extern const char *kernel_cmdline;
 

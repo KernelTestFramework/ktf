@@ -70,6 +70,9 @@ string_cmd("com3", opt_com3);
 static char opt_com4[20];
 string_cmd("com4", opt_com4);
 
+bool opt_fb_scroll = true;
+bool_cmd("fb_scroll", opt_fb_scroll);
+
 const char *kernel_cmdline;
 
 void __text_init cmdline_parse(const char *cmdline) {
