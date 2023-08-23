@@ -36,5 +36,6 @@ extern void draw_line(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32
 extern void draw_logo(void);
 extern void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color);
 extern bool setup_framebuffer(void);
+extern void set_fb_scroll(bool state);
 
 #endif /* KTF_DRV_FB_H */
