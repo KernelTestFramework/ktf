@@ -32,6 +32,9 @@
 
 extern uint64_t fonts[];
 
+#define FONT_SIZE           sizeof(fonts[0])
+#define TEXT_AREA_FIRST_ROW (((LOGO_HEIGHT + FONT_SIZE) / FONT_SIZE) * FONT_SIZE)
+
 static bool has_fb = false;
 
 static uint32_t width;
@@ -82,7 +85,7 @@ void init_framebuffer(const struct multiboot2_tag_framebuffer *fb) {
     bpp = fb->common.framebuffer_bpp;
 
     buffer_size = (size_t) width * height;
-    banner_size = (size_t) width * LOGO_HEIGHT;
+    banner_size = (size_t) width * (LOGO_HEIGHT + FONT_SIZE);
 
     switch (bpp) {
     case 0 ... 7:
@@ -129,8 +132,8 @@ bool setup_framebuffer(void) {
 void put_char(char c, uint32_t x, uint32_t y, uint32_t color) {
     uint64_t font = fonts[(uint8_t) c];
 
-    for (int yy = 0; yy < 8; yy++) {
-        for (int xx = 0; xx < 8; xx++, font >>= 1) {
+    for (unsigned int yy = 0; yy < FONT_SIZE; yy++) {
+        for (unsigned int xx = 0; xx < FONT_SIZE; xx++, font >>= 1) {
             if (font & 1)
                 put_pixel(x + xx, y + yy, color);
         }
@@ -155,7 +158,7 @@ void draw_logo(void) {
             put_pixel(x, y, *px++);
     }
 
-    draw_line(0, LOGO_HEIGHT + 4, width, LOGO_HEIGHT + 4, FB_WHITE);
+    draw_line(0, LOGO_HEIGHT + 2, width, LOGO_HEIGHT + 2, FB_WHITE);
 }
 
 static void clear_screen(void *fb_addr) {
@@ -163,19 +166,19 @@ static void clear_screen(void *fb_addr) {
 }
 
 void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color) {
-    static uint32_t row = LOGO_HEIGHT + 8, col = 0;
+    static uint32_t row = TEXT_AREA_FIRST_ROW, col = 0;
 
     for (unsigned int i = 0; i < len; i++) {
         char c = buf[i];
 
-        if ((col + 8) > width || c == '\n') {
-            row += sizeof(fonts[0]);
+        if ((col + FONT_SIZE) >= width || c == '\n') {
+            row += FONT_SIZE;
             col = 0;
         }
 
-        if ((row + 8) > height) {
+        if ((row + FONT_SIZE) >= height) {
             clear_screen(fb_addr);
-            row = LOGO_HEIGHT + 8;
+            row -= FONT_SIZE;
             col = 0;
         }
 
@@ -183,6 +186,6 @@ void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color) {
             continue;
 
         put_char(c, col, row, color);
-        col += sizeof(fonts[0]);
+        col += FONT_SIZE;
     }
 }
