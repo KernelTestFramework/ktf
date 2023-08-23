@@ -46,6 +46,10 @@ static size_t buffer_size;
 static size_t banner_size;
 static void *video_memory;
 
+static void *first_line_addr;
+static void *last_line_addr;
+static uint64_t line_width;
+
 static void (*put_pixel)(uint32_t x, uint32_t y, uint32_t color);
 
 static void map_fb_area(paddr_t start, size_t size) {
@@ -115,6 +119,10 @@ void init_framebuffer(const struct multiboot2_tag_framebuffer *fb) {
         BUG();
     }
 
+    line_width = pitch * FONT_SIZE;
+    first_line_addr = (uint8_t *) video_memory + TEXT_AREA_FIRST_ROW * pitch;
+    last_line_addr = (uint8_t *) video_memory + buffer_size - line_width;
+
     has_fb = true;
 }
 
@@ -161,8 +169,9 @@ void draw_logo(void) {
     draw_line(0, LOGO_HEIGHT + 2, width, LOGO_HEIGHT + 2, FB_WHITE);
 }
 
-static void clear_screen(void *fb_addr) {
-    memset((uint8_t *) video_memory + banner_size, 0, buffer_size - banner_size);
+void scroll_up_line(void) {
+    memmove(first_line_addr, first_line_addr + line_width,
+            last_line_addr - first_line_addr);
 }
 
 void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color) {
@@ -177,7 +186,7 @@ void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color) {
         }
 
         if ((row + FONT_SIZE) >= height) {
-            clear_screen(fb_addr);
+            scroll_up_line();
             row -= FONT_SIZE;
             col = 0;
         }
