@@ -191,6 +191,11 @@ void fb_write(void *fb_addr, const char *buf, size_t len, uint32_t color) {
             col = 0;
         }
 
+        if (c == '\r') {
+            col = 0;
+            continue;
+        }
+
         if (c == '\n')
             continue;
 
