@@ -241,9 +241,11 @@ ifeq ($(HAVE_KVM), kvm)
 QEMU_PARAMS += -enable-kvm
 endif # HAVE_KVM
 QEMU_PARAMS += -m 128
-QEMU_PARAMS += -display none -vga none -vnc none
 QEMU_PARAMS += -serial stdio
 QEMU_PARAMS += -smp cpus=2
+QEMU_PARAMS_NOGFX := -display none -vga none -vnc none
+QEMU_PARAMS_GFX := $(QEMU_PARAMS)
+QEMU_PARAMS += $(QEMU_PARAMS_NOGFX)
 
 QEMU_PARAMS_KERNEL := -append "param1 param2 param3"
 QEMU_PARAMS_DEBUG := -s &
@@ -267,6 +269,11 @@ endif
 boot: $(ISO_FILE)
 	@echo "QEMU START"
 	$(VERBOSE) $(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS)
+
+.PHONY: boot_gfx
+boot_gfx: $(ISO_FILE)
+	@echo "QEMU START"
+	$(VERBOSE) $(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS_GFX)
 
 .PHONY: boot_debug
 boot_debug: $(ISO_FILE)
