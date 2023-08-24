@@ -67,7 +67,7 @@ static void init_tss(percpu_t *percpu) {
     percpu->tss.cr3 = _ul(cr3.reg);
 #elif defined(__x86_64__)
     percpu->tss.rsp0 = _ul(get_free_page_top(GFP_KERNEL | GFP_USER));
-    percpu->tss.ist[0] = _ul(get_free_page_top(GFP_KERNEL));
+    percpu->tss.ist[0] = _ul(get_free_page_top(GFP_KERNEL | GFP_USER));
 #endif
     percpu->tss.iopb = sizeof(percpu->tss);
 
