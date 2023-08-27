@@ -107,6 +107,8 @@ ENTRY(handle_exception)
     IRET
 END_FUNC(handle_exception)
 
+.align PAGE_SIZE
+GLOBAL(exception_handlers)
 exception_handler DE  X86_EX_DE  0
 exception_handler DB  X86_EX_DB  0
 exception_handler NMI X86_EX_NMI 0
@@ -129,14 +131,18 @@ exception_handler MC  X86_EX_MC  0
 exception_handler XM  X86_EX_XM  0
 exception_handler VE  X86_EX_VE  0
 exception_handler SE  X86_EX_SE  1
+GLOBAL(end_exception_handlers)
 
+GLOBAL(interrupt_handlers)
 interrupt_handler timer timer_interrupt_handler
 interrupt_handler uart uart_interrupt_handler
 interrupt_handler keyboard keyboard_interrupt_handler
 #ifdef KTF_ACPICA
 interrupt_handler acpi acpi_interrupt_handler
 #endif
+GLOBAL(end_interrupt_handlers)
 
+.align PAGE_SIZE
 ENTRY(syscall_exit)
     POPF
 
@@ -157,6 +163,8 @@ ENTRY(terminate_user_task)
     ret
 END_FUNC(terminate_user_task)
 
+.align PAGE_SIZE
+GLOBAL(usermode_helpers)
 ENTRY(enter_usermode)
     /* FIXME: Add 32-bit support */
 
@@ -184,7 +192,6 @@ ENTRY(enter_usermode)
     IRET
 END_FUNC(enter_usermode)
 
-.align PAGE_SIZE
 ENTRY(syscall_handler_entry)
     SAVE_CALLEE_SAVED_REGS
     syscall_from_usermode
@@ -206,6 +213,7 @@ ENTRY(syscall_handler_entry)
     RESTORE_CALLEE_SAVED_REGS
     SYSRET
 END_FUNC(syscall_handler_entry)
+GLOBAL(end_usermode_helpers)
 
 SECTION(.text.user, "ax", 16)
 ENTRY(usermode_stub)

@@ -28,6 +28,10 @@
 #include <processor.h>
 #include <usermode.h>
 
+extern char exception_handlers[], end_exception_handlers[];
+extern char interrupt_handlers[], end_interrupt_handlers[];
+extern char usermode_helpers[], end_usermode_helpers[];
+
 long syscall_handler(long syscall_nr, long arg1, long arg2, long arg3, long arg4,
                      long arg5) {
     switch (syscall_nr) {
@@ -89,8 +93,17 @@ static void init_syscall(void) {
 
 void init_usermode(percpu_t *percpu) {
     vmap_user_4k(&cr3, virt_to_mfn(&cr3), L1_PROT);
-    vmap_user_4k(&enter_usermode, virt_to_mfn(&enter_usermode), L1_PROT);
-    vmap_user_4k(&syscall_handler_entry, virt_to_mfn(&syscall_handler_entry), L1_PROT);
+    vmap_user_4k(&user_cr3, virt_to_mfn(&user_cr3), L1_PROT);
+
+    BUG_ON(end_exception_handlers - exception_handlers > (long) PAGE_SIZE);
+    vmap_user_4k(exception_handlers, virt_to_mfn(exception_handlers), L1_PROT);
+
+    BUG_ON(end_interrupt_handlers - interrupt_handlers > (long) PAGE_SIZE);
+    vmap_user_4k(interrupt_handlers, virt_to_mfn(interrupt_handlers), L1_PROT);
+
+    BUG_ON(end_usermode_helpers - usermode_helpers > (long) PAGE_SIZE);
+    vmap_user_4k(usermode_helpers, virt_to_mfn(usermode_helpers), L1_PROT);
+
     init_syscall();
 }
 
