@@ -113,8 +113,8 @@ void init_usermode(percpu_t *percpu) {
     init_sysenter(percpu);
 }
 
-static inline long __user_text syscall(long syscall_nr, long arg1, long arg2, long arg3,
-                                       long arg4, long arg5) {
+static inline long __user_text _syscall(long syscall_nr, long arg1, long arg2, long arg3,
+                                        long arg4, long arg5) {
     register long return_code asm(STR(_ASM_AX));
     register long _arg4 asm("r8") = arg4;
     register long _arg5 asm("r9") = arg5;
@@ -129,6 +129,53 @@ static inline long __user_text syscall(long syscall_nr, long arg1, long arg2, lo
     /* clang-format on */
 
     return return_code;
+}
+
+static inline long __user_text _sysenter(long syscall_nr, long arg1, long arg2, long arg3,
+                                         long arg4, long arg5) {
+    register long return_code asm(STR(_ASM_AX));
+    register long _arg4 asm("r8") = arg4;
+    register long _arg5 asm("r9") = arg5;
+    register long _arg3 asm("r10") = arg3;
+
+    /* clang-format off */
+    asm volatile (
+        "mov %%" STR(_ASM_SP) ", %%" STR(_ASM_CX) "\n"
+        "lea 1f(%%" STR(_ASM_IP) "), %%" STR(_ASM_DX) "\n"
+        "sysenter\n"
+        "1: "
+        : "=a"(return_code)
+        : "0"(syscall_nr), "S"(arg1), "D" (arg2), "r" (_arg3), "r"(_arg4), "r"(_arg5)
+        : STR(_ASM_CX), STR(_ASM_DX)
+    );
+    /* clang-format on */
+
+    return return_code;
+}
+
+static __user_data syscall_mode_t sc_mode = SYSCALL_MODE_SYSCALL;
+
+bool __user_text syscall_mode(syscall_mode_t mode) {
+    if (mode > SYSCALL_MODE_INT) {
+        return false;
+    }
+    sc_mode = mode;
+
+    return true;
+}
+
+static long __user_text syscall(long syscall_nr, long arg1, long arg2, long arg3,
+                                long arg4, long arg5) {
+    switch (sc_mode) {
+    case SYSCALL_MODE_SYSCALL:
+        return _syscall(syscall_nr, arg1, arg2, arg3, arg4, arg5);
+    case SYSCALL_MODE_SYSENTER:
+        return _sysenter(syscall_nr, arg1, arg2, arg3, arg4, arg5);
+    case SYSCALL_MODE_INT:
+        // unimplemented
+    default:
+        UNREACHABLE();
+    }
 }
 
 #define syscall0(nr)                     syscall((nr), 0, 0, 0, 0, 0)
