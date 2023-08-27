@@ -92,6 +92,21 @@ ENTRY(asm_interrupt_handler_\sym)
 END_FUNC(asm_interrupt_handler_\sym)
 .endm
 
+ENTRY(handle_exception)
+    cld
+    SAVE_ALL_REGS
+
+    mov %_ASM_SP, %_ASM_DI
+    call do_exception
+
+    RESTORE_ALL_REGS
+
+    add $8, %_ASM_SP
+
+    enter_to_usermode
+    IRET
+END_FUNC(handle_exception)
+
 exception_handler DE  X86_EX_DE  0
 exception_handler DB  X86_EX_DB  0
 exception_handler NMI X86_EX_NMI 0
@@ -115,27 +130,32 @@ exception_handler XM  X86_EX_XM  0
 exception_handler VE  X86_EX_VE  0
 exception_handler SE  X86_EX_SE  1
 
-ENTRY(handle_exception)
-    cld
-    SAVE_ALL_REGS
-
-    mov %_ASM_SP, %_ASM_DI
-    call do_exception
-
-    RESTORE_ALL_REGS
-
-    add $8, %_ASM_SP
-
-    enter_to_usermode
-    IRET
-END_FUNC(handle_exception)
-
 interrupt_handler timer timer_interrupt_handler
 interrupt_handler uart uart_interrupt_handler
 interrupt_handler keyboard keyboard_interrupt_handler
 #ifdef KTF_ACPICA
 interrupt_handler acpi acpi_interrupt_handler
 #endif
+
+ENTRY(syscall_exit)
+    POPF
+
+    /* Save exit code to return value register (AX) */
+    mov %_ASM_SI, cpu_regs_ax(%_ASM_SP)
+    RESTORE_ALL_REGS
+
+    ret
+END_FUNC(syscall_exit)
+
+ENTRY(terminate_user_task)
+    SWITCH_STACK
+    POPF
+
+    movl $-EFAULT, cpu_regs_ax(%_ASM_SP)
+    RESTORE_ALL_REGS
+
+    ret
+END_FUNC(terminate_user_task)
 
 ENTRY(enter_usermode)
     /* FIXME: Add 32-bit support */
@@ -163,26 +183,6 @@ ENTRY(enter_usermode)
     push $usermode_stub
     IRET
 END_FUNC(enter_usermode)
-
-ENTRY(syscall_exit)
-    POPF
-
-    /* Save exit code to return value register (AX) */
-    mov %_ASM_SI, cpu_regs_ax(%_ASM_SP)
-    RESTORE_ALL_REGS
-
-    ret
-END_FUNC(syscall_exit)
-
-ENTRY(terminate_user_task)
-    SWITCH_STACK
-    POPF
-
-    movl $-EFAULT, cpu_regs_ax(%_ASM_SP)
-    RESTORE_ALL_REGS
-
-    ret
-END_FUNC(terminate_user_task)
 
 .align PAGE_SIZE
 ENTRY(syscall_handler_entry)
