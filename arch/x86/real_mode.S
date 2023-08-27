@@ -166,7 +166,7 @@ END_FUNC(_prot_to_real)
     mov   rmode_stack, %esp
 
     /* Use 16-bit protected mode segment selectors */
-    mov   $__KERN_DS16, %eax
+    mov   $__RMODE_DS16, %eax
     mov   %eax, %ds
     mov   %eax, %es
     mov   %eax, %gs
@@ -174,7 +174,7 @@ END_FUNC(_prot_to_real)
     mov   %eax, %ss
 
     /* Jump to real mode */
-    ljmp  $__KERN_CS16, $.Lreal_mode
+    ljmp  $__RMODE_CS16, $.Lreal_mode
 
 .code16
 .align 16

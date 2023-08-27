@@ -1,4 +1,5 @@
 /*
+ * Copyright © 2023 Open Source Security, Inc.
  * Copyright © 2020 Amazon.com, Inc. or its affiliates.
  * Copyright © 2014,2015 Citrix Systems Ltd.
  * All Rights Reserved.
@@ -29,47 +30,97 @@
 #include <compiler.h>
 #include <tss.h>
 
-#define GDT_NULL      0x0
-#define GDT_KERN_CS32 0x1
-#define GDT_KERN_DS32 0x2
-#define GDT_KERN_CS64 0x3
-#define GDT_KERN_DS64 0x4
+/*
+ * Three different GDTs used: at boot, real mode, and long/protected mode.
+ *
+ * All GDTs have a 32-bit CS and DS descriptor followed by a 64-bit CS descriptor (unless
+ * i386 build) to simplify transitioning between long, protected and real mode.
+ */
+#define GDT_NULL 0
 
-#define GDT_RMODE_CS16 0x5
-#define GDT_RMODE_DS16 0x6
+/*
+ * The KERN/USER DS/CS 32/64-bit segment descriptors are organized to support both
+ * syscall/sysret and sysenter/sysexit. Intel parts do not support syscall 32-bit mode.
+ * AMD parts do not support sysenter in 64-bit mode. The sys{ret,exit}{,q} instructions
+ * set the following %cs and %ss:
+ *
+ * sysret   (to 32-bit usermode): CS = star_cs_u        ; SS = star_cs_u + 8
+ * sysretq  (to 64-bit usermode): CS = star_cs_u + 16   ; SS = star_cs_u + 8
+ * sysexit  (to 32-bit usermode): CS = sysenter_cs + 16 ; SS = sysenter_cs + 24
+ * sysexitq (to 64-bit usermode): CS = sysenter_cs + 32 ; SS = sysenter_cs + 40
+ *
+ * The awkward setting of DS for sysretq requires the same DS to be assigned for both
+ * 64-bit and 32-bit (compatibility) user mode. However, only 32-bit mode will ever depend
+ * on it. Similarly, to satisfy sysexitq, we use an additional DS descriptor,
+ * GDT_USER_SYSEXITQ.
+ *
+ * The per-cpu GPT structure becomes:
+ */
+#if defined(__x86_64__)
+#define GDT_KERN_CS32     1
+#define GDT_KERN_DS32     2
+#define GDT_KERN_CS64     3 /* star_cs_k    ; sysenter_cs */
+#define GDT_KERN_DS64     4
+#define GDT_USER_CS32     5 /* star_cs_u    ; sysenter_cs+16 */
+#define GDT_USER_DS       6 /* star_cs_u+8  ; sysenter_cs+24 */
+#define GDT_USER_CS64     7 /* star_cs_u+16 ; sysenter_cs+32 */
+#define GDT_USER_SYSEXITQ 8 /*              ; sysenter_cs+40 */
+#define GDT_TSS           9 /* two TSS entries required for long mode */
+#define GDT_PERCPU        11
+#define NR_GDT_ENTRIES    12
+#else
+/* for 32-bit mode we only need the following */
+#define GDT_KERN_CS32  1 /* sysenter_cs */
+#define GDT_KERN_DS32  2
+#define GDT_USER_CS32  3
+#define GDT_USER_DS32  4
+#define GDT_TSS        5
+#define GDT_TSS_DF     6 /* double fault TSS. required for 32-bit */
+#define GDT_PERCPU     7
+#define NR_GDT_ENTRIES 8
+#endif
 
-#define GDT_BOOT_TSS    0x5
-#define GDT_BOOT_TSS_DF 0x6
+/* Boot GDT */
+/* TSS is not strictly required for boot, but useful to handle early-stage faults. */
+#if defined(__i386__)
+#define GDT_BOOT_TSS        3
+#define GDT_BOOT_TSS_DF     4
+#define NR_BOOT_GDT_ENTRIES 5
+#else
+#define GDT_BOOT_TSS        4 /* 2 entries in 64-bit */
+#define NR_BOOT_GDT_ENTRIES 6
+#endif
 
-#define GDT_USER_CS32 0x5
-#define GDT_USER_DS32 0x6
-#define GDT_USER_CS64 0x7
-#define GDT_USER_DS64 0x8
-
-#define GDT_TSS    0x9
-#define GDT_TSS_DF 0xa
-
-#define GDT_RMODE_TSS    0x7
-#define GDT_RMODE_TSS_DF 0x8
-
-#define GDT_PERCPU 0xb
-
-#define NR_BOOT_GDT_ENTRIES  7
-#define NR_RMODE_GDT_ENTRIES 9
-#define NR_GDT_ENTRIES       12
+/* Real mode GDT */
+#if defined(__i386__)
+#define GDT_RMODE_CS16       3
+#define GDT_RMODE_DS16       4
+#define GDT_RMODE_TSS        5
+#define GDT_RMODE_TSS_DF     6
+#define NR_RMODE_GDT_ENTRIES 7
+#else
+#define GDT_RMODE_CS16       4
+#define GDT_RMODE_DS16       5
+#define GDT_RMODE_TSS        6 /* 2 entries in 64-bit */
+#define NR_RMODE_GDT_ENTRIES 8
+#endif
 
 #define __KERN_CS32 (GDT_KERN_CS32 << 3)
 #define __KERN_DS32 (GDT_KERN_DS32 << 3)
+#if defined(__x86_64__)
 #define __KERN_CS64 (GDT_KERN_CS64 << 3)
 #define __KERN_DS64 (GDT_KERN_DS64 << 3)
+#endif
 
-#define __KERN_CS16 (GDT_RMODE_CS16 << 3)
-#define __KERN_DS16 (GDT_RMODE_DS16 << 3)
+#define __RMODE_CS16 (GDT_RMODE_CS16 << 3)
+#define __RMODE_DS16 (GDT_RMODE_DS16 << 3)
 
 #define __USER_CS32 ((GDT_USER_CS32 << 3) | 3)
 #define __USER_DS32 ((GDT_USER_DS32 << 3) | 3)
+#if defined(__x86_64__)
 #define __USER_CS64 ((GDT_USER_CS64 << 3) | 3)
-#define __USER_DS64 ((GDT_USER_DS64 << 3) | 3)
+#define __USER_DS64 ((GDT_USER_DS << 3) | 3)
+#endif
 
 #if defined(__i386__)
 #define __KERN_CS __KERN_CS32
