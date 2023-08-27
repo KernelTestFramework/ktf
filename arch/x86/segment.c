@@ -41,7 +41,10 @@ gdt_desc_t __data_init boot_gdt[NR_BOOT_GDT_ENTRIES] __aligned(16) = {
     [GDT_NULL].desc      = GDT_ENTRY(0x0, 0x0, 0x0),
     [GDT_KERN_CS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, CODE, R, A), 0x0, 0xfffff),
     [GDT_KERN_DS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
+#if defined(__x86_64__)
+    /* We only need this entry to transition to long mode. Hence, no use for any DS64. */
     [GDT_KERN_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, CODE, R, A), 0x0, 0x00000),
+#endif
     /* clang-format on */
 };
 
@@ -68,7 +71,10 @@ gdt_desc_t __data_rmode rmode_gdt[NR_RMODE_GDT_ENTRIES] __aligned(16) = {
     [GDT_NULL].desc      = GDT_ENTRY(0x0, 0x0, 0x0),
     [GDT_KERN_CS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, CODE, R, A), 0x0, 0xfffff),
     [GDT_KERN_DS32].desc = GDT_ENTRY(DESC_FLAGS(GR, SZ, P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
+#if defined(__x86_64__)
+    /* We only need this entry to transition to long mode. Hence, no use for any DS64. */
     [GDT_KERN_CS64].desc = GDT_ENTRY(DESC_FLAGS(GR,  L, P, DPL0, S, CODE, R, A), 0x0, 0x00000),
+#endif
     [GDT_RMODE_CS16].desc = GDT_ENTRY(DESC_FLAGS(P, DPL0, S, CODE, R, A), 0x0, 0xfffff),
     [GDT_RMODE_DS16].desc = GDT_ENTRY(DESC_FLAGS(P, DPL0, S, DATA, W, A), 0x0, 0xfffff),
     /* clang-format on */
