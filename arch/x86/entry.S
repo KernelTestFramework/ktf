@@ -180,9 +180,10 @@ ENTRY(enter_usermode)
     SAVE_ALL_REGS
     PUSHF
 
-    /* Save stack pointer onto per-cpu */
+    /* Save user stack pointer onto per-cpu */
     mov %_ASM_DX, %gs:(usermode_private)
 
+    /* Now switch stack and address space */
     syscall_to_usermode
 
     /* SS + SP */
@@ -221,6 +222,26 @@ ENTRY(syscall_handler_entry)
     RESTORE_ALL_REGS
     SYSRET
 END_FUNC(syscall_handler_entry)
+
+ENTRY(sysenter_handler_entry)
+    SAVE_ALL_REGS
+    syscall_from_usermode
+
+    MASK_USER_FLAGS
+
+    cmp $SYSCALL_EXIT, %_ASM_AX
+    jz syscall_exit
+
+    mov %_ASM_DI, %_ASM_DX
+    mov %r10, %_ASM_CX
+    mov %_ASM_AX, %_ASM_DI
+    call syscall_handler
+
+    syscall_to_usermode
+    RESTORE_ALL_REGS
+
+    SYSEXIT
+END_FUNC(sysenter_handler_entry)
 GLOBAL(end_usermode_helpers)
 
 SECTION(.text.user, "ax", 16)

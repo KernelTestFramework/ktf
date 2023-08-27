@@ -170,6 +170,14 @@
 #endif
 .endm
 
+.macro SYSEXIT
+#if defined(__x86_64__)
+    sysexitq
+#else
+    sysexit
+#endif
+.endm
+
 .macro SET_CR3 val
     push %_ASM_AX
     mov (\val), %_ASM_AX

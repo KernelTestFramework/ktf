@@ -49,6 +49,7 @@ static inline bool enter_from_usermode(uint16_t cs) {
 
 extern unsigned long enter_usermode(task_func_t fn, void *fn_arg, void *user_stack);
 extern void syscall_handler_entry(void);
+extern void sysenter_handler_entry(void);
 
 extern void init_usermode(percpu_t *percpu);
 
