@@ -124,6 +124,10 @@
 #define EFER_FFXSR (_U64(1) << 14) /* Fast FXSAVE/FXRSTOR */
 #define EFER_TCE   (_U64(1) << 15) /* Translation Cache Extension */
 
+#define MSR_SYSENTER_CS  0x174
+#define MSR_SYSENTER_ESP 0x175
+#define MSR_SYSENTER_EIP 0x176
+
 #define MSR_STAR  0xc0000081
 #define MSR_LSTAR 0xc0000082
 #define MSR_CSTAR 0xc0000083
@@ -285,6 +289,15 @@ union msr_star {
     };
 };
 typedef union msr_star msr_star_t;
+
+typedef uint16_t msr_sysenter_cs_t;
+#if defined(__x86_64__)
+typedef uint64_t msr_sysenter_esp_t;
+typedef uint64_t msr_sysenter_eip_t;
+#else
+typedef uint32_t msr_sysenter_esp_t;
+typedef uint32_t msr_sysenter_eip_t;
+#endif
 
 static inline bool has_error_code(uint32_t vector) {
     return !!((1U << vector) & X86_EX_HAS_ERROR_CODE);

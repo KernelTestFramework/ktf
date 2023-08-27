@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <lib.h>
+#include <mm/vmm.h>
 #include <pagetable.h>
 #include <percpu.h>
 #include <processor.h>
@@ -89,6 +90,12 @@ static void init_syscall(void) {
     wrmsr(MSR_EFER, rdmsr(MSR_EFER) | EFER_SCE);
 }
 
+static void init_sysenter(percpu_t *percpu) {
+    wrmsr(MSR_SYSENTER_CS, _ul(__KERN_CS));
+    wrmsr(MSR_SYSENTER_ESP, _ul(percpu->tss.rsp0));
+    wrmsr(MSR_SYSENTER_EIP, _ul(&sysenter_handler_entry));
+}
+
 void init_usermode(percpu_t *percpu) {
     vmap_user_4k(&cr3, virt_to_mfn(&cr3), L1_PROT);
     vmap_user_4k(&user_cr3, virt_to_mfn(&user_cr3), L1_PROT);
@@ -103,6 +110,7 @@ void init_usermode(percpu_t *percpu) {
     vmap_user_4k(usermode_helpers, virt_to_mfn(usermode_helpers), L1_PROT);
 
     init_syscall();
+    init_sysenter(percpu);
 }
 
 static inline long __user_text syscall(long syscall_nr, long arg1, long arg2, long arg3,
