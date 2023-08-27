@@ -75,8 +75,10 @@ static void init_syscall(void) {
     msr_star_t star;
 
     star.eip = _u(_ul(&syscall_handler_entry));
-    star.kern_cs = __KERN_CS64;
-    star.user_cs = __USER_CS64;
+
+    /* see segment.h for details regarding these values */
+    star.kern_cs = __KERN_CS;
+    star.user_cs = __USER_CS32;
 
     wrmsr(MSR_STAR, star.reg);
     wrmsr(MSR_LSTAR, _ul(&syscall_handler_entry));
