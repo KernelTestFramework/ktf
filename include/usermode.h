@@ -39,6 +39,13 @@
 #include <percpu.h>
 #include <sched.h>
 
+enum syscall_mode {
+    SYSCALL_MODE_SYSCALL,  // use SYSCALL
+    SYSCALL_MODE_SYSENTER, // use SYSENTER
+    SYSCALL_MODE_INT,      // TODO: use INT $SYSVEC
+};
+typedef enum syscall_mode syscall_mode_t;
+
 /* Static declarations */
 
 static inline bool enter_from_usermode(uint16_t cs) {
@@ -57,6 +64,7 @@ extern void __user_text exit(unsigned long exit_code);
 extern void __user_text printf(const char *fmt, ...);
 extern void *__user_text mmap(void *va, unsigned long order);
 extern void __user_text munmap(void *va, unsigned long order);
+extern bool __user_text syscall_mode(syscall_mode_t);
 
 #endif /* __ASSEMBLY__ */
 
