@@ -68,7 +68,12 @@ ENTRY(entry_\sym)
         push $0
     .endif
 
+#if defined(__x86_64__)
     movl $\vec, cpu_exc_vector(%_ASM_SP)
+#else
+    push $\vec
+#endif
+
     jmp handle_exception
 END_FUNC(entry_\sym)
 .endm
@@ -119,11 +124,7 @@ ENTRY(handle_exception)
 
     RESTORE_ALL_REGS
 
-#if defined(__x86_64__)
     add $8, %_ASM_SP
-#else
-    add $4, %_ASM_SP
-#endif
 
     enter_to_usermode
     IRET
