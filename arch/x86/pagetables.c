@@ -30,7 +30,7 @@
 #include <spinlock.h>
 #include <string.h>
 
-cr3_t cr3;
+cr3_t __aligned(PAGE_SIZE) cr3;
 cr3_t user_cr3;
 
 static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
