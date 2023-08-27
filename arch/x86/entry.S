@@ -145,10 +145,9 @@ ENTRY(enter_usermode)
     PUSHF
 
     /* Save stack pointer onto per-cpu */
-    mov %_ASM_SP, %gs:usermode_private
+    mov %_ASM_DX, %gs:(usermode_private)
 
-    /* Move to user stack */
-    mov %_ASM_DX, %_ASM_SP
+    syscall_to_usermode
 
     /* SS + SP */
     push $__USER_DS
@@ -162,8 +161,6 @@ ENTRY(enter_usermode)
     /* CS + IP */
     push $__USER_CS
     push $usermode_stub
-
-    enter_to_usermode
     IRET
 END_FUNC(enter_usermode)
 
