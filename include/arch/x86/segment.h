@@ -324,8 +324,6 @@ static inline uint64_t get_intr_handler(const struct x86_gate64 *gate) {
 }
 #endif
 
-extern idt_entry_t idt[256];
-extern idt_ptr_t idt_ptr;
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_SEGMENT_H */
