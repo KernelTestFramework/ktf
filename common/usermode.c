@@ -83,11 +83,7 @@ static void init_syscall(void) {
     /* FIXME: Add compat support */
     wrmsr(MSR_CSTAR, _ul(NULL));
 
-    wrmsr(MSR_FMASK, X86_EFLAGS_CF | X86_EFLAGS_PF | X86_EFLAGS_AF | X86_EFLAGS_ZF |
-                         X86_EFLAGS_SF | X86_EFLAGS_TF | X86_EFLAGS_IF | X86_EFLAGS_DF |
-                         X86_EFLAGS_OF | X86_EFLAGS_ID | X86_EFLAGS_NT | X86_EFLAGS_RF |
-                         X86_EFLAGS_AC | X86_EFLAGS_IOPL);
-
+    wrmsr(MSR_FMASK, USERMODE_FLAGS_MASK);
     wrmsr(MSR_EFER, rdmsr(MSR_EFER) | EFER_SCE);
 }
 
