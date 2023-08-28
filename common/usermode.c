@@ -27,6 +27,7 @@
 #include <pagetable.h>
 #include <percpu.h>
 #include <processor.h>
+#include <traps.h>
 #include <usermode.h>
 
 extern char exception_handlers[], end_exception_handlers[];
@@ -111,6 +112,25 @@ void init_usermode(percpu_t *percpu) {
 
     init_syscall();
     init_sysenter(percpu);
+    set_intr_gate(&percpu->idt[SYSCALL_INT], __KERN_CS, _ul(int80_handler_entry),
+                  GATE_DPL3, GATE_PRESENT, 0);
+}
+
+static inline long __user_text _int80(long syscall_nr, long arg1, long arg2, long arg3,
+                                      long arg4, long arg5) {
+    register long return_code asm(STR(_ASM_AX));
+    register long _arg4 asm("r8") = arg4;
+    register long _arg5 asm("r9") = arg5;
+
+    /* clang-format off */
+    asm volatile(
+        "int $" STR(SYSCALL_INT) "\n"
+        : "=a"(return_code)
+        : "0"(syscall_nr), "S"(arg1), "d"(arg2), "D" (arg3), "r"(_arg4), "r"(_arg5)
+    );
+    /* clang-format on */
+
+    return return_code;
 }
 
 static inline long __user_text _syscall(long syscall_nr, long arg1, long arg2, long arg3,
@@ -156,7 +176,7 @@ static inline long __user_text _sysenter(long syscall_nr, long arg1, long arg2, 
 static __user_data syscall_mode_t sc_mode = SYSCALL_MODE_SYSCALL;
 
 bool __user_text syscall_mode(syscall_mode_t mode) {
-    if (mode > SYSCALL_MODE_INT) {
+    if (mode > SYSCALL_MODE_INT80) {
         return false;
     }
     sc_mode = mode;
@@ -171,8 +191,8 @@ static long __user_text syscall(long syscall_nr, long arg1, long arg2, long arg3
         return _syscall(syscall_nr, arg1, arg2, arg3, arg4, arg5);
     case SYSCALL_MODE_SYSENTER:
         return _sysenter(syscall_nr, arg1, arg2, arg3, arg4, arg5);
-    case SYSCALL_MODE_INT:
-        // unimplemented
+    case SYSCALL_MODE_INT80:
+        return _int80(syscall_nr, arg1, arg2, arg3, arg4, arg5);
     default:
         UNREACHABLE();
     }

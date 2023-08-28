@@ -30,6 +30,8 @@
 
 #define MAX_INT 256
 
+#define SYSCALL_INT 0x80
+
 #ifndef __ASSEMBLY__
 #include <cpu.h>
 
