@@ -28,6 +28,7 @@
 #include <lib.h>
 #include <processor.h>
 #include <segment.h>
+#include <traps.h>
 
 extern uint8_t *_boot_stack_ist_top;
 extern uint8_t *_boot_stack_df_top;
@@ -49,7 +50,7 @@ gdt_ptr_t __data_init boot_gdt_ptr = {
     .addr = _ul(&boot_gdt),
 };
 
-idt_entry_t __data_init boot_idt[256];
+idt_entry_t __data_init boot_idt[MAX_INT];
 
 idt_ptr_t boot_idt_ptr __data_init = {
     .size = sizeof(boot_idt) - 1,
@@ -78,7 +79,7 @@ gdt_ptr_t __data_rmode rmode_gdt_ptr = {
     .addr = _ul(&rmode_gdt),
 };
 
-idt_entry_t __data_rmode rmode_idt[256];
+idt_entry_t __data_rmode rmode_idt[MAX_INT];
 
 idt_ptr_t rmode_idt_ptr __data_rmode = {
     .size = sizeof(rmode_idt) - 1,

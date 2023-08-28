@@ -35,6 +35,7 @@
 #include <smp/smp.h>
 #include <spinlock.h>
 #include <time.h>
+#include <traps.h>
 
 #include "acpi.h"
 
@@ -582,7 +583,7 @@ ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 InterruptLevel, ACPI_OSD_HANDLE
     if (acpi_irq_installed)
         return AE_ALREADY_EXISTS;
 
-    if (!Handler || InterruptLevel > ARRAY_SIZE(idt))
+    if (!Handler || InterruptLevel > MAX_INT)
         return AE_BAD_PARAMETER;
 
     acpi_irq_num = InterruptLevel;
@@ -605,7 +606,7 @@ ACPI_STATUS AcpiOsRemoveInterruptHandler(UINT32 InterruptLevel,
     if (!acpi_irq_installed)
         return AE_NOT_EXIST;
 
-    if (!Handler || InterruptLevel > ARRAY_SIZE(idt) || InterruptLevel != acpi_irq_num)
+    if (!Handler || InterruptLevel > MAX_INT || InterruptLevel != acpi_irq_num)
         return AE_BAD_PARAMETER;
 
     if (Handler != _ptr(get_intr_handler(&percpu->idt[acpi_irq_num])))

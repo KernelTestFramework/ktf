@@ -122,7 +122,7 @@ void init_traps(const cpu_t *cpu) {
     percpu->idt = get_free_page(GFP_KERNEL | GFP_USER);
     BUG_ON(!percpu->idt);
 
-    percpu->idt_ptr.size = (sizeof(percpu->idt) * MAX_INT) - 1;
+    percpu->idt_ptr.size = (sizeof(idt_entry_t) * MAX_INT) - 1;
     percpu->idt_ptr.addr = _ul(percpu->idt);
 
     /* clang-format off */
