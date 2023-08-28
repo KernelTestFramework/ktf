@@ -242,6 +242,24 @@ ENTRY(sysenter_handler_entry)
 
     SYSEXIT
 END_FUNC(sysenter_handler_entry)
+
+ENTRY(int80_handler_entry)
+    SAVE_ALL_REGS
+    syscall_from_usermode
+
+    MASK_USER_FLAGS
+
+    cmp $SYSCALL_EXIT, %_ASM_AX
+    jz syscall_exit
+
+    mov %_ASM_DI, %_ASM_CX
+    mov %_ASM_AX, %_ASM_DI
+    call syscall_handler
+
+    syscall_to_usermode
+    RESTORE_ALL_REGS
+    IRET
+END_FUNC(int80_handler_entry)
 GLOBAL(end_usermode_helpers)
 
 SECTION(.text.user, "ax", 16)
