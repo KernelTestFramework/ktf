@@ -30,6 +30,11 @@
 #define SYSCALL_MMAP   2
 #define SYSCALL_MUNMAP 3
 
+#define USERMODE_FLAGS_MASK                                                              \
+    (X86_EFLAGS_CF | X86_EFLAGS_PF | X86_EFLAGS_AF | X86_EFLAGS_ZF | X86_EFLAGS_SF |     \
+     X86_EFLAGS_TF | X86_EFLAGS_IF | X86_EFLAGS_DF | X86_EFLAGS_OF | X86_EFLAGS_ID |     \
+     X86_EFLAGS_NT | X86_EFLAGS_RF | X86_EFLAGS_AC | X86_EFLAGS_IOPL)
+
 #ifndef __ASSEMBLY__
 #include <percpu.h>
 #include <sched.h>

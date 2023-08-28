@@ -78,9 +78,17 @@ ENTRY(entry_\sym)
 END_FUNC(entry_\sym)
 .endm
 
+.macro MASK_USER_FLAGS
+    PUSHF
+    andl $~(USERMODE_FLAGS_MASK), (%_ASM_SP)
+    POPF
+.endm
+
 .macro interrupt_handler sym func
 ENTRY(asm_interrupt_handler_\sym)
     enter_from_usermode
+
+    MASK_USER_FLAGS
 
     cld
     SAVE_ALL_REGS
