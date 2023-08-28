@@ -50,7 +50,7 @@ endif
 ACPICA_DEST_DIR := $(KTF_ROOT)/drivers/acpi/acpica
 ifeq ($(CONFIG_ACPICA),y)
 TAR_CMD_ACPICA := tar --exclude=.git --exclude=.gitignore --strip-components=1 -C $(ACPICA_DEST_DIR) -xf
-ACPICA_VER := unix-20211217
+ACPICA_VER := unix-20230628
 ACPICA_NAME := acpica
 ACPICA_DIR := $(KTF_ROOT)/$(THIRD_PARTY)/$(ACPICA_NAME)
 ACPICA_TARBALL := $(ACPICA_DIR)/$(ACPICA_NAME)-$(ACPICA_VER).tar.gz
