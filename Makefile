@@ -73,6 +73,7 @@ endif
 LD := ld
 
 NM := nm
+CTAGS := ctags
 PYTHON := $(shell tools/ci/get-python.sh)
 SHELL := bash
 RM := rm
@@ -230,6 +231,7 @@ clean:
 	$(VERBOSE) find $(KTF_ROOT) -name \*.img -delete
 	$(VERBOSE) find $(KTF_ROOT) -name \*.xz -delete
 	$(VERBOSE) find $(KTF_ROOT) -name cscope.\* -delete
+	$(VERBOSE) find $(KTF_ROOT) -maxdepth 1 \( -name tags -or -name TAGS \) -delete
 	$(VERBOSE) find $(KTF_ROOT) -name $(ASM_OFFSETS_S) -delete
 	$(VERBOSE) find $(KTF_ROOT) -name $(ASM_OFFSETS_H) -delete
 	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
@@ -314,6 +316,10 @@ cscope:
 	@echo "CSCOPE"
 	$(VERBOSE) $(all_sources) > cscope.files
 	$(VERBOSE) cscope -b -q -k
+
+tags TAGS: $(SOURCES) $(HEADERS) $(ASM_SOURCES)
+	@echo "TAGS ($@)"
+	$(VERBOSE) $(CTAGS) -o $@ $+
 
 .PHONY: style
 style:
