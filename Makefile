@@ -73,7 +73,7 @@ endif
 LD := ld
 
 NM := nm
-PYTHON := python
+PYTHON := $(shell tools/ci/get-python.sh)
 SHELL := bash
 RM := rm
 LN := ln
