@@ -38,7 +38,7 @@ GLOBAL(ap_start)
     inc   %ax
     lmsw  %ax
 
-    ljmp  $__KERN_CS32, $.Lprot_mode
+    ljmpl  $__KERN_CS32, $.Lprot_mode
 
 .code32
 .Lprot_mode:

@@ -190,7 +190,7 @@ END_FUNC(_prot_to_real)
     mov   %eax, %cr0
 
     /* Set CS to first segment. It should cover the .text.rmode section */
-    ljmp  $0x0, $.Lset_rmode_cs
+    ljmpl  $0x0, $.Lset_rmode_cs
 .Lset_rmode_cs:
 
     /* Set other segment selectors to the first segment.
