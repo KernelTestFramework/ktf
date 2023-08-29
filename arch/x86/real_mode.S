@@ -139,7 +139,18 @@ END_FUNC(_prot_to_real)
 
 .align 16
 .Lfrom_long_mode:
-    /* Disable LME in EFER */
+    /* Use protected mode data segment */
+    mov   $__KERN_DS32, %eax
+    mov   %eax, %ds
+    mov   %eax, %ss
+
+    /* Disable paging to enter protected mode. */
+    /* Clearing PG implicitly clears EFER.LMA, see Intel SDM 9.8.5.4, */
+    mov   %cr0, %eax
+    and   $~(X86_CR0_PG | X86_CR0_WP), %eax
+    mov   %eax, %cr0
+
+    /* Disable LME in EFER. */
     movl  $MSR_EFER, %ecx
     rdmsr
     and   $~EFER_LME, %eax
@@ -150,15 +161,6 @@ END_FUNC(_prot_to_real)
     /* Load real mode accessible GDT and IDT */
     lgdt  rmode_gdt_ptr
     lidt  rmode_idt_ptr
-
-    /* Disable paging to enter protected mode */
-    mov   %cr0, %eax
-    and   $~(X86_CR0_PG | X86_CR0_WP), %eax
-    mov   %eax, %cr0
-
-    /* Use protected mode data selector */
-    mov   $__KERN_DS32, %eax
-    mov   %eax, %ds
 
     /* Use real mode accessible stack */
     mov   rmode_stack, %esp
