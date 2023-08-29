@@ -56,6 +56,7 @@
 /* Kernel specific ACPICA configuration */
 
 #ifdef KTF_DEBUG
+#undef ACPI_NO_ERROR_MESSAGES
 #define ACPI_DEBUG_OUTPUT
 #endif
 
