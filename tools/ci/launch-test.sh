@@ -6,6 +6,8 @@
 # next launches a test and checks for a successful timeout.
 set -e
 
+COMPILER=$1
+
 # Execute relative to this script
 SCRIPTDIR="$( cd "$(dirname "$0")" ; pwd -P )"
 declare -r SCRIPTDIR
@@ -16,12 +18,12 @@ cd "$SCRIPTDIR"/../..
 # Build project in docker
 echo "Building project from scratch"
 make clean V=1
-make UNITTEST=1 docker:boot.iso V=1
+make UNITTEST=1 docker:boot.iso V=1 CC=$COMPILER
 
 # Use QEMU to launch the guest
 echo "Launching KTF"
 declare -i STATUS=0
-timeout 10 make UNITTEST=1 docker:boot V=1 || STATUS=$?
+timeout 10 make UNITTEST=1 docker:boot V=1 CC=$COMPILER || STATUS=$?
 
 # Check if the expected exit code happened (124 for timeout)
 if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 124 ]

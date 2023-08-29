@@ -5,6 +5,8 @@
 # This script builds the project's boot.iso file in the docker environment
 set -e
 
+COMPILER=$1
+
 # Execute relative to this script
 SCRIPTDIR="$( cd "$(dirname "$0")" ; pwd -P )"
 declare -r SCRIPTDIR
@@ -14,4 +16,4 @@ cd "$SCRIPTDIR"/../..
 
 # Build project in docker
 make clean V=1
-make docker:boot.iso V=1
+make docker:boot.iso V=1 CC=$COMPILER
