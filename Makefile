@@ -124,6 +124,10 @@ ifeq ($(CONFIG_ACPICA),y)
 COMMON_FLAGS += -DKTF_ACPICA
 endif
 
+ifneq ($(UNITTEST),)
+COMMON_FLAGS += -DKTF_UNIT_TEST
+endif
+
 AFLAGS  := $(COMMON_FLAGS) -DASM_FILE -D__ASSEMBLY__ -nostdlib -nostdinc
 CFLAGS  := $(COMMON_FLAGS) -std=gnu99 -O2 -g -Wall -Wextra -ffreestanding -nostdlib -nostdinc
 CFLAGS  += -mno-red-zone -mno-mmx -mno-sse -mno-sse2
