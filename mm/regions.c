@@ -46,7 +46,7 @@ unsigned regions_num;
 
 addr_range_t addr_ranges[] = {
     /* clang-format off */
-    IDENT_RANGE( ".text.init",  L1_PROT_RO,      __start_text_init,     __end_text_init ),
+    IDENT_RANGE( ".text.init",  L1_PROT,         __start_text_init,     __end_text_init ),
     IDENT_RANGE( ".data.init",  L1_PROT,         __start_data_init,     __end_data_init ),
     IDENT_RANGE( ".bss.init",   L1_PROT,         __start_bss_init,      __end_bss_init  ),
 
