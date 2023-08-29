@@ -75,17 +75,16 @@ GLOBAL(ap_start)
 .code64
 .Llong_mode:
     xor %rax, %rax
-    mov %rax, %ds
-    mov %rax, %es
-    mov %rax, %fs
-    mov %rax, %gs
-    mov %rax, %ss
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    mov %ax, %ss
 
     push $X86_EFLAGS_MBS
-    popf
+    POPF
 
     cld
-
     jmp ap_startup
 
     ud2

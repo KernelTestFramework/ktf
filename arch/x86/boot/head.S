@@ -98,16 +98,17 @@ END_FUNC(prot_to_real)
 
 .code64
 .Llong_mode:
-    xor   %eax, %eax
+    xor   %rax, %rax
     mov   %ax, %ds
     mov   %ax, %es
     mov   %ax, %fs
     mov   %ax, %gs
     mov   %ax, %ss
 
-    pushq $X86_EFLAGS_MBS
-    popfq
+    push $X86_EFLAGS_MBS
+    POPF
 
+    cld
     jmp kernel_start
 
     ud2
