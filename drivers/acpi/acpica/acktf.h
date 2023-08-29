@@ -65,7 +65,7 @@
 
 #include "acenv.h"
 
-#define ACPI_INIT_FUNCTION
+#define ACPI_INIT_FUNCTION __text_init
 #define ACPI_CACHE_T ACPI_MEMORY_LIST
 
 /* Host-dependent types and defines for in-kernel ACPICA */
