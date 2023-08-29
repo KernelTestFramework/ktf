@@ -69,6 +69,26 @@
 .endm
 
 .macro SAVE_ALL_REGS32
+    push %eax
+    push %ebx
+    push %ecx
+    push %edx
+    push %esi
+    push %edi
+    push %ebp
+.endm
+
+.macro RESTORE_ALL_REGS32
+    pop %ebp
+    pop %edi
+    pop %esi
+    pop %edx
+    pop %ecx
+    pop %ebx
+    pop %eax
+.endm
+
+.macro SAVE_ALL_REGS
     push %_ASM_AX
     push %_ASM_BX
     push %_ASM_CX
@@ -76,20 +96,6 @@
     push %_ASM_SI
     push %_ASM_DI
     push %_ASM_BP
-.endm
-
-.macro RESTORE_ALL_REGS32
-    pop %_ASM_BP
-    pop %_ASM_DI
-    pop %_ASM_SI
-    pop %_ASM_DX
-    pop %_ASM_CX
-    pop %_ASM_BX
-    pop %_ASM_AX
-.endm
-
-.macro SAVE_ALL_REGS
-    SAVE_ALL_REGS32
 #if defined(__x86_64__)
     push %r8
     push %r9
@@ -113,7 +119,13 @@
     pop %r9
     pop %r8
 #endif
-    RESTORE_ALL_REGS32
+    pop %_ASM_BP
+    pop %_ASM_DI
+    pop %_ASM_SI
+    pop %_ASM_DX
+    pop %_ASM_CX
+    pop %_ASM_BX
+    pop %_ASM_AX
 .endm
 
 .macro SAVE_CALLEE_SAVED_REGS
