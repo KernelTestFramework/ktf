@@ -33,6 +33,7 @@
 #include <test.h>
 #include <usermode.h>
 
+#include <mm/pmm.h>
 #include <smp/smp.h>
 
 static char opt_string[4];
@@ -109,6 +110,12 @@ static unsigned long __user_text test_user_task_func3(void *arg) {
     return -16;
 }
 
+#define HIGH_USER_PTR _ptr(0xffffffff80222000)
+static unsigned long __user_text test_user_task_func4(void *arg) {
+    printf(USTR("access: %lx\n"), _ul(HIGH_USER_PTR));
+    return *(unsigned long *) HIGH_USER_PTR;
+}
+
 int unit_tests(void *_unused) {
     printk("\nLet the UNITTESTs begin\n");
     printk("Commandline parsing: %s\n", kernel_cmdline);
@@ -178,7 +185,7 @@ int unit_tests(void *_unused) {
     cpu_freq_expect("Prototyp Amazing Foo Two @ 1.00GHz", 1000000000);
 
     task_t *task1, *task2, *task_user1, *task_user1_se, *task_user1_int80, *task_user2,
-        *task_user3;
+        *task_user3, *task_user4;
 
     task1 = new_kernel_task("test1", test_kernel_task_func, _ptr(98));
     task2 = new_kernel_task("test2", test_kernel_task_func, _ptr(-99));
@@ -189,6 +196,14 @@ int unit_tests(void *_unused) {
         new_user_task("test1 user int80", test_user_task_func1_int80, NULL);
     task_user2 = new_user_task("test2 user", test_user_task_func2, NULL);
     task_user3 = new_user_task("test3 user", test_user_task_func3, NULL);
+    task_user4 = new_user_task("test4 user", test_user_task_func4, NULL);
+
+    vmap_4k(HIGH_USER_PTR + 0x1000, get_free_frame()->mfn, L1_PROT);
+    memset(HIGH_USER_PTR + 0x1000, 0, 0x1000);
+    vmap_user_4k(HIGH_USER_PTR, get_free_frame()->mfn, L1_PROT_USER);
+
+    /* Be sure that we can still touch this vmap despite the user vmap. */
+    BUG_ON(*(unsigned long *) (HIGH_USER_PTR + 0x1000) != 0);
 
     set_task_repeat(task1, 10);
     schedule_task(task1, get_bsp_cpu());
@@ -198,6 +213,7 @@ int unit_tests(void *_unused) {
     schedule_task(task_user1_int80, get_bsp_cpu());
     schedule_task(task_user2, get_cpu(1));
     schedule_task(task_user3, get_bsp_cpu());
+    schedule_task(task_user4, get_cpu(1));
 
     printk("Long mode to real mode transition:\n");
     long_to_real();
