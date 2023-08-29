@@ -98,7 +98,8 @@ extern void init_regions(void);
 
 static inline bool in_text_section(const void *addr) {
     return (addr >= _ptr(__start_text) && addr < _ptr(__end_text)) ||
-           (addr >= _ptr(__start_text_init) && addr < _ptr(__end_text_init));
+           (addr >= _ptr(__start_text_init) && addr < _ptr(__end_text_init)) ||
+           (addr >= _ptr(__start_text_rmode) && addr < _ptr(__end_text_rmode));
 }
 
 static inline bool in_user_text_section(const void *addr) {
