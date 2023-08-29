@@ -9,7 +9,7 @@ cat <<EOT > "$OUTPUT"
 #ifndef KTF_ASM_OFFSETS_H
 #define KTF_ASM_OFFSETS_H
 
-$(awk -F '@@' '/\.ascii "@@/ {print $2}' "$INPUT" | tr -d '$')
+$(awk -F '@@' '/\.ascii.*@@.*@@/ {print $2}' "$INPUT" | tr -d '$')
 
 #endif /* KTF_ASM_OFFSETS_H */
 EOT
