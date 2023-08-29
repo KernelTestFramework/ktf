@@ -128,6 +128,26 @@ static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
     return cr3_entry->mfn;
 }
 
+static inline void pgentry_fixup_flags(pgentry_t *entry, unsigned long flags) {
+    /* Our new flags may take precedence over previous ones if the new ones are more
+     * permissive. */
+    unsigned long entry_new = *entry;
+    entry_new |= flags & _PAGE_USER; /* USER may result in crash if we enabled SMAP */
+    entry_new |= flags & _PAGE_RW;
+    entry_new &= ~(flags & _PAGE_NX);
+    if (unlikely(*entry != entry_new)) {
+        char flags_str_old[16];
+        char flags_str_new[16];
+        printk("WARNING: Already-present PTE protection flags conflicts with our.\n"
+               "         Updating present flags: %s -> %s\n",
+               dump_pte_flags(flags_str_old, 16, (pte_t) *entry),
+               dump_pte_flags(flags_str_new, 16, (pte_t) entry_new));
+        *entry = entry_new;
+        barrier();
+        flush_tlb();
+    }
+}
+
 static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flags) {
     pgentry_t *tab, *entry;
     mfn_t mfn;
@@ -146,6 +166,10 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
         mfn = mfn_from_pgentry(*entry);
         tab = init_map_mfn(mfn);
         memset(tab, 0, PAGE_SIZE);
+    }
+    else {
+        /* Page table already exists but its flags may conflict with our. Maybe fixup */
+        pgentry_fixup_flags(entry, flags);
     }
 
     return mfn;
