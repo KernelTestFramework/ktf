@@ -68,6 +68,10 @@
 #define ACPI_INIT_FUNCTION __text_init
 #define ACPI_CACHE_T       ACPI_MEMORY_LIST
 
+#define ACPI_UINTPTR_T     uintptr_t
+#define ACPI_TO_INTEGER(p) ((uintptr_t)(p))
+#define ACPI_OFFSET(d, f)  offsetof(d, f)
+
 /* Host-dependent types and defines for in-kernel ACPICA */
 
 #define ACPI_EXPORT_SYMBOL(symbol)
