@@ -15,7 +15,7 @@ jobs:
         DEBIAN_FRONTEND: noninteractive
       run: |
         sudo apt-get update
-        sudo apt-get install -y qemu qemu-user
+        sudo apt-get install -y build-essential qemu qemu-user
     - uses: actions/checkout@v2
     - name: Build the Docker image
       run: ./tools/ci/build-docker.sh
