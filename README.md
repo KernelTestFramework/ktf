@@ -1,8 +1,9 @@
 # KTF - Kernel Test Framework
 
 ![GitHub release](https://img.shields.io/github/v/release/awslabs/ktf)
-![C/C++ CI](https://github.com/awslabs/ktf/workflows/C/C++%20CI/badge.svg?branch=mainline)
-![Docker Build Test](https://github.com/awslabs/ktf/workflows/Docker%20Build%20Test/badge.svg)
+[![C/C++ CI (GCC)](https://github.com/KernelTestFramework/ktf/actions/workflows/c-cpp-gcc.yml/badge.svg?branch=mainline)](https://github.com/KernelTestFramework/ktf/actions/workflows/c-cpp-gcc.yml)
+[![C/C++ CI (CLang)](https://github.com/KernelTestFramework/ktf/actions/workflows/c-cpp-clang.yml/badge.svg?branch=mainline)](https://github.com/KernelTestFramework/ktf/actions/workflows/c-cpp-clang.yml)
+[![Docker Run Test](https://github.com/KernelTestFramework/ktf/actions/workflows/docker-ci.yml/badge.svg?branch=mainline)](https://github.com/KernelTestFramework/ktf/actions/workflows/docker-ci.yml)
 ![test-clang-format](https://github.com/awslabs/ktf/workflows/test-clang-format/badge.svg?branch=mainline&event=push)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/awslabs/ktf.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/awslabs/ktf/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/awslabs/ktf.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/awslabs/ktf/context:cpp)
