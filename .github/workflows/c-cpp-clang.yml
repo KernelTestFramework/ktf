@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: C/C++ CI (CLang)
 
 on:
   push:
@@ -15,5 +15,5 @@ jobs:
     - uses: actions/checkout@v2
     - name: make clean
       run: make clean
-    - name: make all
-      run: make all
+    - name: make CC=clang all
+      run: make CC=clang all

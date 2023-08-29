@@ -1,0 +1,19 @@
+name: C/C++ CI (GCC)
+
+on:
+  push:
+    branches: [ mainline ]
+  pull_request:
+    branches: [ mainline ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: make clean
+      run: make clean
+    - name: make CC=gcc all
+      run: make CC=gcc all
