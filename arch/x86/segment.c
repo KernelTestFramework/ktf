@@ -52,7 +52,7 @@ gdt_ptr_t __data_init boot_gdt_ptr = {
 
 idt_entry_t __data_init boot_idt[MAX_INT];
 
-idt_ptr_t boot_idt_ptr __data_init = {
+idt_ptr_t __data_init boot_idt_ptr = {
     .size = sizeof(boot_idt) - 1,
     .addr = _ul(&boot_idt),
 };
