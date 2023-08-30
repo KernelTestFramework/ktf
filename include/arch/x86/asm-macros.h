@@ -88,8 +88,10 @@
     pop %eax
 .endm
 
-.macro SAVE_ALL_REGS
+.macro SAVE_ALL_REGS include_ax=1
+    .if \include_ax
     push %_ASM_AX
+    .endif
     push %_ASM_BX
     push %_ASM_CX
     push %_ASM_DX
@@ -108,7 +110,7 @@
 #endif
 .endm
 
-.macro RESTORE_ALL_REGS
+.macro RESTORE_ALL_REGS include_ax=1
 #if defined(__x86_64__)
     pop %r15
     pop %r14
@@ -125,7 +127,9 @@
     pop %_ASM_DX
     pop %_ASM_CX
     pop %_ASM_BX
+    .if \include_ax
     pop %_ASM_AX
+    .endif
 .endm
 
 .macro SAVE_CALLEE_SAVED_REGS

@@ -202,7 +202,7 @@ ENTRY(enter_usermode)
 END_FUNC(enter_usermode)
 
 ENTRY(syscall_handler_entry)
-    SAVE_ALL_REGS
+    SAVE_ALL_REGS include_ax=0
     syscall_from_usermode
 
     cmp $SYSCALL_EXIT, %_ASM_AX
@@ -219,12 +219,12 @@ ENTRY(syscall_handler_entry)
     pop %_ASM_CX
 
     syscall_to_usermode
-    RESTORE_ALL_REGS
+    RESTORE_ALL_REGS include_ax=0
     SYSRET
 END_FUNC(syscall_handler_entry)
 
 ENTRY(sysenter_handler_entry)
-    SAVE_ALL_REGS
+    SAVE_ALL_REGS include_ax=0
     syscall_from_usermode
 
     MASK_USER_FLAGS
@@ -238,13 +238,13 @@ ENTRY(sysenter_handler_entry)
     call syscall_handler
 
     syscall_to_usermode
-    RESTORE_ALL_REGS
+    RESTORE_ALL_REGS include_ax=0
 
     SYSEXIT
 END_FUNC(sysenter_handler_entry)
 
 ENTRY(int80_handler_entry)
-    SAVE_ALL_REGS
+    SAVE_ALL_REGS include_ax=0
     syscall_from_usermode
 
     MASK_USER_FLAGS
@@ -257,7 +257,7 @@ ENTRY(int80_handler_entry)
     call syscall_handler
 
     syscall_to_usermode
-    RESTORE_ALL_REGS
+    RESTORE_ALL_REGS include_ax=0
     IRET
 END_FUNC(int80_handler_entry)
 GLOBAL(end_usermode_helpers)
