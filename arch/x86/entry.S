@@ -32,38 +32,46 @@
 #include <usermode.h>
 #include <errno.h>
 
-.macro _handle_usermode cr3
-    testb $0x3, cpu_exc_cs(%_ASM_SP)
-    jz 1f /* skip if from kernel mode */
-        SET_CR3 \cr3
-        swapgs
-    1:
-.endm
-
-.macro enter_from_usermode
-    _handle_usermode cr3
-.endm
-
-.macro enter_to_usermode
-    _handle_usermode user_cr3
-.endm
-
-.macro syscall_from_usermode
+.macro _from_usermode switch_stack=0
     SET_CR3 cr3
     swapgs
-    SWITCH_STACK
+    .if \switch_stack == 1
+        SWITCH_STACK
+    .endif
 .endm
 
-.macro syscall_to_usermode
-    SWITCH_STACK
+.macro _to_usermode switch_stack=0
+    .if \switch_stack == 1
+        SWITCH_STACK
+    .endif
     swapgs
     SET_CR3 user_cr3
 .endm
 
+.macro cond_from_usermode
+    testb $0x3, cpu_exc_cs(%_ASM_SP)
+    jz 1f /* skip if from kernel mode */
+        _from_usermode
+    1:
+.endm
+
+.macro cond_to_usermode
+    testb $0x3, cpu_exc_cs(%_ASM_SP)
+    jz 1f /* skip if from kernel mode */
+        _to_usermode
+    1:
+.endm
+
+.macro syscall_from_usermode
+    _from_usermode
+.endm
+
+.macro syscall_to_usermode
+    _to_usermode
+.endm
+
 .macro exception_handler sym vec has_error_code
 ENTRY(entry_\sym)
-    enter_from_usermode
-
     .if \has_error_code == 0
         push $0
     .endif
@@ -74,6 +82,7 @@ ENTRY(entry_\sym)
     push $\vec
 #endif
 
+    cond_from_usermode
     jmp handle_exception
 END_FUNC(entry_\sym)
 .endm
@@ -86,7 +95,7 @@ END_FUNC(entry_\sym)
 
 .macro interrupt_handler sym func
 ENTRY(asm_interrupt_handler_\sym)
-    enter_from_usermode
+    _from_usermode
 
     MASK_USER_FLAGS
 
@@ -95,7 +104,7 @@ ENTRY(asm_interrupt_handler_\sym)
     call \func
     RESTORE_ALL_REGS
 
-    enter_to_usermode
+    _to_usermode
     IRET
 END_FUNC(asm_interrupt_handler_\sym)
 .endm
@@ -109,9 +118,8 @@ ENTRY(handle_exception)
 
     RESTORE_ALL_REGS
 
+    cond_to_usermode
     add $8, %_ASM_SP
-
-    enter_to_usermode
     IRET
 END_FUNC(handle_exception)
 
@@ -184,7 +192,7 @@ ENTRY(enter_usermode)
     mov %_ASM_DX, %gs:(usermode_private)
 
     /* Now switch stack and address space */
-    syscall_to_usermode
+    _to_usermode switch_stack=1
 
     /* SS + SP */
     push $__USER_DS
