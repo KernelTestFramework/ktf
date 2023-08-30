@@ -201,7 +201,7 @@ ENTRY(enter_usermode)
 END_FUNC(enter_usermode)
 
 ENTRY(syscall_handler_entry)
-    SAVE_CALLEE_SAVED_REGS
+    SAVE_ALL_REGS
     syscall_from_usermode
 
     cmp $SYSCALL_EXIT, %_ASM_AX
@@ -218,7 +218,7 @@ ENTRY(syscall_handler_entry)
     pop %_ASM_CX
 
     syscall_to_usermode
-    RESTORE_CALLEE_SAVED_REGS
+    RESTORE_ALL_REGS
     SYSRET
 END_FUNC(syscall_handler_entry)
 GLOBAL(end_usermode_helpers)
