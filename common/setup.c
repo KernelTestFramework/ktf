@@ -227,9 +227,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
 
     init_tasks();
 
-    /* Initialize timers */
-    init_timers(bsp);
-
     /* Try to initialize ACPI (and MADT) */
 #ifndef KTF_ACPICA
     if (init_acpi() < 0) {
@@ -241,10 +238,13 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
             boot_flags.nosmp = true;
     }
 
+    init_ioapic();
+
+    /* Initialize timers */
+    init_timers(bsp);
+
     if (!boot_flags.nosmp)
         init_smp();
-
-    init_ioapic();
 
     init_pci();
 
