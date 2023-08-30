@@ -70,6 +70,27 @@
     _to_usermode
 .endm
 
+.macro irq_from_usermode
+    testb $0x3, cpu_exc_cs(%_ASM_SP)
+    jz 1f /* skip if from kernel mode */
+        _from_usermode
+        /* Preserve USER CS and a fake RIP on kernel stack */
+        /* This is expected by the irq_to_usermode to detect context          */
+        push $__USER_CS
+        sub $cpu_exc_cs, %_ASM_SP
+    1:
+.endm
+
+.macro irq_to_usermode
+    testb $0x3, cpu_exc_cs(%_ASM_SP)
+    jz 1f /* skip if from kernel mode */
+        /* Clean up USER CS and a fake RIP from kernel stack */
+        /* cpu_exc_flags == cpu_exc_cs + sizeof(push $__USER_CS)                  */
+        add $cpu_exc_flags, %_ASM_SP
+        _to_usermode
+    1:
+.endm
+
 .macro exception_handler sym vec has_error_code
 ENTRY(entry_\sym)
     .if \has_error_code == 0
@@ -90,8 +111,7 @@ END_FUNC(entry_\sym)
 
 .macro interrupt_handler sym func
 ENTRY(asm_interrupt_handler_\sym)
-    _from_usermode
-
+    irq_from_usermode
     MASK_USER_FLAGS
 
     cld
@@ -99,7 +119,7 @@ ENTRY(asm_interrupt_handler_\sym)
     call \func
     RESTORE_ALL_REGS
 
-    _to_usermode
+    irq_to_usermode
     IRET
 END_FUNC(asm_interrupt_handler_\sym)
 .endm
