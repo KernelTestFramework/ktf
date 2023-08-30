@@ -32,6 +32,12 @@
 #include <usermode.h>
 #include <errno.h>
 
+.macro MASK_USER_FLAGS
+    PUSHF
+    andl $~(USERMODE_FLAGS_MASK), (%_ASM_SP)
+    POPF
+.endm
+
 .macro _from_usermode switch_stack=1
     SET_CR3 cr3
     swapgs
@@ -51,6 +57,7 @@
 .macro exc_from_usermode
     testb $0x3, cpu_exc_cs(%_ASM_SP)
     jz 1f /* skip if from kernel mode */
+        MASK_USER_FLAGS
         _from_usermode switch_stack=0
     1:
 .endm
@@ -73,6 +80,7 @@
 .macro irq_from_usermode
     testb $0x3, cpu_exc_cs(%_ASM_SP)
     jz 1f /* skip if from kernel mode */
+        MASK_USER_FLAGS
         _from_usermode
         /* Preserve USER CS and a fake RIP on kernel stack */
         /* This is expected by the irq_to_usermode to detect context          */
@@ -103,16 +111,9 @@ ENTRY(entry_\sym)
 END_FUNC(entry_\sym)
 .endm
 
-.macro MASK_USER_FLAGS
-    PUSHF
-    andl $~(USERMODE_FLAGS_MASK), (%_ASM_SP)
-    POPF
-.endm
-
 .macro interrupt_handler sym func
 ENTRY(asm_interrupt_handler_\sym)
     irq_from_usermode
-    MASK_USER_FLAGS
 
     cld
     SAVE_ALL_REGS
