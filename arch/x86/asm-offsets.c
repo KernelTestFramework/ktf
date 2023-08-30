@@ -34,13 +34,19 @@
 void __asm_offset_header(void) {
     OFFSETOF(usermode_private, percpu_t, usermode_private);
 
+    OFFSETOF(cpu_irq_ip, cpu_irq_t, _ASM_IP);
+    OFFSETOF(cpu_irq_cs, cpu_irq_t, cs);
+    OFFSETOF(cpu_irq_flags, cpu_irq_t, _ASM_FLAGS);
+    OFFSETOF(cpu_irq_sp, cpu_irq_t, _ASM_SP);
+    OFFSETOF(cpu_irq_ss, cpu_irq_t, ss);
+
     OFFSETOF(cpu_exc_error_code, cpu_exc_t, error_code);
     OFFSETOF(cpu_exc_vector, cpu_exc_t, vector);
-    OFFSETOF(cpu_exc_ip, cpu_exc_t, _ASM_IP);
-    OFFSETOF(cpu_exc_cs, cpu_exc_t, cs);
-    OFFSETOF(cpu_exc_flags, cpu_exc_t, _ASM_FLAGS);
-    OFFSETOF(cpu_exc_sp, cpu_exc_t, _ASM_SP);
-    OFFSETOF(cpu_exc_ss, cpu_exc_t, ss);
+    OFFSETOF(cpu_exc_ip, cpu_exc_t, irq._ASM_IP);
+    OFFSETOF(cpu_exc_cs, cpu_exc_t, irq.cs);
+    OFFSETOF(cpu_exc_flags, cpu_exc_t, irq._ASM_FLAGS);
+    OFFSETOF(cpu_exc_sp, cpu_exc_t, irq._ASM_SP);
+    OFFSETOF(cpu_exc_ss, cpu_exc_t, irq.ss);
 
     OFFSETOF(cpu_regs_ax, cpu_regs_t, _ASM_AX);
     OFFSETOF(cpu_regs_bx, cpu_regs_t, _ASM_BX);
@@ -62,9 +68,9 @@ void __asm_offset_header(void) {
 
     OFFSETOF(cpu_regs_error_code, cpu_regs_t, exc.error_code);
     OFFSETOF(cpu_regs_vector, cpu_regs_t, exc.vector);
-    OFFSETOF(cpu_regs_ip, cpu_regs_t, exc._ASM_IP);
-    OFFSETOF(cpu_regs_cs, cpu_regs_t, exc.cs);
-    OFFSETOF(cpu_regs_flags, cpu_regs_t, exc._ASM_FLAGS);
-    OFFSETOF(cpu_regs_sp, cpu_regs_t, exc._ASM_SP);
-    OFFSETOF(cpu_regs_ss, cpu_regs_t, exc.ss);
+    OFFSETOF(cpu_regs_ip, cpu_regs_t, exc.irq._ASM_IP);
+    OFFSETOF(cpu_regs_cs, cpu_regs_t, exc.irq.cs);
+    OFFSETOF(cpu_regs_flags, cpu_regs_t, exc.irq._ASM_FLAGS);
+    OFFSETOF(cpu_regs_sp, cpu_regs_t, exc.irq._ASM_SP);
+    OFFSETOF(cpu_regs_ss, cpu_regs_t, exc.irq.ss);
 }

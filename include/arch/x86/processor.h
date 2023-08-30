@@ -245,17 +245,28 @@ typedef uint64_t x86_reg_t;
 typedef uint32_t x86_reg_t;
 #endif
 
-struct cpu_exc {
-    x86_ex_error_code_t error_code;
-    /* Populated by exception entry */
-    uint32_t vector;
-
+struct cpu_irq {
     /* Hardware exception */
     x86_reg_t _ASM_IP;
     uint16_t cs, _pad_cs[3];
     x86_reg_t _ASM_FLAGS;
     x86_reg_t _ASM_SP;
     uint16_t ss, _pad_ss[3];
+} __packed;
+typedef struct cpu_irq cpu_irq_t;
+
+struct cpu_exc {
+    union {
+        struct {
+            x86_ex_error_code_t error_code;
+            /* Populated by exception entry */
+            uint32_t vector;
+        };
+        /* We stuff the vector number into the upper 32 bit of the error code */
+        uint64_t _raw;
+    };
+
+    cpu_irq_t irq;
 } __packed;
 typedef struct cpu_exc cpu_exc_t;
 
