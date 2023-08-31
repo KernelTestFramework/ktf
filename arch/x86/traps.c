@@ -301,7 +301,7 @@ static bool extables_fixup(struct cpu_regs *regs) {
     return false;
 }
 
-void do_exception(struct cpu_regs *regs) {
+void do_exception(cpu_regs_t *regs) {
     static char ec_str[32], panic_str[128];
 
     if (!enter_from_usermode(regs->exc.cs) && extables_fixup(regs))
