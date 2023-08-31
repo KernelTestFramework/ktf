@@ -33,9 +33,11 @@
 
 #define KEYBOARD_PORT1_IRQ 0x01
 #define KEYBOARD_PORT2_IRQ 0x04 /* Second port */
-#define KEYBOARD_PORT1_IRQ0_OFFSET                                                       \
+#define KEYBOARD_PORT1_IRQ_OFFSET                                                        \
     (PIC_IRQ0_OFFSET + KEYBOARD_PORT1_IRQ) /* keyboard first channel irq offset */
-#define KEYBOARD_PORT2_IRQ0_OFFSET (PIC_IRQ0_OFFSET + KEYBOARD_PORT2_IRQ)
+#define KEYBOARD_PORT1_IRQ_VECTOR KEYBOARD_PORT1_IRQ_OFFSET
+#define KEYBOARD_PORT2_IRQ_OFFSET (PIC_IRQ0_OFFSET + KEYBOARD_PORT2_IRQ)
+#define KEYBOARD_PORT2_IRQ_VECTOR KEYBOARD_PORT2_IRQ_OFFSET
 
 #define KEYBOARD_STATUS_OUT_FULL 0x01 /* bit set when the keyboard buffer is full */
 

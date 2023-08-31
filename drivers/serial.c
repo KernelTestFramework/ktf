@@ -162,8 +162,8 @@ void __text_init init_uart_input(const cpu_t *cpu) {
     /* Enable IRQ lines */
     printk("Enabling serial input\n");
 
-    configure_isa_irq(COM1_IRQ, COM1_IRQ0_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
-    configure_isa_irq(COM2_IRQ, COM2_IRQ0_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
+    configure_isa_irq(COM1_IRQ, COM1_IRQ_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
+    configure_isa_irq(COM2_IRQ, COM2_IRQ_OFFSET, IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
 }
 
 static inline int uart_port_status(io_port_t port) {

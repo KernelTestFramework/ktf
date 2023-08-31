@@ -37,7 +37,8 @@
 #include <drivers/pit.h>
 
 #define HPET_IRQ        PIT_IRQ
-#define HPET_IRQ_OFFSET PIT_IRQ0_OFFSET
+#define HPET_IRQ_OFFSET PIT_IRQ_OFFSET
+#define HPET_IRQ_VECTOR HPET_IRQ_OFFSET
 
 #ifndef KTF_ACPICA
 #define HPET_SIGNATURE (('H') | ('P' << 8) | ('E' << 16) | ('T' << 24))

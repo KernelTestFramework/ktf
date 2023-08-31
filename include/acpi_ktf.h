@@ -275,6 +275,8 @@ extern int init_acpi(void);
 
 #include "acpi.h"
 
+#define ACPI_SCI_IRQ 0x9
+
 typedef void (*acpi_subtable_parser_t)(ACPI_SUBTABLE_HEADER *entry, void *arg);
 
 union inti_flags {

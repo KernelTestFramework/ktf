@@ -145,7 +145,7 @@ void init_keyboard(const cpu_t *cpu) {
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
         outb(KEYBOARD_PORT_DATA, current_status.config);
 
-        configure_isa_irq(KEYBOARD_PORT1_IRQ, KEYBOARD_PORT1_IRQ0_OFFSET,
+        configure_isa_irq(KEYBOARD_PORT1_IRQ, KEYBOARD_PORT1_IRQ_OFFSET,
                           IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_1);
     }
@@ -155,7 +155,7 @@ void init_keyboard(const cpu_t *cpu) {
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_WRITE_CONFIGURATION);
         outb(KEYBOARD_PORT_DATA, current_status.config);
 
-        configure_isa_irq(KEYBOARD_PORT2_IRQ, KEYBOARD_PORT2_IRQ0_OFFSET,
+        configure_isa_irq(KEYBOARD_PORT2_IRQ, KEYBOARD_PORT2_IRQ_OFFSET,
                           IOAPIC_DEST_MODE_PHYSICAL, cpu->id);
         outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_ENABLE_PORT_2);
     }

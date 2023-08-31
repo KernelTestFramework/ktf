@@ -148,7 +148,8 @@ GLOBAL(end_exception_handlers)
 
 GLOBAL(interrupt_handlers)
 interrupt_handler timer timer_interrupt_handler
-interrupt_handler uart uart_interrupt_handler
+interrupt_handler uart1 uart_interrupt_handler
+interrupt_handler uart2 uart_interrupt_handler
 interrupt_handler keyboard keyboard_interrupt_handler
 #ifdef KTF_ACPICA
 interrupt_handler acpi acpi_interrupt_handler
