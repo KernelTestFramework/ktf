@@ -252,10 +252,12 @@ struct cpu_exc {
 
     /* Hardware exception */
     x86_reg_t _ASM_IP;
-    uint16_t cs, _pad_cs[3];
+    uint16_t cs;
+    uint8_t _pad_cs[sizeof(x86_reg_t) - sizeof(uint16_t)];
     x86_reg_t _ASM_FLAGS;
     x86_reg_t _ASM_SP;
-    uint16_t ss, _pad_ss[3];
+    uint16_t ss;
+    uint8_t _pad_ss[sizeof(x86_reg_t) - sizeof(uint16_t)];
 } __packed;
 typedef struct cpu_exc cpu_exc_t;
 
