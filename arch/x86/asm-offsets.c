@@ -34,13 +34,21 @@
 void __asm_offset_header(void) {
     OFFSETOF(usermode_private, percpu_t, usermode_private);
 
-    OFFSETOF(cpu_exc_error_code, cpu_exc_t, error_code);
     OFFSETOF(cpu_exc_vector, cpu_exc_t, vector);
+    OFFSETOF(cpu_exc_error_code, cpu_exc_t, error_code);
     OFFSETOF(cpu_exc_ip, cpu_exc_t, _ASM_IP);
     OFFSETOF(cpu_exc_cs, cpu_exc_t, cs);
     OFFSETOF(cpu_exc_flags, cpu_exc_t, _ASM_FLAGS);
     OFFSETOF(cpu_exc_sp, cpu_exc_t, _ASM_SP);
     OFFSETOF(cpu_exc_ss, cpu_exc_t, ss);
+
+    OFFSETOF(cpu_regs_ss, cpu_regs_t, exc.ss);
+    OFFSETOF(cpu_regs_sp, cpu_regs_t, exc._ASM_SP);
+    OFFSETOF(cpu_regs_flags, cpu_regs_t, exc._ASM_FLAGS);
+    OFFSETOF(cpu_regs_cs, cpu_regs_t, exc.cs);
+    OFFSETOF(cpu_regs_ip, cpu_regs_t, exc._ASM_IP);
+    OFFSETOF(cpu_regs_error_code, cpu_regs_t, exc.error_code);
+    OFFSETOF(cpu_regs_vector, cpu_regs_t, exc.vector);
 
     OFFSETOF(cpu_regs_ax, cpu_regs_t, _ASM_AX);
     OFFSETOF(cpu_regs_bx, cpu_regs_t, _ASM_BX);
@@ -59,12 +67,4 @@ void __asm_offset_header(void) {
     OFFSETOF(cpu_regs_r14, cpu_regs_t, r14);
     OFFSETOF(cpu_regs_r15, cpu_regs_t, r15);
 #endif
-
-    OFFSETOF(cpu_regs_error_code, cpu_regs_t, exc.error_code);
-    OFFSETOF(cpu_regs_vector, cpu_regs_t, exc.vector);
-    OFFSETOF(cpu_regs_ip, cpu_regs_t, exc._ASM_IP);
-    OFFSETOF(cpu_regs_cs, cpu_regs_t, exc.cs);
-    OFFSETOF(cpu_regs_flags, cpu_regs_t, exc._ASM_FLAGS);
-    OFFSETOF(cpu_regs_sp, cpu_regs_t, exc._ASM_SP);
-    OFFSETOF(cpu_regs_ss, cpu_regs_t, exc.ss);
 }
