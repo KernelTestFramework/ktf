@@ -266,8 +266,7 @@ QEMU_PARAMS_NOGFX := -display none -vga none -vnc none
 QEMU_PARAMS_GFX := $(QEMU_PARAMS)
 QEMU_PARAMS += $(QEMU_PARAMS_NOGFX)
 
-QEMU_PARAMS_KERNEL := -append "param1 param2 param3"
-QEMU_PARAMS_DEBUG := -s &
+QEMU_PARAMS_DEBUG := -s -S &
 
 ISO_FILE := boot.iso
 
@@ -298,17 +297,9 @@ boot_gfx: $(ISO_FILE)
 boot_debug: $(ISO_FILE)
 	$(QEMU_BIN) -cdrom $(ISO_FILE) $(QEMU_PARAMS) $(QEMU_PARAMS_DEBUG)
 
-.PHONY: run
-run: $(TARGET)
-	$(QEMU_BIN) -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL)
-
-.PHONY: debug
-debug: $(TARGET)
-	$(QEMU_BIN) -kernel $(TARGET) $(QEMU_PARAMS) $(QEMU_PARAMS_KERNEL) $(QEMU_PARAMS_DEBUG)
-
 .PHONY: gdb
-gdb: debug
-	$(GDB) $(TARGET) -ex 'target remote :1234' -ex 'b _start' -ex 'c'
+gdb: boot_debug
+	$(GDB) $(TARGET_DEBUG) -ex 'target remote :1234' -ex 'hb _start' -ex c
 	killall -9 $(QEMU_BIN)
 
 define all_sources
