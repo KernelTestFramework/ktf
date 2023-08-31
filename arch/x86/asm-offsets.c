@@ -23,8 +23,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <acpi_ktf.h>
 #include <compiler.h>
 #include <percpu.h>
+#include <traps.h>
 
 #define EMIT_DEFINE(s, v)                                                                \
     asm volatile(".ascii \"@@#define " #s " %0 /* " #v " */@@\"\n" ::"i"(v))
@@ -67,4 +69,12 @@ void __asm_offset_header(void) {
     OFFSETOF(cpu_regs_r14, cpu_regs_t, r14);
     OFFSETOF(cpu_regs_r15, cpu_regs_t, r15);
 #endif
+
+    EMIT_DEFINE(serial_com1_irq, SERIAL_COM1_IRQ);
+    EMIT_DEFINE(serial_com2_irq, SERIAL_COM2_IRQ);
+    EMIT_DEFINE(timer_irq, TIMER_IRQ);
+    EMIT_DEFINE(kb_port1_irq, KB_PORT1_IRQ);
+    EMIT_DEFINE(kb_port2_irq, KB_PORT2_IRQ);
+    EMIT_DEFINE(apic_timer_irq, APIC_TIMER_IRQ);
+    EMIT_DEFINE(acpi_sci_irq, ACPI_SCI_IRQ);
 }
