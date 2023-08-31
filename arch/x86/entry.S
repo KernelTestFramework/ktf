@@ -82,7 +82,7 @@
     jz 1f /* skip if from kernel mode */
         MASK_USER_FLAGS
         _from_usermode
-        /* Preserve USER CS and a fake RIP on kernel stack */
+        /* Preserve USER CS and fake: RIP, error_code, vector on kernel stack */
         /* This is expected by the irq_to_usermode to detect context          */
         push $__USER_CS
         sub $cpu_exc_cs, %_ASM_SP
@@ -92,7 +92,7 @@
 .macro irq_to_usermode
     testb $0x3, cpu_exc_cs(%_ASM_SP)
     jz 1f /* skip if from kernel mode */
-        /* Clean up USER CS and a fake RIP from kernel stack */
+        /* Clean up USER CS and a fake: RIP, error_code, vector from kernel stack */
         /* cpu_exc_flags == cpu_exc_cs + sizeof(push $__USER_CS)                  */
         add $cpu_exc_flags, %_ASM_SP
         _to_usermode
@@ -111,8 +111,10 @@ ENTRY(entry_\sym)
 END_FUNC(entry_\sym)
 .endm
 
-.macro interrupt_handler sym func
+.macro interrupt_handler sym func vec
 ENTRY(asm_interrupt_handler_\sym)
+    push $0 /* fake error_code */
+    push $\vec /* IRQ vector */
     irq_from_usermode
 
     cld
@@ -121,6 +123,9 @@ ENTRY(asm_interrupt_handler_\sym)
     RESTORE_ALL_REGS
 
     irq_to_usermode
+    /* Popping error_code and vector machine words added on entry. */
+    /* By using cpu_exc_t offset we make it arch-agnostic.         */
+    add $cpu_exc_ip, %_ASM_SP
     IRET
 END_FUNC(asm_interrupt_handler_\sym)
 .endm
@@ -168,12 +173,12 @@ exception_handler SE  X86_EX_SE  1
 GLOBAL(end_exception_handlers)
 
 GLOBAL(interrupt_handlers)
-interrupt_handler timer timer_interrupt_handler
-interrupt_handler uart1 uart_interrupt_handler
-interrupt_handler uart2 uart_interrupt_handler
-interrupt_handler keyboard keyboard_interrupt_handler
+interrupt_handler timer timer_interrupt_handler timer_irq
+interrupt_handler uart1 uart_interrupt_handler serial_com1_irq
+interrupt_handler uart2 uart_interrupt_handler serial_com2_irq
+interrupt_handler keyboard keyboard_interrupt_handler kb_port1_irq
 #ifdef KTF_ACPICA
-interrupt_handler acpi acpi_interrupt_handler
+interrupt_handler acpi acpi_interrupt_handler acpi_sci_irq
 #endif
 GLOBAL(end_interrupt_handlers)
 
