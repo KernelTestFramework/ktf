@@ -23,17 +23,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef TRAPS_TRAPS_H
-#define TRAPS_TRAPS_H
+#ifndef KTF_TRAPS_H
+#define KTF_TRAPS_H
 
 #include <processor.h>
 
-#define MAX_INT 256
+#define EXC_BASE 0
+#define IRQ_BASE 32
 
 #define SYSCALL_INT 0x80
 
+#define MAX_INT 256
+
 #ifndef __ASSEMBLY__
 #include <cpu.h>
+#include <drivers/keyboard.h>
+#include <drivers/pit.h>
+#include <drivers/serial.h>
+
+#define SERIAL_COM1_IRQ COM1_IRQ_VECTOR
+#define SERIAL_COM2_IRQ COM2_IRQ_VECTOR
+#define TIMER_IRQ       PIT_IRQ_VECTOR
+#define KB_PORT1_IRQ    KEYBOARD_PORT1_IRQ_VECTOR
+#define KB_PORT2_IRQ    KEYBOARD_PORT2_IRQ_VECTOR
+#define APIC_TIMER_IRQ  APIC_TIMER_IRQ_VECTOR
 
 extern void init_traps(const cpu_t *cpu);
 extern void init_boot_traps(void);
@@ -44,4 +57,4 @@ extern void do_exception(struct cpu_regs *regs);
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* TRAPS_TRAPS_H */
+#endif /* KTF_TRAPS_H */

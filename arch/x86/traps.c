@@ -39,7 +39,8 @@
 
 #include <mm/vmm.h>
 
-extern void asm_interrupt_handler_uart(void);
+extern void asm_interrupt_handler_uart1(void);
+extern void asm_interrupt_handler_uart2(void);
 extern void asm_interrupt_handler_keyboard(void);
 extern void asm_interrupt_handler_timer(void);
 
@@ -153,15 +154,15 @@ void init_traps(const cpu_t *cpu) {
     set_intr_gate(&percpu->idt[X86_EX_DF],  __KERN_CS, _ul(entry_DF),  GATE_DPL0, GATE_PRESENT, 1);
 #endif
 
-    set_intr_gate(&percpu->idt[COM1_IRQ0_OFFSET], __KERN_CS,
-                  _ul(asm_interrupt_handler_uart), GATE_DPL0, GATE_PRESENT, 0);
-    set_intr_gate(&percpu->idt[COM2_IRQ0_OFFSET], __KERN_CS,
-                  _ul(asm_interrupt_handler_uart), GATE_DPL0, GATE_PRESENT, 0);
-    set_intr_gate(&percpu->idt[PIT_IRQ0_OFFSET], __KERN_CS,
+    set_intr_gate(&percpu->idt[SERIAL_COM1_IRQ], __KERN_CS,
+                  _ul(asm_interrupt_handler_uart1), GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[SERIAL_COM2_IRQ], __KERN_CS,
+                  _ul(asm_interrupt_handler_uart2), GATE_DPL0, GATE_PRESENT, 0);
+    set_intr_gate(&percpu->idt[TIMER_IRQ], __KERN_CS,
                   _ul(asm_interrupt_handler_timer), GATE_DPL0, GATE_PRESENT, 0);
-    set_intr_gate(&percpu->idt[KEYBOARD_PORT1_IRQ0_OFFSET], __KERN_CS,
+    set_intr_gate(&percpu->idt[KB_PORT1_IRQ], __KERN_CS,
                   _ul(asm_interrupt_handler_keyboard), GATE_DPL0, GATE_PRESENT, 0);
-    set_intr_gate(&percpu->idt[APIC_TIMER_IRQ_OFFSET], __KERN_CS,
+    set_intr_gate(&percpu->idt[APIC_TIMER_IRQ], __KERN_CS,
                   _ul(asm_interrupt_handler_timer), GATE_DPL0, GATE_PRESENT, 0);
 
     barrier();

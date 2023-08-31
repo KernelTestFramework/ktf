@@ -29,8 +29,9 @@
 #include <drivers/pic.h>
 #include <ktf.h>
 
-#define PIT_IRQ         0x00                        /* IRQ line */
-#define PIT_IRQ0_OFFSET (PIC_IRQ0_OFFSET + PIT_IRQ) /* IRQ relative to PIC master */
+#define PIT_IRQ        0x00                        /* IRQ line */
+#define PIT_IRQ_OFFSET (PIC_IRQ0_OFFSET + PIT_IRQ) /* IRQ relative to PIC master */
+#define PIT_IRQ_VECTOR PIT_IRQ_OFFSET
 
 #define PIT_OUT_FREQUENCY 1193182 /* oscillator output frequency */
 #define PIT_RELOAD        1000    /* 1ms */
