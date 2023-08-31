@@ -92,6 +92,11 @@ static unsigned long __user_text test_user_task_func2(void *arg) {
     return 0;
 }
 
+static unsigned long __user_text test_user_task_func3(void *arg) {
+    /* ensure tasks return code is correct */
+    return -16;
+}
+
 int unit_tests(void *_unused) {
     printk("\nLet the UNITTESTs begin\n");
     printk("Commandline parsing: %s\n", kernel_cmdline);
@@ -160,18 +165,20 @@ int unit_tests(void *_unused) {
     cpu_freq_expect("Prototyp Amazing Foo One @ 1GHz", 1000000000);
     cpu_freq_expect("Prototyp Amazing Foo Two @ 1.00GHz", 1000000000);
 
-    task_t *task1, *task2, *task_user1, *task_user2;
+    task_t *task1, *task2, *task_user1, *task_user2, *task_user3;
 
     task1 = new_kernel_task("test1", test_kernel_task_func, _ptr(98));
     task2 = new_kernel_task("test2", test_kernel_task_func, _ptr(-99));
     task_user1 = new_user_task("test1 user", test_user_task_func1, NULL);
     task_user2 = new_user_task("test2 user", test_user_task_func2, NULL);
+    task_user3 = new_user_task("test3 user", test_user_task_func3, NULL);
 
     set_task_repeat(task1, 10);
     schedule_task(task1, get_bsp_cpu());
     schedule_task(task2, get_cpu(1));
     schedule_task(task_user1, get_bsp_cpu());
     schedule_task(task_user2, get_cpu(1));
+    schedule_task(task_user3, get_bsp_cpu());
 
     printk("Long mode to real mode transition:\n");
     long_to_real();

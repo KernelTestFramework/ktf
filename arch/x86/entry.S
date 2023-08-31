@@ -272,7 +272,7 @@ ENTRY(usermode_stub)
     call *%_ASM_SI
 
     /* sys_exit */
-    mov %_ASM_AX, %_ASM_DI
+    mov %_ASM_AX, %_ASM_SI
     mov $SYSCALL_EXIT, %_ASM_AX
     syscall
 END_FUNC(usermode_stub)
