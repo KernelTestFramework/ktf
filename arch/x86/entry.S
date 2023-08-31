@@ -75,12 +75,7 @@ ENTRY(entry_\sym)
     .if \has_error_code == 0
         push $0
     .endif
-
-#if defined(__x86_64__)
-    movl $\vec, cpu_exc_vector(%_ASM_SP)
-#else
     push $\vec
-#endif
 
     cond_from_usermode
     jmp handle_exception
@@ -127,7 +122,9 @@ ENTRY(handle_exception)
     RESTORE_ALL_REGS
 
     cond_to_usermode
-    add $8, %_ASM_SP
+    /* Popping error_code and vector machine words added on entry. */
+    /* By using cpu_exc_t offset we make it arch-agnostic.         */
+    add $cpu_exc_ip, %_ASM_SP
     IRET
 END_FUNC(handle_exception)
 

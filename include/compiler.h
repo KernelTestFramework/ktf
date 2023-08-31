@@ -26,6 +26,8 @@
 #ifndef KTF_COMPILER_H
 #define KTF_COMPILER_H
 
+#define BITS_PER_BYTE 8
+
 #define _STR(x) #x
 #define STR(x)  _STR(x)
 
