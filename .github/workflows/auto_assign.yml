@@ -2,19 +2,18 @@ name: Auto Assign
 
 on:
   issues:
-    types: [opened, labeled]
+    types:
+      - opened
   pull_request:
-    types: [opened, labeled]
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    types:
+      - opened
 
 jobs:
-  auto_assign:
+  add-to-project:
+    name: Add issue/PR to project
     runs-on: ubuntu-latest
-    name: Assign to Project
     steps:
-    - name: Assign NEW issues and PRs to project 1
-      uses: srggrs/assign-one-project-github-action@1.2.0
-      if: github.event.action == 'opened'
-      with:
-        project: 'https://github.com/awslabs/ktf/projects/1'
+      - uses: actions/add-to-project@0.5.0
+        with:
+          project-url: https://github.com/orgs/KernelTestFramework/projects/2
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
