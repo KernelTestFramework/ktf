@@ -201,15 +201,21 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#if defined(__x86_64__)
+typedef uint64_t x86_reg_t;
+#elif defined(__i386__)
+typedef uint32_t x86_reg_t;
+#endif
+
 union x86_ex_error_code {
-    uint32_t error_code;
+    x86_reg_t error_code;
     struct __packed {
-        unsigned int E : 1, TLB : 2, index : 13, rsvd_sel : 16;
+        x86_reg_t E : 1, TLB : 2, index : 13;
     };
     struct __packed {
-        unsigned int P : 1, W : 1, U : 1, R : 1, I : 1, rsvd_pfec : 27;
+        x86_reg_t P : 1, W : 1, U : 1, R : 1, I : 1;
     };
-};
+} __packed;
 typedef union x86_ex_error_code x86_ex_error_code_t;
 
 /*
@@ -239,16 +245,10 @@ extern void entry_SE(void);
 
 extern void rmode_exception(void);
 
-#if defined(__x86_64__)
-typedef uint64_t x86_reg_t;
-#elif defined(__i386__)
-typedef uint32_t x86_reg_t;
-#endif
-
 struct cpu_exc {
-    x86_ex_error_code_t error_code;
     /* Populated by exception entry */
-    uint32_t vector;
+    x86_reg_t vector;
+    x86_ex_error_code_t error_code;
 
     /* Hardware exception */
     x86_reg_t _ASM_IP;
@@ -301,7 +301,7 @@ typedef uint32_t msr_sysenter_esp_t;
 typedef uint32_t msr_sysenter_eip_t;
 #endif
 
-static inline bool has_error_code(uint32_t vector) {
+static inline bool has_error_code(x86_reg_t vector) {
     return !!((1U << vector) & X86_EX_HAS_ERROR_CODE);
 }
 
