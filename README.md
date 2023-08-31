@@ -106,14 +106,14 @@ For booting run:
 make boot
 ```
 
-For debugging ISO run:
+For debugging run:
 ```
 make boot_debug
 ```
 
-For debugging kernel image run:
+For debugging with gdb run:
 ```
-make debug
+make gdb
 ```
 
 #### Xen guest
