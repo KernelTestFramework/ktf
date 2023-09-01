@@ -32,6 +32,12 @@
 #include <usermode.h>
 #include <errno.h>
 
+.macro MASK_USER_FLAGS
+    PUSHF
+    andl $~(USERMODE_FLAGS_MASK), (%_ASM_SP)
+    POPF
+.endm
+
 .macro _from_usermode switch_stack=0
     SET_CR3 cr3
     swapgs
@@ -51,6 +57,7 @@
 .macro cond_from_usermode
     testb $0x3, cpu_exc_cs(%_ASM_SP)
     jz 1f /* skip if from kernel mode */
+        MASK_USER_FLAGS
         _from_usermode
     1:
 .endm
@@ -82,12 +89,6 @@ ENTRY(entry_\sym)
 END_FUNC(entry_\sym)
 .endm
 
-.macro MASK_USER_FLAGS
-    PUSHF
-    andl $~(USERMODE_FLAGS_MASK), (%_ASM_SP)
-    POPF
-.endm
-
 .macro check_syscall_exit
     cmp $SYSCALL_EXIT, %_ASM_AX
     jnz 1f
@@ -101,8 +102,6 @@ ENTRY(asm_interrupt_handler_\sym)
     push $0 /* fake error_code */
     push $\vec /* IRQ vector */
     cond_from_usermode
-
-    MASK_USER_FLAGS
 
     cld
     SAVE_ALL_REGS
