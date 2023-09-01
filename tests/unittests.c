@@ -80,6 +80,18 @@ static unsigned long __user_text test_user_task_func1(void *arg) {
     return 0;
 }
 
+static unsigned long __user_text test_user_task_func1_sysenter(void *arg) {
+    syscall_mode(SYSCALL_MODE_SYSENTER);
+    test_user_task_func1(NULL);
+    return 0;
+}
+
+static unsigned long __user_text test_user_task_func1_int80(void *arg) {
+    syscall_mode(SYSCALL_MODE_INT80);
+    test_user_task_func1(NULL);
+    return 0;
+}
+
 static unsigned long __user_text test_user_task_func2(void *arg) {
     void *va;
 
@@ -165,11 +177,16 @@ int unit_tests(void *_unused) {
     cpu_freq_expect("Prototyp Amazing Foo One @ 1GHz", 1000000000);
     cpu_freq_expect("Prototyp Amazing Foo Two @ 1.00GHz", 1000000000);
 
-    task_t *task1, *task2, *task_user1, *task_user2, *task_user3;
+    task_t *task1, *task2, *task_user1, *task_user1_se, *task_user1_int80, *task_user2,
+        *task_user3;
 
     task1 = new_kernel_task("test1", test_kernel_task_func, _ptr(98));
     task2 = new_kernel_task("test2", test_kernel_task_func, _ptr(-99));
     task_user1 = new_user_task("test1 user", test_user_task_func1, NULL);
+    task_user1_se =
+        new_user_task("test1 user sysenter", test_user_task_func1_sysenter, NULL);
+    task_user1_int80 =
+        new_user_task("test1 user int80", test_user_task_func1_int80, NULL);
     task_user2 = new_user_task("test2 user", test_user_task_func2, NULL);
     task_user3 = new_user_task("test3 user", test_user_task_func3, NULL);
 
@@ -177,6 +194,8 @@ int unit_tests(void *_unused) {
     schedule_task(task1, get_bsp_cpu());
     schedule_task(task2, get_cpu(1));
     schedule_task(task_user1, get_bsp_cpu());
+    schedule_task(task_user1_se, get_bsp_cpu());
+    schedule_task(task_user1_int80, get_bsp_cpu());
     schedule_task(task_user2, get_cpu(1));
     schedule_task(task_user3, get_bsp_cpu());
 
