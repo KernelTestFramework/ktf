@@ -103,7 +103,6 @@ ENTRY(asm_interrupt_handler_\sym)
     push $\vec /* IRQ vector */
     cond_from_usermode
 
-    cld
     SAVE_ALL_REGS
     call \func
     RESTORE_ALL_REGS
@@ -117,7 +116,6 @@ END_FUNC(asm_interrupt_handler_\sym)
 .endm
 
 ENTRY(handle_exception)
-    cld
     SAVE_ALL_REGS
 
     mov %_ASM_SP, %_ASM_DI
