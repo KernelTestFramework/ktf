@@ -62,12 +62,12 @@
     1:
 .endm
 
-.macro syscall_from_usermode
-    _from_usermode
+.macro syscall_from_usermode switch_stack=1
+    _from_usermode switch_stack=\switch_stack
 .endm
 
-.macro syscall_to_usermode
-    _to_usermode
+.macro syscall_to_usermode switch_stack=1
+    _to_usermode switch_stack=\switch_stack
 .endm
 
 .macro exception_handler sym vec has_error_code
@@ -91,6 +91,14 @@ END_FUNC(entry_\sym)
     PUSHF
     andl $~(USERMODE_FLAGS_MASK), (%_ASM_SP)
     POPF
+.endm
+
+.macro check_syscall_exit
+    cmp $SYSCALL_EXIT, %_ASM_AX
+    jnz 1f
+        _from_usermode
+        jmp syscall_exit
+    1:
 .endm
 
 .macro interrupt_handler sym func
@@ -160,6 +168,7 @@ GLOBAL(end_interrupt_handlers)
 
 .align PAGE_SIZE
 ENTRY(syscall_exit)
+    SWITCH_STACK
     POPF
 
     /* Save exit code to return value register (AX) */
@@ -170,13 +179,8 @@ ENTRY(syscall_exit)
 END_FUNC(syscall_exit)
 
 ENTRY(terminate_user_task)
-    SWITCH_STACK
-    POPF
-
-    movl $-EFAULT, cpu_regs_ax(%_ASM_SP)
-    RESTORE_ALL_REGS
-
-    ret
+    mov $-EFAULT, %_ASM_SI
+    jmp syscall_exit
 END_FUNC(terminate_user_task)
 
 .align PAGE_SIZE
@@ -210,11 +214,10 @@ ENTRY(enter_usermode)
 END_FUNC(enter_usermode)
 
 ENTRY(syscall_handler_entry)
+    check_syscall_exit
+
     SAVE_ALL_REGS include_ax=0
     syscall_from_usermode
-
-    cmp $SYSCALL_EXIT, %_ASM_AX
-    jz syscall_exit
 
     push %_ASM_CX
     push %r11
@@ -232,39 +235,37 @@ ENTRY(syscall_handler_entry)
 END_FUNC(syscall_handler_entry)
 
 ENTRY(sysenter_handler_entry)
+    check_syscall_exit
+
     SAVE_ALL_REGS include_ax=0
-    syscall_from_usermode
+    syscall_from_usermode switch_stack=0
 
     MASK_USER_FLAGS
-
-    cmp $SYSCALL_EXIT, %_ASM_AX
-    jz syscall_exit
 
     mov %_ASM_DI, %_ASM_DX
     mov %r10, %_ASM_CX
     mov %_ASM_AX, %_ASM_DI
     call syscall_handler
 
-    syscall_to_usermode
+    syscall_to_usermode switch_stack=0
     RESTORE_ALL_REGS include_ax=0
 
     SYSEXIT
 END_FUNC(sysenter_handler_entry)
 
 ENTRY(int80_handler_entry)
+    check_syscall_exit
+
     SAVE_ALL_REGS include_ax=0
-    syscall_from_usermode
+    syscall_from_usermode switch_stack=0
 
     MASK_USER_FLAGS
-
-    cmp $SYSCALL_EXIT, %_ASM_AX
-    jz syscall_exit
 
     mov %_ASM_DI, %_ASM_CX
     mov %_ASM_AX, %_ASM_DI
     call syscall_handler
 
-    syscall_to_usermode
+    syscall_to_usermode switch_stack=0
     RESTORE_ALL_REGS include_ax=0
     IRET
 END_FUNC(int80_handler_entry)
