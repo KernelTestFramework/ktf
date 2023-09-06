@@ -79,8 +79,8 @@ static void __text_init init_console(void) {
         cfg.parity = COM_NO_PARITY;
         cfg.stop_bit = COM_STOP_BIT_1;
     }
-    init_uart(&cfg);
-    register_console_callback(serial_console_write, _ptr(cfg.port));
+    if (init_uart(&cfg) == 0)
+        register_console_callback(serial_console_write, _ptr(cfg.port));
 
     if (opt_qemu_console) {
         register_console_callback(qemu_console_write, _ptr(QEMU_CONSOLE_PORT));
