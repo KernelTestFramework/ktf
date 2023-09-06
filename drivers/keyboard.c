@@ -211,6 +211,10 @@ unsigned int keyboard_process_keys(void) {
             if (keyboard_state.shift)
                 vga_scroll_up();
             break;
+        case SCAN_DEL:
+            if (keyboard_state.alt && keyboard_state.ctrl)
+                reboot();
+            break;
         case SCAN_PAGEDOWN:
             if (keyboard_state.shift)
                 vga_scroll_down();

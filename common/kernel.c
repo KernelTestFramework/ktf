@@ -35,6 +35,17 @@
 #include <perfmon/pfmlib.h>
 #endif
 
+void reboot(void) {
+    printk("Rebooting...\n");
+    io_delay();
+
+#ifdef KTF_ACPICA
+    acpi_reboot();
+#endif
+    keyboard_reboot();
+    hard_reboot();
+}
+
 static void __noreturn echo_loop(void) {
     while (1) {
         io_delay();
