@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <apic.h>
+#include <errno.h>
 #include <ioapic.h>
 #include <ktf.h>
 #include <lib.h>
@@ -124,7 +125,20 @@ static inline bool receiver_ready(io_port_t port) {
     return msr.dsr && msr.cts;
 }
 
-void __text_init init_uart(uart_config_t *cfg) {
+#define PORT_TIMEOUT 100 /* ~100ms */
+static inline int uart_port_ready(io_port_t port) {
+    unsigned retries = PORT_TIMEOUT;
+
+    do {
+        if (receiver_ready(port))
+            return 0;
+        io_delay();
+    } while (retries--);
+
+    return -ENODEV;
+}
+
+int __text_init init_uart(uart_config_t *cfg) {
     mcr_t mcr = {0};
     fcr_t fcr = {0};
     ier_t ier = {0};
@@ -153,6 +167,8 @@ void __text_init init_uart(uart_config_t *cfg) {
 
     if (com_ports[0] == NO_COM_PORT)
         com_ports[0] = cfg->port;
+
+    return uart_port_ready(cfg->port);
 }
 
 void __text_init init_uart_input(const cpu_t *cpu) {
@@ -168,11 +184,11 @@ void __text_init init_uart_input(const cpu_t *cpu) {
 
 static inline int uart_port_status(io_port_t port) {
     if (!receiver_ready(port))
-        return -1; /* ENODEV */
+        return -ENODEV;
 
     if (!thr_empty(port)) {
         io_delay();
-        return 1; /* EAGAIN */
+        return -EAGAIN;
     }
 
     return 0;
@@ -204,7 +220,7 @@ int serial_putchar(io_port_t port, char c) {
     do {
         rc = uart_putc(port, c);
         BUG_ON(rc < 0);
-    } while (rc > 0 && retries--);
+    } while (rc == -EAGAIN && retries--);
 
     return rc;
 }
@@ -216,7 +232,7 @@ int serial_write(io_port_t port, const char *buf, size_t len) {
     do {
         rc = uart_puts(port, buf, len);
         BUG_ON(rc < 0);
-    } while (rc > 0 && retries--);
+    } while (rc == -EAGAIN && retries--);
 
     return rc;
 }
