@@ -188,7 +188,7 @@ void init_apic_timer(void) {
         apic_write(APIC_LVT_TIMER, timer.reg);
 
         /* Sleep for 20ms to calibrate, count the ticks */
-        sleep(CAL_SLEEP_TIME);
+        msleep(CAL_SLEEP_TIME);
 
         /* Calibrate */
         uint32_t elapsed_ticks = (_U32(-1) - apic_read(APIC_TMR_CCR)) / CAL_SLEEP_TIME;
