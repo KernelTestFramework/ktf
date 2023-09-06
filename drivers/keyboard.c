@@ -61,12 +61,15 @@ struct keyboard_state {
 typedef struct keyboard_state keyboard_state_t;
 
 static keyboard_state_t keyboard_state;
+static bool i8042_present = false;
 
 void init_keyboard(const cpu_t *cpu) {
     if (!boot_flags.i8042) {
         dprintk("No i8042 microcontroller detected\n");
+        i8042_present = false;
         return;
     }
+    i8042_present = true;
 
     printk("Initializing keyboard driver\n");
 
@@ -182,6 +185,9 @@ unsigned int keyboard_process_keys(void) {
     unsigned n = 0;
     unsigned char key, scan;
 
+    if (!i8042_present)
+        return n;
+
     while (keyboard_state.curr != keyboard_state.init) {
         scan = keyboard_state.buf[keyboard_state.init];
 
@@ -210,6 +216,11 @@ unsigned int keyboard_process_keys(void) {
 
 void keyboard_interrupt_handler(void) {
     unsigned char status;
+
+    if (!i8042_present) {
+        apic_EOI();
+        return;
+    }
 
     status = inb(KEYBOARD_PORT_CMD);
     if (status & KEYBOARD_STATUS_OUT_FULL) {
