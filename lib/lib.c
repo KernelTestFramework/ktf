@@ -36,6 +36,17 @@ void __noreturn halt(void) {
     }
 }
 
+/* Trigger Triple Fault */
+void __noreturn hard_reboot(void) {
+    idt_ptr_t idt_ptr = {0};
+
+    cli();
+    lidt(&idt_ptr);
+    int3();
+
+    halt();
+}
+
 static uint64_t seed;
 
 void srand(unsigned s) {

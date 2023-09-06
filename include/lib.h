@@ -167,6 +167,10 @@ static inline void hlt(void) {
     asm volatile("hlt");
 }
 
+static inline void int3(void) {
+    asm volatile("int3");
+}
+
 static inline unsigned long read_flags(void) {
     unsigned long flags;
 
@@ -469,6 +473,7 @@ static inline void enable_fpu(void) {
 /* External declarations */
 
 extern void halt(void);
+extern void hard_reboot(void);
 
 extern void srand(unsigned s);
 
