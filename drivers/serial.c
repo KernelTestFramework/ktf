@@ -40,15 +40,15 @@ static struct {
 
 io_port_t __data_rmode com_ports[4];
 
-static inline const char *com_port_name(com_port_t port) {
-    switch (port) {
-    case COM1_PORT:
+static inline const char *com_name(com_idx_t com) {
+    switch (com) {
+    case COM1:
         return "COM1";
-    case COM2_PORT:
+    case COM2:
         return "COM2";
-    case COM3_PORT:
+    case COM3:
         return "COM3";
-    case COM4_PORT:
+    case COM4:
         return "COM4";
     default:
         BUG();
@@ -69,8 +69,8 @@ static const char com_parity_names[] = {
 
 #define COM_STOP_BIT_VALUE(cfg) ((cfg)->stop_bit + 1)
 
-void display_uart_config(const uart_config_t *cfg) {
-    printk("[%s] 0x%x %u,%u%c%u\n", com_port_name(cfg->port), cfg->port, cfg->baud,
+void display_uart_config(com_idx_t com, const uart_config_t *cfg) {
+    printk("[%s] 0x%x %u,%u%c%u\n", com_name(com), cfg->port, cfg->baud,
            com_frame_size_values[cfg->frame_size], com_parity_names[cfg->parity],
            COM_STOP_BIT_VALUE(cfg));
 }
@@ -95,7 +95,7 @@ static inline void set_dlab(io_port_t port, bool dlab) {
     outb(port + UART_LCR_REG_OFFSET, lcr.reg);
 }
 
-static inline void set_port_mode(uart_config_t *cfg) {
+static inline void set_port_mode(const uart_config_t *cfg) {
     lcr_t lcr = {0};
 
     /* Set baud speed by applying divisor to DLL+DLH */
@@ -138,7 +138,7 @@ static inline int uart_port_ready(io_port_t port) {
     return -ENODEV;
 }
 
-int __text_init init_uart(uart_config_t *cfg) {
+int __text_init init_uart(com_idx_t com, const uart_config_t *cfg) {
     mcr_t mcr = {0};
     fcr_t fcr = {0};
     ier_t ier = {0};
@@ -165,8 +165,7 @@ int __text_init init_uart(uart_config_t *cfg) {
     mcr.aux = 2;
     outb(cfg->port + UART_MCR_REG_OFFSET, mcr.reg);
 
-    if (com_ports[0] == NO_COM_PORT)
-        com_ports[0] = cfg->port;
+    com_ports[com] = cfg->port;
 
     return uart_port_ready(cfg->port);
 }
