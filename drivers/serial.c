@@ -234,6 +234,19 @@ int serial_write(io_port_t port, const char *buf, size_t len) {
     return rc;
 }
 
+#define NUM_PLUS 3
+static inline void uart_reboot(char c) {
+    static uint8_t break_cmd = NUM_PLUS;
+
+    if (c != '+') {
+        break_cmd = NUM_PLUS;
+        return;
+    }
+
+    if (--break_cmd == 0)
+        reboot();
+}
+
 void uart_interrupt_handler(void) {
     for (unsigned int i = 0; i < ARRAY_SIZE(com_ports); ++i) {
         com_port_t com_port = com_ports[i];
@@ -251,6 +264,7 @@ void uart_interrupt_handler(void) {
             input_state.curr = (input_state.curr + 1) % sizeof(input_state.buf);
 
             printk("%c", input);
+            uart_reboot(input);
         }
     }
 
