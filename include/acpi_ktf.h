@@ -295,6 +295,7 @@ extern void acpi_walk_subtables(ACPI_SUBTABLE_HEADER *entry, uint32_t length,
 
 extern ACPI_STATUS init_acpi(void);
 extern void acpi_power_off(void);
+extern void acpi_reboot(void);
 
 #endif /* KTF_ACPICA */
 #endif /* KTF_ACPI_H */

@@ -752,4 +752,8 @@ void acpi_power_off(void) {
     AcpiEnterSleepState(ACPI_STATE_S5);
     panic("Power Off");
 }
+
+void acpi_reboot(void) {
+    AcpiReset();
+}
 #endif /* KTF_ACPICA */
