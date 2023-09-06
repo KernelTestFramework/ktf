@@ -32,7 +32,7 @@ void timer_interrupt_handler(void) {
     apic_EOI();
 }
 
-void sleep(time_t ms) {
+void msleep(time_t ms) {
     time_t end = ticks + ms;
     while (ticks < end) {
         cpu_relax();
