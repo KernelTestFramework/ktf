@@ -34,6 +34,7 @@ enum com_idx {
     COM2 = 1,
     COM3 = 2,
     COM4 = 3,
+    MAX_COM,
 };
 typedef enum com_idx com_idx_t;
 
@@ -199,12 +200,12 @@ typedef enum com_irq com_irq_t;
 extern io_port_t com_ports[4];
 
 extern io_port_t get_first_com_port(void);
-extern int init_uart(uart_config_t *cfg);
+extern int init_uart(com_idx_t com, const uart_config_t *cfg);
 extern void init_uart_input(const cpu_t *cpu);
 extern void uart_interrupt_handler(void);
 extern int serial_putchar(io_port_t port, char c);
 extern int serial_write(io_port_t port, const char *buf, size_t len);
 
-extern void display_uart_config(const uart_config_t *cfg);
+extern void display_uart_config(com_idx_t com, const uart_config_t *cfg);
 
 #endif /* KTF_DRV_SERIAL_H */

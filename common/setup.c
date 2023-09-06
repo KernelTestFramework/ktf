@@ -68,27 +68,45 @@ unsigned long cpu_frequency;
 
 #define QEMU_CONSOLE_PORT 0x0e9
 
-static void __text_init init_console(void) {
-    uart_config_t cfg = {0};
+static inline int __text_init init_uart_console(com_idx_t com, const uart_config_t *cfg) {
+    int rc = init_uart(com, cfg);
 
-    if (!parse_com_port(COM1, &cfg)) {
-        /* Use first COM port indicated by BIOS (if none, use COM1) */
-        cfg.port = get_first_com_port();
-        cfg.baud = DEFAULT_BAUD_SPEED;
-        cfg.frame_size = COM_FRAME_SIZE_8_BITS;
-        cfg.parity = COM_NO_PARITY;
-        cfg.stop_bit = COM_STOP_BIT_1;
-    }
-    if (init_uart(&cfg) == 0)
-        register_console_callback(serial_console_write, _ptr(cfg.port));
+    if (rc != 0)
+        return rc;
+
+    register_console_callback(serial_console_write, _ptr(cfg->port));
+    printk("Serial console at: ");
+    display_uart_config(com, cfg);
+
+    return rc;
+}
+
+static void __text_init init_early_console(void) {
+    uart_config_t cfg;
+
+    /* Use first COM port indicated by BIOS (if none, use COM1) */
+    cfg.port = get_first_com_port();
+    cfg.baud = DEFAULT_BAUD_SPEED;
+    cfg.frame_size = COM_FRAME_SIZE_8_BITS;
+    cfg.parity = COM_NO_PARITY;
+    cfg.stop_bit = COM_STOP_BIT_1;
+
+    init_uart_console(COM1, &cfg);
 
     if (opt_qemu_console) {
         register_console_callback(qemu_console_write, _ptr(QEMU_CONSOLE_PORT));
         printk("Initialized QEMU console at port 0x%x", QEMU_CONSOLE_PORT);
     }
+}
 
-    printk("Serial console at: ");
-    display_uart_config(&cfg);
+static void __text_init init_serial_consoles(void) {
+    uart_config_t cfg;
+
+    for (com_idx_t com = COM1; com < MAX_COM; com++) {
+        memset(&cfg, 0, sizeof(cfg));
+        if (parse_com_port(com, &cfg))
+            init_uart_console(com, &cfg);
+    }
 }
 
 static __always_inline void zero_bss(void) {
@@ -166,7 +184,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
     zero_bss();
 
     /* Initialize console early */
-    init_console();
+    init_early_console();
 
     if (multiboot_magic == MULTIBOOT2_BOOTLOADER_MAGIC) {
         /* Indentity mapping is still on, so fill in multiboot structures */
@@ -177,6 +195,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
     cmdline_parse(kernel_cmdline);
     if (!string_empty(kernel_cmdline))
         printk("Command line: %s\n", kernel_cmdline);
+
+    init_serial_consoles();
 
     init_boot_traps();
 
