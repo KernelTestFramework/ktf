@@ -105,7 +105,19 @@ void fb_console_write(void *fb_memory, const char *buf, size_t len) {
     fb_write(fb_memory, buf, len, FB_WHITE);
 }
 
+static inline bool is_console_callback_registered(console_callback_t cb, void *arg) {
+    for (unsigned int i = 0; i < num_console_callbacks; i++) {
+        if (console_callbacks[i].cb == cb && console_callbacks[i].arg == arg)
+            return true;
+    }
+
+    return false;
+}
+
 void register_console_callback(console_callback_t cb, void *arg) {
+    if (is_console_callback_registered(cb, arg))
+        return;
+
     console_callbacks[num_console_callbacks].cb = cb;
     console_callbacks[num_console_callbacks++].arg = arg;
 }
