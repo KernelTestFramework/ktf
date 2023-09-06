@@ -33,13 +33,18 @@
 
 #define KEYBOARD_PORT1_IRQ 0x01
 #define KEYBOARD_PORT2_IRQ 0x04 /* Second port */
-#define KEYBOARD_PORT1_IRQ_OFFSET                                                        \
-    (PIC_IRQ0_OFFSET + KEYBOARD_PORT1_IRQ) /* keyboard first channel irq offset */
+/* keyboard first channel irq offset */
+#define KEYBOARD_PORT1_IRQ_OFFSET (PIC_IRQ0_OFFSET + KEYBOARD_PORT1_IRQ)
 #define KEYBOARD_PORT1_IRQ_VECTOR KEYBOARD_PORT1_IRQ_OFFSET
 #define KEYBOARD_PORT2_IRQ_OFFSET (PIC_IRQ0_OFFSET + KEYBOARD_PORT2_IRQ)
 #define KEYBOARD_PORT2_IRQ_VECTOR KEYBOARD_PORT2_IRQ_OFFSET
 
-#define KEYBOARD_STATUS_OUT_FULL 0x01 /* bit set when the keyboard buffer is full */
+/* bit set when the keyboard output buffer is full */
+#define KEYBOARD_STATUS_OUT_FULL 0x01
+/* bit set when the keyboard input buffer is full */
+#define KEYBOARD_STATUS_IN_FULL 0x02
+
+#define KEYBOARD_RESET_CMD 0xFE
 
 typedef enum {
     KEYBOARD_CMD_WRITE_CONFIGURATION = 0x60, /* Write configuration byte */
@@ -117,6 +122,7 @@ typedef enum scan_code scan_code_t;
 
 /* External Declarations */
 
+extern void keyboard_reboot(void);
 extern void init_keyboard(const cpu_t *cpu);
 extern void keyboard_interrupt_handler(void);
 extern unsigned int keyboard_process_keys(void);

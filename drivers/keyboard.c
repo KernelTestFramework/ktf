@@ -63,6 +63,19 @@ typedef struct keyboard_state keyboard_state_t;
 static keyboard_state_t keyboard_state;
 static bool i8042_present = false;
 
+void keyboard_reboot(void) {
+    if (!i8042_present)
+        return;
+
+    cli();
+
+    while ((inb(KEYBOARD_PORT_CMD) & KEYBOARD_STATUS_IN_FULL) != 0)
+        cpu_relax();
+
+    outb(KEYBOARD_PORT_CMD, KEYBOARD_RESET_CMD);
+    halt();
+}
+
 void init_keyboard(const cpu_t *cpu) {
     if (!boot_flags.i8042) {
         dprintk("No i8042 microcontroller detected\n");
