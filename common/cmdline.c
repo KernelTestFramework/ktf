@@ -73,6 +73,9 @@ string_cmd("com4", opt_com4);
 bool opt_fb_scroll = true;
 bool_cmd("fb_scroll", opt_fb_scroll);
 
+unsigned long opt_reboot_timeout = 0; /* Disabled by default */
+ulong_cmd("reboot_timeout", opt_reboot_timeout);
+
 const char *kernel_cmdline;
 
 void __text_init cmdline_parse(const char *cmdline) {
