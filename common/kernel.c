@@ -31,6 +31,7 @@
 #include <percpu.h>
 #include <sched.h>
 #include <setup.h>
+#include <time.h>
 #ifdef KTF_PMU
 #include <perfmon/pfmlib.h>
 #endif
@@ -47,9 +48,17 @@ void reboot(void) {
 }
 
 static void __noreturn echo_loop(void) {
+    time_t reboot_timeout = opt_reboot_timeout * 1000; /* ms */
+    time_t start_time = get_timer_ticks();
+
     while (1) {
         io_delay();
         keyboard_process_keys();
+
+        if (reboot_timeout > 0) {
+            if (get_timer_ticks() - start_time >= reboot_timeout)
+                reboot();
+        }
     }
 }
 
