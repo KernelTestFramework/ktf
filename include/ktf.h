@@ -40,6 +40,7 @@ typedef uint16_t io_port_t;
 
 extern bool opt_debug;
 
+extern void reboot(void);
 extern void kernel_main(void) __noreturn;
 extern unsigned long test_main(void *unused);
 
