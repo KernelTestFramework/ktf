@@ -218,7 +218,6 @@ int serial_putchar(io_port_t port, char c) {
 
     do {
         rc = uart_putc(port, c);
-        BUG_ON(rc < 0);
     } while (rc == -EAGAIN && retries--);
 
     return rc;
@@ -230,7 +229,6 @@ int serial_write(io_port_t port, const char *buf, size_t len) {
 
     do {
         rc = uart_puts(port, buf, len);
-        BUG_ON(rc < 0);
     } while (rc == -EAGAIN && retries--);
 
     return rc;
