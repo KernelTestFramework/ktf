@@ -175,11 +175,12 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
     return mfn;
 }
 
-void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
+static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
 #if defined(__x86_64__)
-            unsigned long l4_flags,
+                   unsigned long l4_flags,
 #endif
-            unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
+                   unsigned long l3_flags, unsigned long l2_flags,
+                   unsigned long l1_flags) {
     static spinlock_t lock = SPINLOCK_INIT;
     mfn_t l1t_mfn, l2t_mfn, l3t_mfn;
     pgentry_t *tab, *entry;
