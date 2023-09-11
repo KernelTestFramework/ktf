@@ -269,6 +269,16 @@ static inline pdpe_t *get_pdpe(const void *va) {
     return (pdpe_t *) &(l3e->entry);
 }
 
+/* Return the virtual address of the PML4 entry mapping this virtual address
+ * in the page tables specified by a CR3 pointer.
+ * The entry is assumed to be mapped
+ */
+static inline pml4_t *get_pml4(cr3_t *cr3_ptr, const void *va) {
+    pml4_t *l4t = mfn_to_virt_kern(cr3_ptr->mfn);
+    pml4_t *l4e = l4_table_entry(l4t, va);
+    return (pml4_t *) &(l4e->entry);
+}
+
 static inline void set_pgentry(pgentry_t *e, mfn_t mfn, unsigned long flags) {
     *e = pgentry_from_mfn(mfn, flags);
     barrier();
