@@ -261,11 +261,13 @@ static inline void *kmap(mfn_t mfn, unsigned int order,
 }
 
 static inline void *vmap_1g(void *va, mfn_t mfn, unsigned long l3_flags) {
-    return vmap_kern(va, mfn, PAGE_ORDER_1G, L4_PROT, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
+    return vmap_kern(va, mfn, PAGE_ORDER_1G, L4_PROT, l3_flags | _PAGE_PSE, PT_NO_FLAGS,
+                     PT_NO_FLAGS);
 }
 
 static inline void *vmap_2m(void *va, mfn_t mfn, unsigned long l2_flags) {
-    return vmap_kern(va, mfn, PAGE_ORDER_2M, L4_PROT, L3_PROT, l2_flags, PT_NO_FLAGS);
+    return vmap_kern(va, mfn, PAGE_ORDER_2M, L4_PROT, L3_PROT, l2_flags | _PAGE_PSE,
+                     PT_NO_FLAGS);
 }
 
 static inline void *vmap_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
@@ -273,11 +275,12 @@ static inline void *vmap_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
 }
 
 static inline void *kmap_1g(mfn_t mfn, unsigned long l3_flags) {
-    return kmap(mfn, PAGE_ORDER_1G, L4_PROT, l3_flags, PT_NO_FLAGS, PT_NO_FLAGS);
+    return kmap(mfn, PAGE_ORDER_1G, L4_PROT, l3_flags | _PAGE_PSE, PT_NO_FLAGS,
+                PT_NO_FLAGS);
 }
 
 static inline void *kmap_2m(mfn_t mfn, unsigned long l2_flags) {
-    return kmap(mfn, PAGE_ORDER_2M, L4_PROT, L3_PROT, l2_flags, PT_NO_FLAGS);
+    return kmap(mfn, PAGE_ORDER_2M, L4_PROT, L3_PROT, l2_flags | _PAGE_PSE, PT_NO_FLAGS);
 }
 
 static inline void *kmap_4k(mfn_t mfn, unsigned long l1_flags) {
@@ -287,15 +290,15 @@ static inline void *kmap_4k(mfn_t mfn, unsigned long l1_flags) {
 static inline void *vmap_user_1g(void *va, mfn_t mfn, unsigned long l3_flags) {
     unsigned long user = l3_flags & _PAGE_USER;
 
-    return vmap_user(va, mfn, PAGE_ORDER_1G, L4_PROT | user, l3_flags | user, PT_NO_FLAGS,
-                     PT_NO_FLAGS);
+    return vmap_user(va, mfn, PAGE_ORDER_1G, L4_PROT | user,
+                     l3_flags | (user | _PAGE_PSE), PT_NO_FLAGS, PT_NO_FLAGS);
 }
 
 static inline void *vmap_user_2m(void *va, mfn_t mfn, unsigned long l2_flags) {
     unsigned long user = l2_flags & _PAGE_USER;
 
     return vmap_user(va, mfn, PAGE_ORDER_2M, L4_PROT | user, L3_PROT | user,
-                     l2_flags | user, PT_NO_FLAGS);
+                     l2_flags | (user | _PAGE_PSE), PT_NO_FLAGS);
 }
 
 static inline void *vmap_user_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
