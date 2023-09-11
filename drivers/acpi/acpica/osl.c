@@ -305,8 +305,7 @@ void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
         void *_va;
 
         if (!frame) {
-            _va = vmap_kern(mfn_to_virt_map(mfn), mfn, PAGE_ORDER_4K, L4_PROT, L3_PROT,
-                            L2_PROT, L1_PROT);
+            _va = vmap_4k(mfn_to_virt_map(mfn), mfn, L1_PROT);
             if (!_va) {
                 spin_unlock(&map_lock);
                 return NULL;
