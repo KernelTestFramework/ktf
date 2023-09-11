@@ -30,7 +30,7 @@
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 
-void *get_free_pages(unsigned int order, uint32_t flags) {
+void *get_free_pages(unsigned int order, gfp_flags_t flags) {
     frame_t *frame = get_free_frames(order);
     void *va = NULL;
     mfn_t mfn;

@@ -33,23 +33,24 @@ enum gfp_flags {
     GFP_IDENT = 0x00000004,
     GFP_KERNEL_MAP = 0x00000008,
 };
+typedef enum gfp_flags gfp_flags_t;
 
 /* External definitions */
 
-extern void *get_free_pages(unsigned int order, uint32_t flags);
+extern void *get_free_pages(unsigned int order, gfp_flags_t flags);
 extern void put_pages(void *page, unsigned int order);
 
 /* Static definitions */
 
-static inline void *get_free_page(uint32_t flags) {
+static inline void *get_free_page(gfp_flags_t flags) {
     return get_free_pages(PAGE_ORDER_4K, flags);
 }
 
-static inline void *get_free_pages_top(unsigned int order, uint32_t flags) {
+static inline void *get_free_pages_top(unsigned int order, gfp_flags_t flags) {
     return get_free_pages(order, flags) + (PAGE_SIZE << order);
 }
 
-static inline void *get_free_page_top(uint32_t flags) {
+static inline void *get_free_page_top(gfp_flags_t flags) {
     return get_free_page(flags) + PAGE_SIZE;
 }
 
