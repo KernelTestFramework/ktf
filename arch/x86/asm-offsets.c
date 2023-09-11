@@ -76,5 +76,7 @@ void __asm_offset_header(void) {
     EMIT_DEFINE(kb_port1_irq, KB_PORT1_IRQ);
     EMIT_DEFINE(kb_port2_irq, KB_PORT2_IRQ);
     EMIT_DEFINE(apic_timer_irq, APIC_TIMER_IRQ);
+#ifdef KTF_ACPICA
     EMIT_DEFINE(acpi_sci_irq, ACPI_SCI_IRQ);
+#endif
 }
