@@ -77,6 +77,7 @@ extern void put_free_frames(mfn_t mfn, unsigned int order);
 extern void reclaim_frame(mfn_t mfn, unsigned int order);
 
 extern void map_used_memory(void);
+extern void map_frames_array(void);
 
 /* Static definitions */
 

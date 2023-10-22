@@ -270,5 +270,6 @@ void init_pagetables(void) {
         }
     }
 
+    map_frames_array();
     map_used_memory();
 }
