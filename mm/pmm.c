@@ -570,3 +570,9 @@ void map_used_memory(void) {
         }
     }
 }
+
+void map_frames_array(void) {
+    frames_array_t *array;
+
+    list_for_each_entry (array, &frames, list) { kmap_4k(virt_to_mfn(array), L1_PROT); }
+}
