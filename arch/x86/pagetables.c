@@ -103,7 +103,7 @@ void dump_pagetables(cr3_t cr3) {
     dump_page_table(paddr_to_virt_kern(cr3.paddr), 4);
 }
 
-static void *init_map_mfn(mfn_t mfn) {
+static inline void *tmp_map_mfn(mfn_t mfn) {
     pgentry_t *e;
 
     BUG_ON(mfn_invalid(mfn));
@@ -123,7 +123,7 @@ static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
         BUG_ON(!frame);
 
         cr3_entry->mfn = frame->mfn;
-        cr3_mapped = init_map_mfn(cr3_entry->mfn);
+        cr3_mapped = tmp_map_mfn(cr3_entry->mfn);
         memset(cr3_mapped, 0, PAGE_SIZE);
     }
 
@@ -156,7 +156,7 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
 
     BUG_ON(mfn_invalid(tab_mfn));
 
-    tab = init_map_mfn(tab_mfn);
+    tab = tmp_map_mfn(tab_mfn);
     entry = &tab[index];
 
     mfn = mfn_from_pgentry(*entry);
@@ -166,7 +166,7 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
 
         set_pgentry(entry, frame->mfn, flags);
         mfn = mfn_from_pgentry(*entry);
-        tab = init_map_mfn(mfn);
+        tab = tmp_map_mfn(mfn);
         memset(tab, 0, PAGE_SIZE);
     }
     else {
@@ -201,7 +201,7 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
 #endif
 
     if (order == PAGE_ORDER_1G) {
-        tab = init_map_mfn(l3t_mfn);
+        tab = tmp_map_mfn(l3t_mfn);
         entry = &tab[l3_table_index(va)];
         set_pgentry(entry, mfn, l3_flags | _PAGE_PSE);
         goto done;
@@ -210,7 +210,7 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
     l2t_mfn = get_pgentry_mfn(l3t_mfn, l3_table_index(va), l3_flags);
 
     if (order == PAGE_ORDER_2M) {
-        tab = init_map_mfn(l2t_mfn);
+        tab = tmp_map_mfn(l2t_mfn);
         entry = &tab[l2_table_index(va)];
         set_pgentry(entry, mfn, l2_flags | _PAGE_PSE);
         goto done;
@@ -218,7 +218,7 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
 
     l1t_mfn = get_pgentry_mfn(l2t_mfn, l2_table_index(va), l2_flags);
 
-    tab = init_map_mfn(l1t_mfn);
+    tab = tmp_map_mfn(l1t_mfn);
     entry = &tab[l1_table_index(va)];
     set_pgentry(entry, mfn, l1_flags);
 
