@@ -223,14 +223,15 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
     /* Setup final pagetables */
     init_pagetables();
 
-    map_bios_area();
-
     write_cr3(cr3.paddr);
     boot_flags.virt = true;
 
     WRITE_SP(get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL_MAP));
+
     if (opt_debug)
         dump_pagetables(cr3);
+
+    map_bios_area();
 
     if (setup_framebuffer())
         display_banner();
