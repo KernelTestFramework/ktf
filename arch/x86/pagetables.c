@@ -289,4 +289,6 @@ void init_pagetables(void) {
     map_multiboot_areas();
     map_used_memory();
     map_tmp_mapping();
+
+    write_cr3(cr3.paddr);
 }
