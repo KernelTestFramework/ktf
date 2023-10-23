@@ -30,6 +30,8 @@
 #include <spinlock.h>
 #include <string.h>
 
+static uint8_t _tmp_mapping[PAGE_SIZE] __aligned(PAGE_SIZE);
+
 cr3_t __aligned(PAGE_SIZE) cr3;
 cr3_t user_cr3;
 
@@ -101,16 +103,15 @@ void dump_pagetables(cr3_t cr3) {
 }
 
 static void *init_map_mfn(mfn_t mfn) {
-    static uint8_t _tmp[PAGE_SIZE] __aligned(PAGE_SIZE);
     pgentry_t *e;
 
     BUG_ON(mfn_invalid(mfn));
 
-    e = (pgentry_t *) l1_table_entry(get_l1_table(_tmp), _tmp);
+    e = (pgentry_t *) l1_table_entry(get_l1_table(_tmp_mapping), _tmp_mapping);
     BUG_ON(!e);
     set_pgentry(e, mfn, L1_PROT);
 
-    return _tmp;
+    return _tmp_mapping;
 }
 
 static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
@@ -246,6 +247,19 @@ void *vmap_user(void *va, mfn_t mfn, unsigned int order,
                  l1_flags);
 }
 
+static void map_tmp_mapping(void) {
+    kmap_4k(cr3.mfn, L1_PROT);
+
+    pml4_t *l3e = l4_table_entry(mfn_to_virt(cr3.mfn), _tmp_mapping);
+    kmap_4k(l3e->mfn, L1_PROT);
+
+    pdpe_t *l2e = l3_table_entry(mfn_to_virt(l3e->mfn), _tmp_mapping);
+    kmap_4k(l2e->mfn, L1_PROT);
+
+    pde_t *l1e = l2_table_entry(mfn_to_virt(l2e->mfn), _tmp_mapping);
+    kmap_4k(l1e->mfn, L1_PROT);
+}
+
 void init_pagetables(void) {
     for_each_memory_range (r) {
         switch (r->base) {
@@ -272,4 +286,5 @@ void init_pagetables(void) {
 
     map_frames_array();
     map_used_memory();
+    map_tmp_mapping();
 }
