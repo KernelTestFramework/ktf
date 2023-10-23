@@ -24,6 +24,7 @@
  */
 #include <console.h>
 #include <ktf.h>
+#include <multiboot2.h>
 #include <page.h>
 #include <pagetable.h>
 #include <setup.h>
@@ -285,6 +286,7 @@ void init_pagetables(void) {
     }
 
     map_frames_array();
+    map_multiboot_areas();
     map_used_memory();
     map_tmp_mapping();
 }

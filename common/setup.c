@@ -223,7 +223,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
     /* Setup final pagetables */
     init_pagetables();
 
-    map_multiboot_areas();
     map_bios_area();
 
     write_cr3(cr3.paddr);
