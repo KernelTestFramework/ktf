@@ -324,6 +324,10 @@ static inline void str(unsigned int *selector) {
     asm volatile("str %0" : "=m"(*selector));
 }
 
+static inline void invlpg(void *addr) {
+    asm volatile("invlpg (%0)" ::"r"(addr) : "memory");
+}
+
 static inline void flush_tlb(void) {
     write_cr3(read_cr3());
 }
