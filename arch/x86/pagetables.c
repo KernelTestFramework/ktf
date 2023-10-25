@@ -107,6 +107,7 @@ void dump_pagetables(cr3_t cr3) {
 static inline void *tmp_map_mfn(mfn_t mfn) {
     BUG_ON(mfn_invalid(mfn));
     set_pgentry(_tmp_mapping_entry, mfn, L1_PROT);
+    invlpg(_tmp_mapping);
     return _tmp_mapping;
 }
 
@@ -199,6 +200,7 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
         tab = tmp_map_mfn(l3t_mfn);
         entry = &tab[l3_table_index(va)];
         set_pgentry(entry, mfn, l3_flags | _PAGE_PSE);
+        invlpg(va);
         goto done;
     }
 
@@ -208,6 +210,7 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
         tab = tmp_map_mfn(l2t_mfn);
         entry = &tab[l2_table_index(va)];
         set_pgentry(entry, mfn, l2_flags | _PAGE_PSE);
+        invlpg(va);
         goto done;
     }
 
@@ -216,6 +219,7 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
     tab = tmp_map_mfn(l1t_mfn);
     entry = &tab[l1_table_index(va)];
     set_pgentry(entry, mfn, l1_flags);
+    invlpg(va);
 
 done:
     spin_unlock(&lock);
