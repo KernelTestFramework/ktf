@@ -164,8 +164,8 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
         frame_t *frame = get_free_frame();
         BUG_ON(!frame);
 
-        set_pgentry(entry, frame->mfn, flags);
-        mfn = mfn_from_pgentry(*entry);
+        mfn = frame->mfn;
+        set_pgentry(entry, mfn, flags);
         tab = tmp_map_mfn(mfn);
         memset(tab, 0, PAGE_SIZE);
     }
