@@ -272,7 +272,6 @@ static inline pdpe_t *get_pdpe(const void *va) {
 static inline void set_pgentry(pgentry_t *e, mfn_t mfn, unsigned long flags) {
     *e = pgentry_from_mfn(mfn, flags);
     barrier();
-    flush_tlb();
 }
 
 /* External declarations */
