@@ -37,6 +37,9 @@ static pgentry_t *_tmp_mapping_entry;
 cr3_t __aligned(PAGE_SIZE) cr3;
 cr3_t user_cr3;
 
+/* Used by lower level vmap() functions - must not be taken before mmap_lock */
+static spinlock_t vmap_lock = SPINLOCK_INIT;
+
 static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
     /* clang-format off */
     snprintf(buf, size, "%c %c%c%c%c%c%c%c%c%c",
@@ -101,7 +104,9 @@ void dump_pagetables(cr3_t cr3) {
     map_used_memory();
 
     printk("CR3: paddr: 0x%lx\n", cr3.paddr);
+    spin_lock(&vmap_lock);
     dump_page_table(paddr_to_virt_kern(cr3.paddr), 4);
+    spin_unlock(&vmap_lock);
 }
 
 static inline void *tmp_map_mfn(mfn_t mfn) {
@@ -179,16 +184,13 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
 #endif
                    unsigned long l3_flags, unsigned long l2_flags,
                    unsigned long l1_flags) {
-    static spinlock_t lock = SPINLOCK_INIT;
     mfn_t l1t_mfn, l2t_mfn, l3t_mfn;
     pgentry_t *tab, *entry;
 
     if (!va || (_ul(va) & ~PAGE_ORDER_TO_MASK(order)))
         return NULL;
 
-    dprintk("%s: va: %p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
-
-    spin_lock(&lock);
+    dprintk("%s: va: 0x%p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
 
 #if defined(__x86_64__)
     l3t_mfn = get_pgentry_mfn(get_cr3_mfn(cr3_ptr), l4_table_index(va), l4_flags);
@@ -222,7 +224,6 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
     invlpg(va);
 
 done:
-    spin_unlock(&lock);
     return va;
 }
 
@@ -233,7 +234,10 @@ void *vmap_kern(void *va, mfn_t mfn, unsigned int order,
                 unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
     unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(order);
 
-    return _vmap(&cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
+    spin_lock(&vmap_lock);
+    va = _vmap(&cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
+    spin_unlock(&vmap_lock);
+    return va;
 }
 
 void *vmap_user(void *va, mfn_t mfn, unsigned int order,
@@ -243,8 +247,10 @@ void *vmap_user(void *va, mfn_t mfn, unsigned int order,
                 unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
     unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(order);
 
-    return _vmap(&user_cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags,
-                 l1_flags);
+    spin_lock(&vmap_lock);
+    va = _vmap(&user_cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
+    spin_unlock(&vmap_lock);
+    return va;
 }
 
 static inline void init_tmp_mapping(void) {
