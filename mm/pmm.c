@@ -83,7 +83,7 @@ static frames_array_t *new_frames_array(void) {
         array = get_free_page(GFP_KERNEL);
 
     if (!array)
-        panic("PMM: Unable to allocate new page for frame array\n");
+        panic("PMM: Unable to allocate new page for frame array");
 
     dprintk("%s: allocated new frames array: %p\n", __func__, array);
 
@@ -109,14 +109,14 @@ static bool is_frames_array_free(const frames_array_t *array) {
     if (array->meta.free_count < ARRAY_SIZE(array->frames))
         return false;
     else if (array->meta.free_count > ARRAY_SIZE(array->frames))
-        panic("PMM: incorrect number of free slots: %d in array: %p\n",
+        panic("PMM: incorrect number of free slots: %d in array: %p",
               array->meta.free_count, array);
 
     for (unsigned i = 0; i < ARRAY_SIZE(array->frames); i++) {
         const frame_t *frame = &array->frames[i];
 
         if (!is_frame_free(frame))
-            panic("PMM: found occupied slot in an empty array: %p\n", array);
+            panic("PMM: found occupied slot in an empty array: %p", array);
     }
 
     return true;
@@ -190,7 +190,7 @@ static inline frame_t *get_frames_array_entry(void) {
     frames_array_t *array = get_frames_array();
 
     if (!array)
-        panic("PMM: Unable to get a free array of frames' metadata\n");
+        panic("PMM: Unable to get a free array of frames' metadata");
 
     for (unsigned i = 0; i < ARRAY_SIZE(array->frames); i++) {
         frame_t *frame = &array->frames[i];
@@ -260,7 +260,7 @@ static unsigned find_first_avail_region(void) {
         return i;
     }
 
-    panic("PMM: Cannot obtain first available physical memory address range\n");
+    panic("PMM: Cannot obtain first available physical memory address range");
     UNREACHABLE();
 }
 
@@ -343,12 +343,12 @@ static inline void check_early_frames(unsigned first_avail_region) {
     addr_range_t range;
 
     if (get_avail_memory_range(first_avail_region, &range) < 0)
-        panic("PMM: Cannot obtain first available physical memory address range\n");
+        panic("PMM: Cannot obtain first available physical memory address range");
 
     early_frames_cnt =
         (MB(EARLY_VIRT_MEM) - get_region_free_start(range.start)) / PAGE_SIZE;
     if (frames_count[PAGE_ORDER_4K] < early_frames_cnt) {
-        panic("Not enough early frames: %u missing\n",
+        panic("Not enough early frames: %u missing",
               early_frames_cnt - frames_count[PAGE_ORDER_4K]);
     }
 }
@@ -396,7 +396,7 @@ static inline frame_t *reserve_frame(frame_t *frame) {
 
 static inline bool return_frame(frame_t *frame) {
     if (!is_frame_used(frame))
-        panic("PMM: trying to return unused frame: %p\n", frame);
+        panic("PMM: trying to return unused frame: %p", frame);
 
     if (--frame->refcount == 0) {
         list_unlink(&frame->list);

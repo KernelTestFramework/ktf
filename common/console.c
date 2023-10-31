@@ -52,7 +52,7 @@ void vprintk(const char *fmt, va_list args) {
     rc = vsnprintf(buf, sizeof(buf), fmt, args);
 
     if (rc > (int) sizeof(buf))
-        panic("vprintk() buffer overflow\n");
+        panic("vprintk() buffer overflow");
 
     for (i = 0; i < num_console_callbacks; i++) {
         void *arg = console_callbacks[i].arg;
@@ -125,14 +125,14 @@ void register_console_callback(console_callback_t cb, void *arg) {
 void __noreturn panic(const char *fmt, ...) {
     va_list args;
 
-    printk("******************************\n");
-    printk("CPU[%u] PANIC: ", smp_processor_id());
+    printk("************** PANIC **************\n");
+    printk("CPU[%u]: ", smp_processor_id());
 
     va_start(args, fmt);
     vprintk(fmt, args);
     va_end(args);
 
-    printk("******************************\n");
+    printk("\n***********************************\n");
 
     while (1)
         halt();

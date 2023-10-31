@@ -142,7 +142,7 @@ static unsigned acpi_table_map_pages(paddr_t pa, size_t len) {
 
     for (unsigned i = 0; i < num_pages; i++, mfn++) {
         if (mfn_invalid(mfn)) {
-            panic("ACPI table at %p of length %lx has invalid MFN: %lx\n", _ptr(pa), len,
+            panic("ACPI table at %p of length %lx has invalid MFN: %lx", _ptr(pa), len,
                   mfn);
         }
 

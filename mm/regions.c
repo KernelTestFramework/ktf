@@ -85,7 +85,7 @@ addr_range_t get_memory_range(paddr_t pa) {
     memset(&r, 0, sizeof(r));
     if (mbi_get_memory_range(pa, &r) < 0)
         /* FIXME: e820_lower_memory_bound() */
-        panic("Unable to get memory range for: 0x%016lx\n", pa);
+        panic("Unable to get memory range for: 0x%016lx", pa);
 
     return r;
 }

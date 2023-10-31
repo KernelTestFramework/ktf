@@ -36,7 +36,7 @@ void *get_free_pages(unsigned int order, gfp_flags_t flags) {
     mfn_t mfn;
 
     if (!boot_flags.virt)
-        panic("Unable to use %s() before final page tables are set\n", __func__);
+        panic("Unable to use %s() before final page tables are set", __func__);
 
     if (!frame)
         return NULL;
