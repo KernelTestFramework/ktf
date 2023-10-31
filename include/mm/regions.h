@@ -85,9 +85,7 @@ extern unsigned regions_num;
 
 extern void display_memory_map(void);
 
-extern addr_range_t get_memory_range(paddr_t pa);
-extern paddr_t get_memory_range_start(paddr_t pa);
-extern paddr_t get_memory_range_end(paddr_t pa);
+extern int get_memory_range(paddr_t pa, addr_range_t *r);
 
 extern int get_avail_memory_range(unsigned index, addr_range_t *r);
 extern bool has_memory_range(paddr_t pa);

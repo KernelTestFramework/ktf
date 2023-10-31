@@ -84,7 +84,11 @@ static mpf_t *get_mpf_addr(void) {
     if (ptr)
         return ptr;
 
-    sysm_addr = kmap_4k(paddr_to_mfn(get_memory_range_end(KB(512)) - KB(1)), L1_PROT_RO);
+    addr_range_t range;
+    if (get_memory_range(KB(512), &range) < 0)
+        return NULL;
+
+    sysm_addr = kmap_4k(paddr_to_mfn(_paddr(range.end) - KB(1)), L1_PROT_RO);
     ptr = find_mpf(sysm_addr, sysm_addr + KB(1));
     if (ptr)
         return ptr;

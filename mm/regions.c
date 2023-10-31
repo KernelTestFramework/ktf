@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <errno.h>
 #include <multiboot.h>
 
 #include <mm/regions.h>
@@ -79,27 +80,12 @@ void display_memory_map(void) {
     }
 }
 
-addr_range_t get_memory_range(paddr_t pa) {
-    addr_range_t r;
+int get_memory_range(paddr_t pa, addr_range_t *r) {
+    memset(r, 0, sizeof(*r));
 
-    memset(&r, 0, sizeof(r));
-    if (mbi_get_memory_range(pa, &r) < 0)
-        /* FIXME: e820_lower_memory_bound() */
-        panic("Unable to get memory range for: 0x%016lx", pa);
-
-    return r;
-}
-
-paddr_t get_memory_range_start(paddr_t pa) {
-    addr_range_t r = get_memory_range(pa);
-
-    return _paddr(r.start);
-}
-
-paddr_t get_memory_range_end(paddr_t pa) {
-    addr_range_t r = get_memory_range(pa);
-
-    return _paddr(r.end);
+    if (mbi_get_memory_range(pa, r) < 0)
+        return -ENOENT;
+    return 0;
 }
 
 int get_avail_memory_range(unsigned index, addr_range_t *r) {
