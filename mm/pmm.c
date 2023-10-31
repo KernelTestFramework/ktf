@@ -407,7 +407,7 @@ static inline bool return_frame(frame_t *frame) {
     return false;
 }
 
-static frame_t *find_mfn_frame(list_head_t *list, mfn_t mfn, unsigned int order) {
+static frame_t *_find_mfn_frame(list_head_t *list, mfn_t mfn, unsigned int order) {
     frame_t *frame;
 
     if (!has_frames(list, order))
@@ -419,6 +419,83 @@ static frame_t *find_mfn_frame(list_head_t *list, mfn_t mfn, unsigned int order)
     }
 
     return NULL;
+}
+
+frame_t *find_free_mfn_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame;
+
+    spin_lock(&lock);
+    frame = _find_mfn_frame(free_frames, mfn, order);
+    spin_unlock(&lock);
+
+    return frame;
+}
+
+frame_t *find_busy_mfn_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame;
+
+    spin_lock(&lock);
+    frame = _find_mfn_frame(busy_frames, mfn, order);
+    spin_unlock(&lock);
+
+    return frame;
+}
+
+frame_t *find_mfn_frame(mfn_t mfn, unsigned int order) {
+    frame_t *frame;
+
+    spin_lock(&lock);
+    frame = _find_mfn_frame(busy_frames, mfn, order);
+    if (!frame)
+        frame = _find_mfn_frame(free_frames, mfn, order);
+    spin_unlock(&lock);
+
+    return frame;
+}
+
+static frame_t *_find_paddr_frame(list_head_t *list, paddr_t paddr) {
+    frame_t *frame;
+
+    for_each_order (order) {
+        list_for_each_entry (frame, &list[order], list) {
+            if (frame_has_paddr(frame, paddr))
+                return frame;
+        }
+    }
+
+    return NULL;
+}
+
+frame_t *find_free_paddr_frame(paddr_t paddr) {
+    frame_t *frame;
+
+    spin_lock(&lock);
+    frame = _find_paddr_frame(free_frames, paddr);
+    spin_unlock(&lock);
+
+    return frame;
+}
+
+frame_t *find_busy_paddr_frame(paddr_t paddr) {
+    frame_t *frame;
+
+    spin_lock(&lock);
+    frame = _find_paddr_frame(busy_frames, paddr);
+    spin_unlock(&lock);
+
+    return frame;
+}
+
+frame_t *find_paddr_frame(paddr_t paddr) {
+    frame_t *frame;
+
+    spin_lock(&lock);
+    frame = _find_paddr_frame(busy_frames, paddr);
+    if (!frame)
+        frame = _find_paddr_frame(free_frames, paddr);
+    spin_unlock(&lock);
+
+    return frame;
 }
 
 static frame_t *find_larger_frame(list_head_t *list, unsigned int order) {
@@ -491,13 +568,13 @@ static void merge_frames(frame_t *first) {
 
     if (FIRST_FRAME_SIBLING(first->mfn, first->order + 1)) {
         mfn_t next_mfn = NEXT_MFN(first->mfn, first->order);
-        second = find_mfn_frame(free_frames, next_mfn, first->order);
+        second = _find_mfn_frame(free_frames, next_mfn, first->order);
     }
     else {
         /* Second frame sibling */
         mfn_t prev_mfn = PREV_MFN(first->mfn, first->order);
         second = first;
-        first = find_mfn_frame(free_frames, prev_mfn, first->order);
+        first = _find_mfn_frame(free_frames, prev_mfn, first->order);
     }
 
     if (!first || !second)
@@ -547,7 +624,7 @@ void put_free_frames(mfn_t mfn, unsigned int order) {
     ASSERT(order <= MAX_PAGE_ORDER);
 
     spin_lock(&lock);
-    frame = find_mfn_frame(busy_frames, mfn, order);
+    frame = _find_mfn_frame(busy_frames, mfn, order);
     if (!frame) {
         warning("PMM: unable to find frame: %lx, order: %u among busy frames", mfn,
                 order);

@@ -76,6 +76,13 @@ extern frame_t *get_free_frames(unsigned int order);
 extern void put_free_frames(mfn_t mfn, unsigned int order);
 extern void reclaim_frame(mfn_t mfn, unsigned int order);
 
+extern frame_t *find_free_mfn_frame(mfn_t mfn, unsigned int order);
+extern frame_t *find_busy_mfn_frame(mfn_t mfn, unsigned int order);
+extern frame_t *find_mfn_frame(mfn_t mfn, unsigned int order);
+extern frame_t *find_free_paddr_frame(paddr_t paddr);
+extern frame_t *find_busy_paddr_frame(paddr_t paddr);
+extern frame_t *find_paddr_frame(paddr_t paddr);
+
 extern void map_used_memory(void);
 extern void map_frames_array(void);
 
@@ -98,6 +105,16 @@ static inline frame_t *get_first_frame(list_head_t *frames, unsigned int order) 
         return NULL;
 
     return list_first_entry(&frames[order], frame_t, list);
+}
+
+static inline bool frame_has_paddr(const frame_t *frame, paddr_t pa) {
+    if (!frame)
+        return false;
+
+    paddr_t start_pa = mfn_to_paddr(frame->mfn);
+    paddr_t end_pa = start_pa + ORDER_TO_SIZE(frame->order) - 1;
+
+    return pa >= start_pa && pa <= end_pa;
 }
 
 static inline frame_t *get_free_frame(void) {
