@@ -92,26 +92,9 @@ struct meta_slab {
 
 typedef struct meta_slab meta_slab_t;
 
-static inline void increment_slab_allocs(meta_slab_t *slab) {
-    BUG_ON(slab == NULL);
-    BUG_ON((slab->slab_allocs >= (slab->slab_len / slab->slab_size)));
+/* External declarations */
 
-    slab->slab_allocs++;
-}
-
-static inline void decrement_slab_allocs(meta_slab_t *slab) {
-    BUG_ON(slab == NULL);
-    BUG_ON((slab->slab_allocs == 0));
-
-    slab->slab_allocs--;
-}
-
-static inline bool slab_is_empty(meta_slab_t *slab) {
-    BUG_ON(slab == NULL);
-    return (slab->slab_allocs == 0);
-}
-
-int init_slab(void);
+extern int init_slab(void);
 extern void *kmalloc(size_t size);
 extern void *kzalloc(size_t size);
 extern void kfree(void *ptr);

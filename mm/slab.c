@@ -88,7 +88,7 @@ static int initialize_slab(meta_slab_t *slab) {
 static void *slab_alloc(meta_slab_t *slab) {
     slab_t *next_free = NULL;
 
-    if (NULL == slab) {
+    if (!slab) {
         dprintk("failed, NULL slab param\n");
         return NULL;
     }
@@ -99,7 +99,9 @@ static void *slab_alloc(meta_slab_t *slab) {
     /* TODO: Below should be done in thread-safe manner */
     next_free = list_first_entry(&slab->slab_head, slab_t, list);
     list_unlink(&next_free->list);
-    increment_slab_allocs(slab);
+
+    BUG_ON(slab->slab_allocs >= (slab->slab_len / slab->slab_size));
+    slab->slab_allocs++;
     return next_free;
 }
 
@@ -113,7 +115,9 @@ static void slab_free(meta_slab_t *slab, void *ptr) {
     new_slab = (slab_t *) ptr;
     /* TODO: eventually below should be done in thread-safe manner */
     list_add_tail(&new_slab->list, &slab->slab_head);
-    decrement_slab_allocs(slab);
+
+    BUG_ON(slab->slab_allocs == 0);
+    slab->slab_allocs--;
 }
 
 meta_slab_t *slab_meta_alloc() {
@@ -271,6 +275,10 @@ void *kzalloc(size_t size) {
     return ptr;
 }
 
+static inline bool slab_is_empty(meta_slab_t *slab) {
+    return slab->slab_allocs == 0;
+}
+
 /*
  * Loop through all the orders and check where does this memory belong
  * Then link it back into free list. Not a O(1) of implementation but we're looking for
@@ -285,6 +293,7 @@ static void ktf_free(void *ptr) {
     for (alloc_order = SLAB_ORDER_16; alloc_order < SLAB_ORDER_MAX; alloc_order++) {
         /* Go through list of meta_slab_t and try to allocate a free slab */
         list_for_each_entry (slab, &meta_slab_list[alloc_order], list) {
+            BUG_ON(!slab);
             if ((_ul(ptr) >= (_ul(slab->slab_base))) &&
                 (_ul(ptr) < (_ul(slab->slab_base) + _ul(slab->slab_len)))) {
                 slab_free(slab, ptr);
