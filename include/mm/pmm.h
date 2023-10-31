@@ -31,7 +31,7 @@
 #include <mm/regions.h>
 
 struct frame_flags {
-    uint16_t : 11, mapped : 1, uncacheable : 1, free : 1, pagetable : 1;
+    uint16_t : 12, uncacheable : 1, free : 1, pagetable : 1;
 };
 typedef struct frame_flags frame_flags_t;
 
@@ -83,7 +83,6 @@ extern frame_t *find_free_paddr_frame(paddr_t paddr);
 extern frame_t *find_busy_paddr_frame(paddr_t paddr);
 extern frame_t *find_paddr_frame(paddr_t paddr);
 
-extern void map_used_memory(void);
 extern void map_frames_array(void);
 
 /* Static definitions */

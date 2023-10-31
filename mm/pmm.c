@@ -638,19 +638,6 @@ unlock:
     spin_unlock(&lock);
 }
 
-void map_used_memory(void) {
-    frame_t *frame;
-
-    for_each_order (order) {
-        list_for_each_entry (frame, &busy_frames[order], list) {
-            if (!frame->flags.mapped) {
-                kmap(frame->mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
-                frame->flags.mapped = true;
-            }
-        }
-    }
-}
-
 void map_frames_array(void) {
     frames_array_t *array;
 
