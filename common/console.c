@@ -137,3 +137,16 @@ void __noreturn panic(const char *fmt, ...) {
     while (1)
         halt();
 }
+
+void warning(const char *fmt, ...) {
+    va_list args;
+
+    printk("************* WARNING *************\n");
+    printk("CPU[%u]: ", smp_processor_id());
+
+    va_start(args, fmt);
+    vprintk(fmt, args);
+    va_end(args);
+
+    printk("\n***********************************\n");
+}

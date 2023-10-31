@@ -313,8 +313,8 @@ static size_t process_memory_range(unsigned index, unsigned first_avail_region) 
     }
 
     if (cur != end) {
-        panic(
-            "PMM range processing failed: start=0x%016lx end=0x%016lx current=0x%016lx\n",
+        warning(
+            "PMM range processing failed: start=0x%016lx end=0x%016lx current=0x%016lx",
             start, end, cur);
     }
 
@@ -548,13 +548,16 @@ void put_free_frames(mfn_t mfn, unsigned int order) {
 
     spin_lock(&lock);
     frame = find_mfn_frame(busy_frames, mfn, order);
-    if (!frame)
-        panic("PMM: unable to find frame: %lx, order: %u among busy frames\n", mfn,
-              order);
+    if (!frame) {
+        warning("PMM: unable to find frame: %lx, order: %u among busy frames", mfn,
+                order);
+        goto unlock;
+    }
 
     if (return_frame(frame))
         merge_frames(frame);
 
+unlock:
     spin_unlock(&lock);
 }
 

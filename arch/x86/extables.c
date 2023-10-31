@@ -29,7 +29,7 @@
 void init_extables(void) {
     for (extable_entry_t *cur = __start_extables; cur < __stop_extables; ++cur) {
         if (!cur->fixup && !cur->cb)
-            panic("extable entry #%d for addr 0x%lx lacks fixup and callback!\n",
-                  cur - __start_extables, cur->fault_addr);
+            warning("extable entry #%d for addr 0x%lx lacks fixup and callback!",
+                    cur - __start_extables, cur->fault_addr);
     }
 }

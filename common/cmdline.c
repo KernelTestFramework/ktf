@@ -130,7 +130,7 @@ void __text_init cmdline_parse(const char *cmdline) {
                     !!parse_bool(!strcmp(optval, optkey) ? "1" : optval);
                 break;
             default:
-                panic("Unkown cmdline type detected...");
+                warning("Unkown cmdline type \"%u\" for %s", param->type, param->name);
                 break;
             }
         }
