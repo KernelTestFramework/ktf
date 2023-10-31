@@ -117,10 +117,19 @@ static __always_inline void zero_bss(void) {
 void zap_boot_mappings(void) {
     for_each_memory_range (r) {
         if (r->base == VIRT_IDENT_BASE && IS_INIT_SECTION(r->name)) {
+            unsigned int order = PAGE_ORDER_4K;
+
             memset(r->start, 0, r->end - r->start);
-            for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++) {
-                vunmap_kern(mfn_to_virt(mfn), PAGE_ORDER_4K);
-                reclaim_frame(mfn, PAGE_ORDER_4K);
+            for (void *va = r->start; va < r->end; va += ORDER_TO_SIZE(order)) {
+                mfn_t mfn;
+
+                if (vunmap_kern(va, &mfn, &order)) {
+                    /* FIXME: Use warning */
+                    printk("Unable to unmap kernel boot mapping at %p\n", va);
+                    order = PAGE_ORDER_4K;
+                    continue;
+                }
+                reclaim_frame(mfn, order);
             }
         }
     }

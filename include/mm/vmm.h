@@ -38,7 +38,7 @@ typedef enum gfp_flags gfp_flags_t;
 /* External definitions */
 
 extern void *get_free_pages(unsigned int order, gfp_flags_t flags);
-extern void put_pages(void *page, unsigned int order);
+extern void put_pages(void *page);
 
 /* Static definitions */
 
@@ -55,11 +55,11 @@ static inline void *get_free_page_top(gfp_flags_t flags) {
 }
 
 static inline void put_page(void *page) {
-    put_pages(page, PAGE_ORDER_4K);
+    put_pages(page);
 }
 
 static inline void put_page_top(void *page) {
-    put_pages(page - PAGE_SIZE, PAGE_ORDER_4K);
+    put_pages(page - PAGE_SIZE);
 }
 
 #endif /* KTF_VMM_H */

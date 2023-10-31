@@ -183,6 +183,8 @@ extern void *vmap_user(void *va, mfn_t mfn, unsigned int order,
                        unsigned long l3_flags, unsigned long l2_flags,
                        unsigned long l1_flags);
 
+extern int vunmap_kern(void *va, mfn_t *mfn, unsigned int *order);
+extern int vunmap_user(void *va, mfn_t *mfn, unsigned int *order);
 extern void pat_set_type(pat_field_t field, pat_memory_type_t type);
 extern pat_memory_type_t pat_get_type(pat_field_t field);
 
@@ -247,14 +249,6 @@ static inline paddr_t virt_to_paddr(const void *va) {
 
 static inline mfn_t virt_to_mfn(const void *va) {
     return paddr_to_mfn(virt_to_paddr(va));
-}
-
-static inline void vunmap_kern(void *va, unsigned int order) {
-    vmap_kern(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS);
-}
-
-static inline void vunmap_user(void *va, unsigned int order) {
-    vmap_user(va, MFN_INVALID, order, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS, PT_NO_FLAGS);
 }
 
 static inline void *kmap(mfn_t mfn, unsigned int order,

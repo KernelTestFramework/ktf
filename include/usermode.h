@@ -64,7 +64,7 @@ extern void init_usermode(percpu_t *percpu);
 extern void __user_text exit(unsigned long exit_code);
 extern void __user_text printf(const char *fmt, ...);
 extern void *__user_text mmap(void *va, unsigned long order);
-extern void __user_text munmap(void *va, unsigned long order);
+extern int __user_text munmap(void *va);
 extern bool __user_text syscall_mode(syscall_mode_t);
 
 #endif /* __ASSEMBLY__ */

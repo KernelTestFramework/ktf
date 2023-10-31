@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <console.h>
+#include <errno.h>
 #include <ktf.h>
 #include <multiboot2.h>
 #include <page.h>
@@ -361,6 +362,88 @@ static void map_tmp_mapping_entry(void) {
 
     /* Point _tmp_mapping_entry at new page tables location */
     _tmp_mapping_entry = paddr_to_virt_kern(_paddr(entry));
+}
+
+static int _vunmap(cr3_t *cr3_ptr, void *va, mfn_t *mfn, unsigned int *order) {
+    pgentry_t *tab;
+    mfn_t _mfn;
+    unsigned int _order;
+    pgentry_t *entry;
+    bool present;
+
+    if (mfn_invalid(cr3_ptr->mfn))
+        return -EINVAL;
+
+    dprintk("%s: va: 0x%p (cr3: 0x%p)\n", __func__, va, cr3_ptr);
+
+    tab = tmp_map_mfn(cr3_ptr->mfn);
+#if defined(__x86_64__)
+    pml4_t *l4e = l4_table_entry((pml4_t *) tab, va);
+    if (mfn_invalid(l4e->mfn) || !l4e->P)
+        return -ENOENT;
+
+    tab = tmp_map_mfn(l4e->mfn);
+#endif
+    pdpe_t *l3e = l3_table_entry((pdpe_t *) tab, va);
+    if (l3e->PS) {
+        _mfn = l3e->mfn;
+        _order = PAGE_ORDER_1G;
+        entry = &l3e->entry;
+        present = l3e->P;
+        goto done;
+    }
+
+    if (mfn_invalid(l3e->mfn) || !l3e->P)
+        return -ENOENT;
+
+    tab = tmp_map_mfn(l3e->mfn);
+    pde_t *l2e = l2_table_entry((pde_t *) tab, va);
+    if (l2e->PS) {
+        _mfn = l2e->mfn;
+        _order = PAGE_ORDER_2M;
+        entry = &l2e->entry;
+        present = l2e->P;
+        goto done;
+    }
+
+    if (mfn_invalid(l2e->mfn) || !l2e->P)
+        return -ENOENT;
+
+    tab = tmp_map_mfn(l2e->mfn);
+    pte_t *l1e = l1_table_entry((pte_t *) tab, va);
+    _mfn = l1e->mfn;
+    _order = PAGE_ORDER_4K;
+    entry = &l1e->entry;
+    present = l1e->P;
+
+done:
+    if (mfn)
+        *mfn = _mfn;
+    if (order)
+        *order = _order;
+    set_pgentry(entry, MFN_INVALID, PT_NO_FLAGS);
+    if (present)
+        invlpg(va);
+
+    return 0;
+}
+
+int vunmap_kern(void *va, mfn_t *mfn, unsigned int *order) {
+    int err;
+
+    spin_lock(&vmap_lock);
+    err = _vunmap(&cr3, va, mfn, order);
+    spin_unlock(&vmap_lock);
+    return err;
+}
+
+int vunmap_user(void *va, mfn_t *mfn, unsigned int *order) {
+    int err;
+
+    spin_lock(&vmap_lock);
+    err = _vunmap(&user_cr3, va, mfn, order);
+    spin_unlock(&vmap_lock);
+    return err;
 }
 
 static inline void init_cr3(cr3_t *cr3_ptr) {
