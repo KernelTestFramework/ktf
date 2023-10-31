@@ -130,6 +130,7 @@ static inline bool in_kernel_section(const void *addr) {
            (addr >= _ptr(__start_data) && addr < _ptr(__end_data)) ||
            (addr >= _ptr(__start_bss) && addr < _ptr(__end_bss)) ||
            (addr >= _ptr(__start_rodata) && addr < _ptr(__end_rodata)) ||
+           (addr >= _ptr(__start_extables) && addr < _ptr(__end_extables)) ||
            (addr >= _ptr(__start_symbols) && addr < _ptr(__end_symbols));
 }
 
