@@ -79,10 +79,12 @@ void *get_free_pages(unsigned int order, gfp_flags_t flags) {
     return va;
 }
 
-void put_pages(void *page, unsigned int order) {
-    /* FIXME: unmap all mappings */
+void put_pages(void *page) {
+    unsigned int order;
+    mfn_t mfn;
+
     spin_lock(&mmap_lock);
-    vunmap_kern(page, order);
+    BUG_ON(vunmap_kern(page, &mfn, &order));
     spin_unlock(&mmap_lock);
-    put_free_frames(virt_to_mfn(page), order);
+    put_free_frames(mfn, order);
 }

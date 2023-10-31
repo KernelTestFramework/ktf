@@ -159,7 +159,7 @@ meta_slab_t *slab_meta_alloc() {
     ret = initialize_slab(meta_slab_page);
     if (ret != ESUCCESS) {
         dprintk("initialize_slab in slab_meta_alloc failed\n");
-        put_pages(free_page, PAGE_ORDER_4K);
+        put_pages(free_page);
         return NULL;
     }
 
@@ -250,7 +250,7 @@ static void *ktf_alloc(size_t size) {
 
     if (ret != ESUCCESS) {
         dprintk("initialize_slab failed\n");
-        put_pages(free_page, PAGE_ORDER_4K);
+        put_pages(free_page);
         alloc = NULL;
         goto out;
     }
@@ -306,7 +306,7 @@ static void ktf_free(void *ptr) {
                      * meta slab free
                      */
                     list_unlink(&slab->list);
-                    put_pages(slab->slab_base, PAGE_ORDER_4K);
+                    put_pages(slab->slab_base);
                     meta_slab_page = META_SLAB_PAGE_ENTRY(slab);
                     slab_free(meta_slab_page, slab);
                     /*
@@ -320,7 +320,7 @@ static void ktf_free(void *ptr) {
                                 meta_slab_page->slab_base);
                         list_unlink(&meta_slab_page->list);
                         memset(meta_slab_page, 0, PAGE_SIZE);
-                        put_pages(meta_slab_page, PAGE_ORDER_4K);
+                        put_pages(meta_slab_page);
                     }
                 }
                 spin_unlock(&slab_mm_lock);

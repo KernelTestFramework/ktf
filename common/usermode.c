@@ -64,9 +64,15 @@ long syscall_handler(long syscall_nr, long arg1, long arg2, long arg3, long arg4
 
     case SYSCALL_MUNMAP: {
         void *va = _ptr(arg1);
-        unsigned int order = _u(arg2);
+        mfn_t mfn;
+        unsigned int order;
+        int err;
 
-        vunmap_user(va, order);
+        err = vunmap_user(va, &mfn, &order);
+        if (err)
+            return err;
+
+        put_free_frames(mfn, order);
         return 0;
     }
 
@@ -220,8 +226,8 @@ static inline long __user_text sys_mmap(void *va, unsigned long order) {
     return syscall2(SYSCALL_MMAP, _ul(va), order);
 }
 
-static inline long __user_text sys_munmap(void *va, unsigned long order) {
-    return syscall2(SYSCALL_MUNMAP, _ul(va), order);
+static inline long __user_text sys_munmap(void *va) {
+    return syscall1(SYSCALL_MUNMAP, _ul(va));
 }
 
 void __user_text exit(unsigned long exit_code) {
@@ -240,6 +246,6 @@ void *__user_text mmap(void *va, unsigned long order) {
     return _ptr(sys_mmap(va, order));
 }
 
-void __user_text munmap(void *va, unsigned long order) {
-    sys_munmap(va, order);
+int __user_text munmap(void *va) {
+    return sys_munmap(va);
 }

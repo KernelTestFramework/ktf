@@ -339,7 +339,7 @@ void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Length) {
         if (--frame->refcount > 0)
             continue;
 
-        vunmap_kern(mfn_to_virt_map(mfn), PAGE_ORDER_4K);
+        vunmap_kern(mfn_to_virt_map(mfn), NULL, NULL);
         list_unlink(&frame->list);
         kfree(frame);
     }

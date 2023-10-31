@@ -98,7 +98,12 @@ static unsigned long __user_text test_user_task_func2(void *arg) {
 
     va = mmap(_ptr(0xfff80000), PAGE_ORDER_4K);
     printf(USTR("mmap: %lx\n"), _ul(va));
+    if (munmap(va) != 0) {
+        printf(USTR("ERROR: munmap failed\n"));
+        ud2();
+    }
 
+    va = mmap(_ptr(0xfff80000), PAGE_ORDER_4K);
     memset(va, 0xcc, 0x1000);
     ((void (*)(void)) va)();
 
