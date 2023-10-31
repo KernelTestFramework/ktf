@@ -53,18 +53,20 @@ void init_pic(void) {
     outb(PIC2_PORT_DATA, 0xFF);
 }
 
-void pic_enable_irq(pic_device_sel_t pic, uint8_t irq) {
+static void pic_toggle_irq(pic_device_sel_t pic, uint8_t irq, bool enable) {
     BUG_ON((pic != PIC1_DEVICE_SEL && pic != PIC2_DEVICE_SEL) || irq >= PIC_IRQ_MAX);
+
     uint8_t port = (pic == PIC1_DEVICE_SEL ? PIC1_PORT_DATA : PIC2_PORT_DATA);
+    uint8_t mask = 1 << irq;
     uint8_t unmasked_irqs = inb(port);
 
-    outb(port, (~(1 << irq)) & unmasked_irqs);
+    outb(port, enable ? (~mask & unmasked_irqs) : (mask | unmasked_irqs));
+}
+
+void pic_enable_irq(pic_device_sel_t pic, uint8_t irq) {
+    pic_toggle_irq(pic, irq, true);
 }
 
 void pic_disable_irq(pic_device_sel_t pic, uint8_t irq) {
-    BUG_ON((pic != PIC1_DEVICE_SEL && pic != PIC2_DEVICE_SEL) || irq >= PIC_IRQ_MAX);
-    uint8_t port = (pic == PIC1_DEVICE_SEL ? PIC1_PORT_DATA : PIC2_PORT_DATA);
-    uint8_t unmasked_irqs = inb(port);
-
-    outb(port, (1 << irq) | unmasked_irqs);
+    pic_toggle_irq(pic, irq, false);
 }
