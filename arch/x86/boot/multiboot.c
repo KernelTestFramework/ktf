@@ -26,6 +26,7 @@
 #include <acpi_ktf.h>
 #include <console.h>
 #include <drivers/fb.h>
+#include <errno.h>
 #include <mm/pmm.h>
 #include <multiboot2.h>
 
@@ -227,23 +228,12 @@ int mbi_get_avail_memory_range(unsigned index, addr_range_t *r) {
     }
 
     if (multiboot_mmap_num == 0) {
-        if (index == 0) {
-            BUG_ON(multiboot_mem_lower == 0);
-
-            r->start = 0x0;
-            r->end = _ptr(multiboot_mem_lower);
-            return 0;
-        }
-        else if (index == 1) {
-            BUG_ON(multiboot_mem_upper == 0);
-
-            r->start = _ptr(MB(1));
-            r->end = r->start + (multiboot_mem_upper);
-            return 0;
-        }
+        r->start = _ptr(index == 0 ? 0x0 : MB(1));
+        r->end = r->start + (index == 0 ? multiboot_mem_lower : multiboot_mem_upper);
+        return r->end > r->start ? 0 : -ENOENT;
     }
 
-    return -1;
+    return -ENOMEM;
 }
 
 int mbi_get_memory_range(paddr_t pa, addr_range_t *r) {
@@ -260,15 +250,11 @@ int mbi_get_memory_range(paddr_t pa, addr_range_t *r) {
     }
 
     if (multiboot_mmap_num == 0) {
-        BUG_ON(multiboot_mem_lower == 0);
-
         _start = 0x0;
         _end = multiboot_mem_lower;
 
         if (pa < _end)
             goto found;
-
-        BUG_ON(multiboot_mem_upper == 0);
 
         _start = MB(1);
         _end = _start + multiboot_mem_upper;
@@ -277,7 +263,7 @@ int mbi_get_memory_range(paddr_t pa, addr_range_t *r) {
             goto found;
     }
 
-    return -1;
+    return -ENOMEM;
 
 found:
     if (r) {
