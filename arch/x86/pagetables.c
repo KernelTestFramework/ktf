@@ -40,6 +40,13 @@ cr3_t user_cr3;
 /* Used by lower level vmap() functions - must not be taken before mmap_lock */
 static spinlock_t vmap_lock = SPINLOCK_INIT;
 
+static inline void *tmp_map_mfn(mfn_t mfn) {
+    BUG_ON(mfn_invalid(mfn));
+    set_pgentry(_tmp_mapping_entry, mfn, L1_PROT);
+    invlpg(_tmp_mapping);
+    return _tmp_mapping;
+}
+
 static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
     /* clang-format off */
     snprintf(buf, size, "%c %c%c%c%c%c%c%c%c%c",
@@ -58,62 +65,71 @@ static inline const char *dump_pte_flags(char *buf, size_t size, pte_t pte) {
     return buf;
 }
 
-static inline void dump_page_table(void *table, int level) {
-    char flags[16];
-    int entries;
-    pte_t *pt = table;
-
+static inline int level_to_entries(int level) {
     switch (level) {
     case 4:
-        entries = L4_PT_ENTRIES;
-        break;
+        return L4_PT_ENTRIES;
     case 3:
-        entries = L3_PT_ENTRIES;
-        break;
+        return L3_PT_ENTRIES;
     case 2:
-        entries = L2_PT_ENTRIES;
-        break;
+        return L2_PT_ENTRIES;
     case 1:
-        entries = L1_PT_ENTRIES;
-        break;
+        return L1_PT_ENTRIES;
     default:
-        return;
-    };
+        return 0;
+    }
+}
 
-    for (int i = 0; i < entries; i++) {
+static inline void dump_pte(void *entry, mfn_t table, int level, int index) {
+    pte_t *pte = entry;
+    paddr_t pt_paddr = mfn_to_paddr(table) + index * sizeof(pgentry_t);
+    paddr_t paddr = mfn_to_paddr(pte->mfn);
+    int indent = (4 - level) * 2;
+    char flags[16];
+
+    dump_pte_flags(flags, sizeof(flags), *pte);
+    printk("[0x%lx] %*s%d[%03u] paddr: 0x%016lx flags: %s\n", pt_paddr, indent, "L",
+           level, index, paddr, flags);
+}
+
+static void dump_pagetable(mfn_t table, int level) {
+    pte_t *pt;
+
+    BUG_ON(mfn_invalid(table));
+    pt = tmp_map_mfn(table);
+    BUG_ON(!pt);
+
+    for (int i = 0; i < level_to_entries(level); i++) {
         if (!pt[i].P)
             continue;
 
-        dump_pte_flags(flags, sizeof(flags), pt[i]);
-        paddr_t paddr = mfn_to_paddr(pt[i].mfn);
-        printk("[%p] %*s%d[%03u] paddr: 0x%016lx flags: %s\n", _ptr(virt_to_paddr(pt)),
-               (4 - level) * 2, "L", level, i, paddr, flags);
+        dump_pte(&pt[i], table, level, i);
 
         if (level == 2 && ((pde_t *) pt)[i].PS)
             continue;
         if (level == 3 && ((pdpe_t *) pt)[i].PS)
             continue;
-        dump_page_table(paddr_to_virt_kern(paddr), level - 1);
+        dump_pagetable(pt[i].mfn, level - 1);
+        pt = tmp_map_mfn(table);
     }
 }
 
-void dump_pagetables(cr3_t cr3) {
-    printk("\nPage Tables:\n");
+void dump_pagetables(cr3_t *cr3_ptr) {
+#if defined(__x86_64__)
+    int level = 4;
+#else
+    int level = 3;
+#endif
+    ASSERT(cr3_ptr);
+    if (mfn_invalid(cr3_ptr->mfn)) {
+        warning("CR3: 0x%lx is invalid", cr3.paddr);
+        return;
+    }
 
-    /* Map all used frames to be able to parse page tables */
-    map_used_memory();
-
-    printk("CR3: paddr: 0x%lx\n", cr3.paddr);
+    printk("Page Tables: CR3 paddr: 0x%lx\n", cr3.paddr);
     spin_lock(&vmap_lock);
-    dump_page_table(paddr_to_virt_kern(cr3.paddr), 4);
+    dump_pagetable(cr3_ptr->mfn, level);
     spin_unlock(&vmap_lock);
-}
-
-static inline void *tmp_map_mfn(mfn_t mfn) {
-    BUG_ON(mfn_invalid(mfn));
-    set_pgentry(_tmp_mapping_entry, mfn, L1_PROT);
-    invlpg(_tmp_mapping);
-    return _tmp_mapping;
 }
 
 static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
