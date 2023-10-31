@@ -115,7 +115,9 @@ void init_apic(unsigned int cpu_id, apic_mode_t mode) {
     apic_spiv_t spiv;
     cpu_t *cpu;
 
-    BUG_ON(mode < APIC_MODE_DISABLED);
+    BUG_ON(mode == APIC_MODE_UNKNOWN);
+    if (mode <= APIC_MODE_DISABLED)
+        return;
 
     apic_base.reg = rdmsr(MSR_APIC_BASE);
 
