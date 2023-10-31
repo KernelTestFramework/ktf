@@ -350,7 +350,7 @@ static inline void sysret(void) {
 
 #define BUG()                                                                            \
     do {                                                                                 \
-        panic("BUG in %s() at line %u\n", __func__, __LINE__);                           \
+        panic("BUG in %s() at line %u", __func__, __LINE__);                             \
     } while (true)
 #define BUG_ON(cond)                                                                     \
     do {                                                                                 \
@@ -371,7 +371,7 @@ static inline void sysret(void) {
 #define ASSERT(cond)                                                                     \
     do {                                                                                 \
         if (!(cond))                                                                     \
-            panic("%s: Assert at %d failed: %s\n", __func__, __LINE__, STR((cond)));     \
+            panic("%s: Assert at %d failed: %s", __func__, __LINE__, STR((cond)));       \
     } while (0)
 
 /* I/O Ports handling */

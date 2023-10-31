@@ -320,7 +320,7 @@ static void ktf_free(void *ptr) {
         }
     }
 
-    panic("Attempted to free %p and couldn't find it\n", ptr);
+    panic("Attempted to free %p and couldn't find it", ptr);
     /* If we reached here, something terribly went wrong */
     UNREACHABLE();
 }

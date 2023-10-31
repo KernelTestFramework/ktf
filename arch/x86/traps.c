@@ -315,7 +315,7 @@ void do_exception(cpu_regs_t *regs) {
         x86_ex_decode_error_code(ec_str, sizeof(ec_str), regs->exc.vector, regs->exc.error_code);
 
     snprintf(panic_str, sizeof(panic_str),
-             "#%s %sat IP: 0x%02x:0x%016lx SP: 0x%02x:0x%016lx\n",
+             "#%s %sat IP: 0x%02x:0x%016lx SP: 0x%02x:0x%016lx",
              exception_names[regs->exc.vector], ec_str, regs->exc.cs, regs->exc._ASM_IP, regs->exc.ss,
              regs->exc._ASM_SP);
 
