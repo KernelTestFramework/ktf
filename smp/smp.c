@@ -81,6 +81,7 @@ static __text_init void boot_cpu(cpu_t *cpu) {
         return;
 
     ap_new_sp = get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL_MAP);
+    BUG_ON(!ap_new_sp);
     ap_cpuid = cpu->id;
     ap_callin = false;
     smp_wmb();

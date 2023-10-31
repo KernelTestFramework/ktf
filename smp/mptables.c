@@ -89,9 +89,11 @@ static mpf_t *get_mpf_addr(void) {
         return NULL;
 
     sysm_addr = kmap_4k(paddr_to_mfn(_paddr(range.end) - KB(1)), L1_PROT_RO);
-    ptr = find_mpf(sysm_addr, sysm_addr + KB(1));
-    if (ptr)
-        return ptr;
+    if (sysm_addr) {
+        ptr = find_mpf(sysm_addr, sysm_addr + KB(1));
+        if (ptr)
+            return ptr;
+    }
 
     return find_mpf(paddr_to_virt_kern(BIOS_ROM_ADDR_START),
                     paddr_to_virt_kern(BIOS_ROM_ADDR_START + KB(64)));

@@ -160,8 +160,10 @@ typedef unsigned long mfn_t;
 
 #define _paddr(addr) ((paddr_t) _ul(addr))
 
-#define PADDR_INVALID (0UL)
-#define MFN_INVALID   (0UL)
+#define PADDR_INVALID (~0x0UL)
+#define MFN_INVALID   (paddr_to_mfn(PADDR_INVALID))
+
+#define MAP_FAILED ((void *) 1)
 
 #define IS_ADDR_SPACE_VA(va, as) (_ul(va) >= (as))
 

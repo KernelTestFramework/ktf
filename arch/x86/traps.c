@@ -52,6 +52,7 @@ static void init_tss(percpu_t *percpu) {
 #if defined(__i386__)
     percpu->tss_df.iopb = sizeof(percpu->tss_df);
     percpu->tss_df.esp0 = _ul(get_free_page_top(GFP_KERNEL));
+    BUG_ON(!percpu->tss_df.esp0);
     percpu->tss_df.ss = __KERN_DS;
     percpu->tss_df.ds = __KERN_DS;
     percpu->tss_df.es = __KERN_DS;
@@ -68,11 +69,14 @@ static void init_tss(percpu_t *percpu) {
 
     /* FIXME */
     percpu->tss.esp0 = _ul(get_free_page_top(GFP_KERNEL));
+    BUG_ON(!percpu->tss.esp0);
     percpu->tss.ss0 = __KERN_DS;
     percpu->tss.cr3 = _ul(cr3.reg);
 #elif defined(__x86_64__)
     percpu->tss.rsp0 = _ul(get_free_page_top(GFP_KERNEL | GFP_USER));
+    BUG_ON(!percpu->tss.rsp0);
     percpu->tss.ist[0] = _ul(get_free_page_top(GFP_KERNEL | GFP_USER));
+    BUG_ON(!percpu->tss.ist[0]);
 #endif
     percpu->tss.iopb = sizeof(percpu->tss);
 

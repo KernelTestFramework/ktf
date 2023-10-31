@@ -118,8 +118,11 @@ static int prepare_task(task_t *task, const char *name, task_func_t func, void *
     task->func = func;
     task->arg = arg;
     task->type = type;
-    if (task->type == TASK_TYPE_USER)
+    if (task->type == TASK_TYPE_USER) {
         task->stack = get_free_page_top(GFP_USER);
+        if (!task->stack)
+            return -ENOMEM;
+    }
     set_task_state(task, TASK_STATE_READY);
     return ESUCCESS;
 }
