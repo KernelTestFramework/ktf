@@ -132,6 +132,65 @@ void dump_pagetables(cr3_t *cr3_ptr) {
     spin_unlock(&vmap_lock);
 }
 
+static void dump_pagetable_va(cr3_t *cr3_ptr, void *va) {
+    paddr_t tab_paddr;
+    pgentry_t *tab;
+#if defined(__x86_64__)
+    int level = 4;
+#else
+    int level = 3;
+#endif
+
+    ASSERT(cr3_ptr);
+    if (mfn_invalid(cr3_ptr->mfn)) {
+        warning("CR3: 0x%lx is invalid", cr3.paddr);
+        return;
+    }
+
+    spin_lock(&vmap_lock);
+
+    tab = tmp_map_mfn(cr3_ptr->mfn);
+#if defined(__x86_64__)
+    pml4_t *l4e = l4_table_entry((pml4_t *) tab, va);
+    dump_pte(l4e, cr3_ptr->mfn, level--, l4_table_index(va));
+
+    if (mfn_invalid(l4e->mfn))
+        goto unlock;
+
+    tab_paddr = mfn_to_paddr(l4e->mfn);
+    tab = tmp_map_mfn(l4e->mfn);
+#endif
+    pdpe_t *l3e = l3_table_entry((pdpe_t *) tab, va);
+    dump_pte(l3e, tab_paddr, level--, l3_table_index(va));
+
+    if (mfn_invalid(l3e->mfn) || l3e->PS)
+        goto unlock;
+
+    tab_paddr = mfn_to_paddr(l3e->mfn);
+    tab = tmp_map_mfn(l3e->mfn);
+    pde_t *l2e = l2_table_entry((pde_t *) tab, va);
+    dump_pte(l2e, tab_paddr, level--, l2_table_index(va));
+
+    if (mfn_invalid(l2e->mfn) || l2e->PS)
+        goto unlock;
+
+    tab_paddr = mfn_to_paddr(l2e->mfn);
+    tab = tmp_map_mfn(l2e->mfn);
+    pte_t *l1e = l1_table_entry((pte_t *) tab, va);
+    dump_pte(l1e, tab_paddr, level--, l1_table_index(va));
+
+unlock:
+    spin_unlock(&vmap_lock);
+}
+
+void dump_kern_pagetable_va(void *va) {
+    dump_pagetable_va(&cr3, va);
+}
+
+void dump_user_pagetable_va(void *va) {
+    dump_pagetable_va(&user_cr3, va);
+}
+
 static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
     void *cr3_mapped = NULL;
 
