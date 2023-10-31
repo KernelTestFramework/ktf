@@ -634,6 +634,152 @@ void unmap_pagetables(cr3_t *from_cr3, cr3_t *of_cr3) {
     spin_unlock(&vmap_lock);
 }
 
+int map_pagetables_va(cr3_t *cr3_ptr, void *va) {
+    pgentry_t *tab;
+    int err = -EINVAL;
+
+    ASSERT(cr3_ptr);
+    if (mfn_invalid(cr3_ptr->mfn)) {
+        warning("CR3: 0x%lx is invalid", cr3_ptr->paddr);
+        return err;
+    }
+
+    if (!is_canon_va(va)) {
+        warning("Virtual address 0x%p is not canonical", va);
+        return err;
+    }
+
+    err = -EFAULT;
+    spin_lock(&vmap_lock);
+    tab = _vmap(cr3_ptr, mfn_to_virt_kern(cr3_ptr->mfn), cr3_ptr->mfn, PAGE_ORDER_4K,
+                L4_PROT, L3_PROT, L2_PROT, L1_PROT);
+    if (!tab)
+        goto unlock;
+
+#if defined(__x86_64__)
+    pml4_t *l4e = l4_table_entry((pml4_t *) tab, va);
+    if (mfn_invalid(l4e->mfn)) {
+        err = -ENOENT;
+        goto unlock;
+    }
+
+    tab = _vmap(cr3_ptr, mfn_to_virt_kern(l4e->mfn), l4e->mfn, PAGE_ORDER_4K, L4_PROT,
+                L3_PROT, L2_PROT, L1_PROT);
+    if (!tab)
+        goto unlock;
+#endif
+
+    pdpe_t *l3e = l3_table_entry((pdpe_t *) tab, va);
+    if (mfn_invalid(l3e->mfn)) {
+        err = -ENOENT;
+        goto unlock;
+    }
+
+    if (l3e->PS)
+        goto done;
+
+    tab = _vmap(cr3_ptr, mfn_to_virt_kern(l3e->mfn), l3e->mfn, PAGE_ORDER_4K, L4_PROT,
+                L3_PROT, L2_PROT, L1_PROT);
+    if (!tab)
+        goto unlock;
+
+    pde_t *l2e = l2_table_entry((pde_t *) tab, va);
+    if (mfn_invalid(l2e->mfn)) {
+        err = -ENOENT;
+        goto unlock;
+    }
+
+    if (l2e->PS)
+        goto done;
+
+    tab = _vmap(cr3_ptr, mfn_to_virt_kern(l2e->mfn), l2e->mfn, PAGE_ORDER_4K, L4_PROT,
+                L3_PROT, L2_PROT, L1_PROT);
+    if (!tab)
+        goto unlock;
+
+done:
+    err = 0;
+unlock:
+    spin_unlock(&vmap_lock);
+    return err;
+}
+
+int unmap_pagetables_va(cr3_t *cr3_ptr, void *va) {
+    mfn_t tmp_entry_mfn = virt_to_mfn(_tmp_mapping_entry);
+    pgentry_t *tab, *tables[PT_LEVELS] = {NULL};
+    int level = 0;
+    int err = -EINVAL;
+
+    ASSERT(cr3_ptr);
+    if (mfn_invalid(cr3_ptr->mfn)) {
+        warning("CR3: 0x%lx is invalid", cr3_ptr->paddr);
+        return err;
+    }
+
+    if (!is_canon_va(va)) {
+        warning("Virtual address 0x%p is not canonical", va);
+        return err;
+    }
+
+    err = -EFAULT;
+    spin_lock(&vmap_lock);
+    tab = _vmap(cr3_ptr, mfn_to_virt_kern(cr3_ptr->mfn), cr3_ptr->mfn, PAGE_ORDER_4K,
+                L4_PROT, L3_PROT, L2_PROT, L1_PROT);
+    if (!tab)
+        goto cleanup;
+    tables[level++] = tab;
+
+#if defined(__x86_64__)
+    pml4_t *l4e = l4_table_entry((pml4_t *) tab, va);
+    if (mfn_invalid(l4e->mfn)) {
+        err = -ENOENT;
+        goto cleanup;
+    }
+
+    tab = _vmap(cr3_ptr, mfn_to_virt_kern(l4e->mfn), l4e->mfn, PAGE_ORDER_4K, L4_PROT,
+                L3_PROT, L2_PROT, L1_PROT);
+    if (!tab)
+        goto cleanup;
+    tables[level++] = tab;
+#endif
+
+    pdpe_t *l3e = l3_table_entry((pdpe_t *) tab, va);
+    if (mfn_invalid(l3e->mfn)) {
+        err = -ENOENT;
+        goto cleanup;
+    }
+
+    if (l3e->PS)
+        goto done;
+
+    tab = _vmap(cr3_ptr, mfn_to_virt_kern(l3e->mfn), l3e->mfn, PAGE_ORDER_4K, L4_PROT,
+                L3_PROT, L2_PROT, L1_PROT);
+    if (!tab)
+        goto cleanup;
+    tables[level++] = tab;
+
+    pde_t *l2e = l2_table_entry((pde_t *) tab, va);
+    if (mfn_invalid(l2e->mfn)) {
+        err = -ENOENT;
+        goto cleanup;
+    }
+
+    if (l2e->PS)
+        goto done;
+
+    /* Do not touch the tmp_mapping entry! */
+    if (l2e->mfn != tmp_entry_mfn)
+        tables[level] = mfn_to_virt_kern(l2e->mfn);
+
+done:
+    err = 0;
+cleanup:
+    for (unsigned i = 0; i < ARRAY_SIZE(tables) && tables[i]; i++)
+        _vunmap(cr3_ptr, tables[i], NULL, NULL);
+    spin_unlock(&vmap_lock);
+    return err;
+}
+
 void init_pagetables(void) {
     init_cr3(&cr3);
     init_cr3(&user_cr3);

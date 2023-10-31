@@ -317,6 +317,8 @@ extern frame_t *find_user_va_frame(const void *va);
 
 extern void map_pagetables(cr3_t *to_cr3, cr3_t *from_cr3);
 extern void unmap_pagetables(cr3_t *from_cr3, cr3_t *of_cr3);
+extern int map_pagetables_va(cr3_t *cr3_ptr, void *va);
+extern int unmap_pagetables_va(cr3_t *cr3_ptr, void *va);
 
 #endif /* __ASSEMBLY__ */
 

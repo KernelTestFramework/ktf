@@ -197,6 +197,11 @@ int unit_tests(void *_unused) {
     unmap_pagetables(&cr3, NULL);
     unmap_pagetables(&cr3, &user_cr3);
 
+    map_pagetables_va(&cr3, unit_tests);
+    pte_t *pte2 = get_pte(unit_tests);
+    printk("PTE: 0x%lx\n", pte2->entry);
+    unmap_pagetables_va(&cr3, unit_tests);
+
     task_t *task1, *task2, *task_user1, *task_user1_se, *task_user1_int80, *task_user2,
         *task_user3, *task_user4;
 
