@@ -30,18 +30,23 @@
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 
+/* Used by higher level mmap_range() functions - must be taken before vmap_lock */
+static spinlock_t mmap_lock = SPINLOCK_INIT;
+
 void *get_free_pages(unsigned int order, gfp_flags_t flags) {
-    frame_t *frame = get_free_frames(order);
+    frame_t *frame;
     void *va = NULL;
     mfn_t mfn;
 
     if (!boot_flags.virt)
         panic("Unable to use %s() before final page tables are set", __func__);
 
+    frame = get_free_frames(order);
     if (!frame)
-        return NULL;
+        return va;
     mfn = frame->mfn;
 
+    spin_lock(&mmap_lock);
     if (flags == GFP_USER) {
         va = vmap_kern(mfn_to_virt_user(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
                        L1_PROT);
@@ -69,12 +74,15 @@ void *get_free_pages(unsigned int order, gfp_flags_t flags) {
             vmap_user(mfn_to_virt_map(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
                       L1_PROT);
     }
+    spin_unlock(&mmap_lock);
 
     return va;
 }
 
 void put_pages(void *page, unsigned int order) {
     /* FIXME: unmap all mappings */
+    spin_lock(&mmap_lock);
     vunmap_kern(page, order);
+    spin_unlock(&mmap_lock);
     put_free_frames(virt_to_mfn(page), order);
 }
