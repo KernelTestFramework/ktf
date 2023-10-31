@@ -190,6 +190,13 @@ int unit_tests(void *_unused) {
     cpu_freq_expect("Prototyp Amazing Foo One @ 1GHz", 1000000000);
     cpu_freq_expect("Prototyp Amazing Foo Two @ 1.00GHz", 1000000000);
 
+    map_pagetables(&cr3, NULL);
+    map_pagetables(&cr3, &user_cr3);
+    pte_t *pte = get_pte(unit_tests);
+    printk("PTE: 0x%lx\n", pte->entry);
+    unmap_pagetables(&cr3, NULL);
+    unmap_pagetables(&cr3, &user_cr3);
+
     task_t *task1, *task2, *task_user1, *task_user1_se, *task_user1_int80, *task_user2,
         *task_user3, *task_user4;
 

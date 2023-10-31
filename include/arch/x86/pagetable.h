@@ -284,6 +284,14 @@ static inline void set_pgentry(pgentry_t *e, mfn_t mfn, unsigned long flags) {
     barrier();
 }
 
+static inline bool is_pgentry_huge(pgentry_t e) {
+    return !!(e & _PAGE_PSE);
+}
+
+static inline bool is_pgentry_present(pgentry_t e) {
+    return !!(e & _PAGE_PRESENT);
+}
+
 /* External declarations */
 
 extern pte_t l1_pt_entries1[L1_PT_ENTRIES];
@@ -306,6 +314,9 @@ extern int get_user_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order);
 
 extern frame_t *find_kern_va_frame(const void *va);
 extern frame_t *find_user_va_frame(const void *va);
+
+extern void map_pagetables(cr3_t *to_cr3, cr3_t *from_cr3);
+extern void unmap_pagetables(cr3_t *from_cr3, cr3_t *of_cr3);
 
 #endif /* __ASSEMBLY__ */
 
