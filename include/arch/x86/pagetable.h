@@ -298,6 +298,8 @@ extern pml4_t l4_pt_entries[L4_PT_ENTRIES];
 
 extern void init_pagetables(void);
 extern void dump_pagetables(cr3_t *cr3_ptr);
+extern void dump_kern_pagetable_va(void *va);
+extern void dump_user_pagetable_va(void *va);
 
 #endif /* __ASSEMBLY__ */
 
