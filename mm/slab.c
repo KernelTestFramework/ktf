@@ -140,7 +140,7 @@ meta_slab_t *slab_meta_alloc() {
      * Allocate a 4K page
      */
     free_page = get_free_page(GFP_KERNEL_MAP);
-    if (free_page == NULL) {
+    if (!free_page) {
         dprintk("slab_meta_alloc failed, not enough free pages\n");
         return NULL;
     }
@@ -234,7 +234,7 @@ static void *ktf_alloc(size_t size) {
      */
 
     free_page = get_free_page(GFP_KERNEL_MAP);
-    if (free_page == NULL) {
+    if (!free_page) {
         dprintk("ktf_alloc failed, not enough free pages\n");
         slab_free(META_SLAB_PAGE_ENTRY(meta_slab), meta_slab);
         alloc = NULL;

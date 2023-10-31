@@ -77,13 +77,15 @@ static frames_array_t *new_frames_array(void) {
 
     if (!boot_flags.virt) {
         frame_t *frame = get_free_frame();
+        if (!frame)
+            goto error;
         array = (frames_array_t *) mfn_to_virt_kern(frame->mfn);
     }
-    else
+    else {
         array = get_free_page(GFP_KERNEL);
-
-    if (!array)
-        panic("PMM: Unable to allocate new page for frame array");
+        if (!array)
+            goto error;
+    }
 
     dprintk("%s: allocated new frames array: %p\n", __func__, array);
 
@@ -91,6 +93,9 @@ static frames_array_t *new_frames_array(void) {
 
     total_free_frames += array->meta.free_count;
     return array;
+error:
+    panic("PMM: Unable to allocate new page for frame array");
+    UNREACHABLE();
 }
 
 static void del_frames_array(frames_array_t *array) {
@@ -539,7 +544,7 @@ frame_t *get_free_frames(unsigned int order) {
 void put_free_frames(mfn_t mfn, unsigned int order) {
     frame_t *frame;
 
-    BUG_ON(mfn_invalid(mfn) || order > MAX_PAGE_ORDER);
+    ASSERT(order <= MAX_PAGE_ORDER);
 
     spin_lock(&lock);
     frame = find_mfn_frame(busy_frames, mfn, order);

@@ -196,6 +196,11 @@ void dump_user_pagetable_va(void *va) {
     dump_pagetable_va(&user_cr3, va);
 }
 
+static inline void clean_pagetable(void *tab) {
+    for (pgentry_t *e = tab; e < (pgentry_t *) (tab + PAGE_SIZE); e++)
+        set_pgentry(e, MFN_INVALID, PT_NO_FLAGS);
+}
+
 static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
     void *cr3_mapped = NULL;
 
@@ -205,7 +210,7 @@ static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
 
         cr3_entry->mfn = frame->mfn;
         cr3_mapped = tmp_map_mfn(cr3_entry->mfn);
-        memset(cr3_mapped, 0, PAGE_SIZE);
+        clean_pagetable(cr3_mapped);
     }
 
     return cr3_entry->mfn;
@@ -248,7 +253,7 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
         mfn = frame->mfn;
         set_pgentry(entry, mfn, flags);
         tab = tmp_map_mfn(mfn);
-        memset(tab, 0, PAGE_SIZE);
+        clean_pagetable(tab);
     }
     else {
         /* Page table already exists but its flags may conflict with our. Maybe fixup */
@@ -258,6 +263,10 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
     return mfn;
 }
 
+/* This function returns NULL when failed to map a non-NULL virtual address,
+ * MAP_FAILED when failed to map a NULL (0x0) virtual address and otherwise
+ * it returns the same virtual address passed as argument.
+ */
 static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
 #if defined(__x86_64__)
                    unsigned long l4_flags,
@@ -267,8 +276,8 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
     mfn_t l1t_mfn, l2t_mfn, l3t_mfn;
     pgentry_t *tab, *entry;
 
-    if (!va || (_ul(va) & ~PAGE_ORDER_TO_MASK(order)) || !is_canon_va(va))
-        return NULL;
+    if ((_ul(va) & ~PAGE_ORDER_TO_MASK(order)) || !is_canon_va(va))
+        return va ? NULL : MAP_FAILED;
 
     dprintk("%s: va: 0x%p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
 
@@ -352,7 +361,14 @@ static void map_tmp_mapping_entry(void) {
     _tmp_mapping_entry = paddr_to_virt_kern(_paddr(entry));
 }
 
+static inline void init_cr3(cr3_t *cr3_ptr) {
+    memset(cr3_ptr, 0, sizeof(*cr3_ptr));
+    cr3_ptr->mfn = MFN_INVALID;
+}
+
 void init_pagetables(void) {
+    init_cr3(&cr3);
+    init_cr3(&user_cr3);
     init_tmp_mapping();
 
     for_each_memory_range (r) {
