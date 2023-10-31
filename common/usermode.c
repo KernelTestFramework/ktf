@@ -22,6 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <errno.h>
 #include <lib.h>
 #include <mm/vmm.h>
 #include <pagetable.h>
@@ -51,9 +52,11 @@ long syscall_handler(long syscall_nr, long arg1, long arg2, long arg3, long arg4
         frame_t *frame;
 
         frame = get_free_frames(order);
+        if (!frame)
+            return -ENOMEM;
+
         if (!va)
             va = mfn_to_virt_user(frame->mfn);
-
         va = vmap_user(va, frame->mfn, order, L4_PROT_USER, L3_PROT_USER, L2_PROT_USER,
                        L1_PROT_USER);
         return _ul(va);
