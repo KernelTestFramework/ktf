@@ -110,8 +110,10 @@ static mpc_hdr_t *get_mpc_addr(const mpf_t *mpf_ptr) {
     mpc_hdr_t *mpc_ptr;
 
     mpc_ptr = paddr_to_virt_kern(mpf_ptr->mpc_base);
-    if (!validate_mpc(mpc_ptr))
-        panic("Incorrect MP Configuration Table found!\n");
+    if (!validate_mpc(mpc_ptr)) {
+        warning("Incorrect MP Configuration Table found!");
+        return NULL;
+    }
 
     return mpc_ptr;
 }
@@ -284,7 +286,8 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
             break;
         }
         default:
-            panic("Unknown MP Configuration Table entry type: %x\n", *entry_ptr);
+            warning("Unknown MP Configuration Table entry type: %x", *entry_ptr);
+            break;
         }
     }
 }
@@ -307,6 +310,9 @@ int init_mptables(void) {
     }
 
     mpc_ptr = get_mpc_addr(mpf_ptr);
+    if (!mpc_ptr)
+        return -EINVAL;
+
     if (opt_debug)
         dump_mpc_hdr(mpc_ptr);
     process_mpc_entries(mpc_ptr);

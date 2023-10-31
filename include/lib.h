@@ -358,6 +358,16 @@ static inline void sysret(void) {
             BUG();                                                                       \
     } while (0)
 
+#define WARN(msg)                                                                        \
+    do {                                                                                 \
+        warning("Warning in %s() at line %u: %s", __func__, __LINE__, (msg));            \
+    } while (0)
+#define WARN_ON(cond, msg)                                                               \
+    do {                                                                                 \
+        if ((cond))                                                                      \
+            WARN((msg));                                                                 \
+    } while (0)
+
 #define ASSERT(cond)                                                                     \
     do {                                                                                 \
         if (!(cond))                                                                     \

@@ -85,7 +85,8 @@ ACPI_STATUS AcpiOsSignal(UINT32 Function, void *Info) {
         printk("ACPI: Received ACPI_SIGNAL_BREAKPOINT: %s", bp_msg ?: "");
     } break;
     default:
-        BUG();
+        warning("ACPI: Unsupported ACPI signal: %u", Function);
+        break;
     }
 
     return AE_OK;

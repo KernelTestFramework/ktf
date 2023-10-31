@@ -51,7 +51,8 @@ static inline const char *com_name(com_idx_t com) {
     case COM4:
         return "COM4";
     default:
-        BUG();
+        warning("Invalid COM port %u\n", com);
+        return NULL;
     }
 }
 

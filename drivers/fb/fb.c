@@ -93,10 +93,6 @@ void init_framebuffer(const struct multiboot2_tag_framebuffer *fb) {
     banner_size = (size_t) width * (LOGO_HEIGHT + FONT_SIZE);
 
     switch (bpp) {
-    case 0 ... 7:
-        printk("FB: Unsupported framebuffer BPP: %u\n", bpp);
-        has_fb = false;
-        return;
     case 8:
         put_pixel = put_pixel8;
         break;
@@ -117,7 +113,9 @@ void init_framebuffer(const struct multiboot2_tag_framebuffer *fb) {
         banner_size *= 4;
         break;
     default:
-        BUG();
+        warning("FB: Unsupported framebuffer BPP: %u", bpp);
+        has_fb = false;
+        return;
     }
 
     line_width = pitch * FONT_SIZE;

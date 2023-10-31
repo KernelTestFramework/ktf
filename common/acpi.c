@@ -87,7 +87,8 @@ static inline bool validate_rsdp(rsdp_rev1_t *ptr) {
         size = sizeof(rsdp_rev2_t);
         break;
     default:
-        panic("Unknown ACPI revision: %u\n", ptr->rev);
+        warning("Unknown ACPI revision: %u", ptr->rev);
+        return false;
     }
 
     if (get_checksum(ptr, size) != 0x0)
@@ -366,7 +367,8 @@ static int process_madt_entries(void) {
             break;
         }
         default:
-            panic("Unknown ACPI MADT entry type: %u\n", entry->type);
+            warning("Unknown ACPI MADT entry type: %u", entry->type);
+            break;
         }
     }
 
@@ -681,7 +683,7 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
         break;
     }
     default:
-        panic("ACPI [MADT]: Unsupported subtable entry type: %x\n", entry->Type);
+        warning("ACPI [MADT]: Unsupported subtable entry type: %x", entry->Type);
         break;
     }
 }
