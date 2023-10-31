@@ -207,6 +207,7 @@ static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
     if (mfn_invalid(cr3_entry->mfn)) {
         frame_t *frame = get_free_frame();
         BUG_ON(!frame);
+        frame->flags.pagetable = 1;
 
         cr3_entry->mfn = frame->mfn;
         cr3_mapped = tmp_map_mfn(cr3_entry->mfn);
@@ -249,6 +250,7 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
     if (mfn_invalid(mfn)) {
         frame_t *frame = get_free_frame();
         BUG_ON(!frame);
+        frame->flags.pagetable = 1;
 
         mfn = frame->mfn;
         set_pgentry(entry, mfn, flags);
