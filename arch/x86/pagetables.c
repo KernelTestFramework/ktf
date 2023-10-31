@@ -542,6 +542,98 @@ static inline void init_cr3(cr3_t *cr3_ptr) {
     cr3_ptr->mfn = MFN_INVALID;
 }
 
+static inline bool is_huge_page_level(int level) {
+    if (level == 2)
+        return true;
+#if defined(__i386__)
+    return false;
+#else
+    return level == 3;
+#endif
+}
+
+static void map_pagetable(cr3_t *cr3_ptr, mfn_t table, int level) {
+    void *va = mfn_to_virt_kern(table);
+    pte_t *pt;
+
+    pt = _vmap(cr3_ptr, va, table, PAGE_ORDER_4K, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
+    BUG_ON(!pt);
+
+    for (int i = 0; i < level_to_entries(level) && level > 1; i++) {
+        if (mfn_invalid(pt[i].mfn))
+            continue;
+
+        /* Do not map 2MB/1GB large pages */
+        if (!is_huge_page_level(level) || !is_pgentry_huge(pt[i].entry))
+            map_pagetable(cr3_ptr, pt[i].mfn, level - 1);
+    }
+}
+
+void map_pagetables(cr3_t *to_cr3, cr3_t *from_cr3) {
+    ASSERT(to_cr3);
+    if (mfn_invalid(to_cr3->mfn)) {
+        warning("Target CR3: 0x%lx is invalid", to_cr3->paddr);
+        return;
+    }
+
+    if (!from_cr3)
+        from_cr3 = to_cr3;
+    else if (mfn_invalid(from_cr3->mfn)) {
+        warning("Source CR3: 0x%lx is invalid", from_cr3->paddr);
+        return;
+    }
+
+    dprintk("Mapping all page tables of CR3: 0x%lx to CR3: 0x%lx\n", from_cr3->paddr,
+            to_cr3->paddr);
+
+    spin_lock(&vmap_lock);
+    /* Assume PML4 is not mapped */
+    map_pagetable(to_cr3, from_cr3->mfn, PT_LEVELS);
+    spin_unlock(&vmap_lock);
+}
+
+static void unmap_pagetable(cr3_t *cr3_ptr, mfn_t table, int level) {
+    mfn_t tmp_entry_mfn = virt_to_mfn(_tmp_mapping_entry);
+    pte_t *pt = mfn_to_virt_kern(table);
+
+    for (int i = 0; i < level_to_entries(level) && level > 1; i++) {
+        if (mfn_invalid(pt[i].mfn))
+            continue;
+
+        /* Do not touch the tmp_mapping entry! */
+        if (pt[i].mfn == tmp_entry_mfn)
+            continue;
+
+        /* Do not touch 2MB/1GB large pages */
+        if (!is_huge_page_level(level) || !is_pgentry_huge(pt[i].entry))
+            unmap_pagetable(cr3_ptr, pt[i].mfn, level - 1);
+    }
+    _vunmap(cr3_ptr, pt, NULL, NULL);
+}
+
+void unmap_pagetables(cr3_t *from_cr3, cr3_t *of_cr3) {
+    ASSERT(from_cr3);
+    if (mfn_invalid(from_cr3->mfn)) {
+        warning("Target CR3: 0x%lx is invalid", from_cr3->paddr);
+        return;
+    }
+
+    if (!of_cr3)
+        of_cr3 = from_cr3;
+    else if (mfn_invalid(of_cr3->mfn)) {
+        warning("Source CR3: 0x%lx is invalid", of_cr3->paddr);
+        return;
+    }
+
+    dprintk("Unmapping all page tables of CR3: 0x%lx from CR3: 0x%lx\n", of_cr3->paddr,
+            from_cr3->paddr);
+
+    spin_lock(&vmap_lock);
+    /* Assume PML4 is mapped */
+    unmap_pagetable(from_cr3, of_cr3->mfn, PT_LEVELS);
+    spin_unlock(&vmap_lock);
+}
+
 void init_pagetables(void) {
     init_cr3(&cr3);
     init_cr3(&user_cr3);
