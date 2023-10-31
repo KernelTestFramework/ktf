@@ -112,7 +112,7 @@ static int prepare_task(task_t *task, const char *name, task_func_t func, void *
     if (!task)
         return -EINVAL;
 
-    BUG_ON(get_task_state(task) > TASK_STATE_READY);
+    ASSERT(get_task_state(task) <= TASK_STATE_READY);
 
     task->name = name;
     task->func = func;
@@ -179,7 +179,7 @@ int schedule_task(task_t *task, cpu_t *cpu) {
         return -EEXIST;
     }
 
-    BUG_ON(get_task_state(task) != TASK_STATE_READY);
+    ASSERT(get_task_state(task) == TASK_STATE_READY);
 
     printk("CPU[%u]: Scheduling task %s[%u] (%s)\n", cpu->id, task->name, task->id,
            task_repeat_string(task->repeat));

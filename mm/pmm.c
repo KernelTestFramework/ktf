@@ -112,12 +112,8 @@ static bool is_frames_array_free(const frames_array_t *array) {
         panic("PMM: incorrect number of free slots: %d in array: %p",
               array->meta.free_count, array);
 
-    for (unsigned i = 0; i < ARRAY_SIZE(array->frames); i++) {
-        const frame_t *frame = &array->frames[i];
-
-        if (!is_frame_free(frame))
-            panic("PMM: found occupied slot in an empty array: %p", array);
-    }
+    for (unsigned i = 0; i < ARRAY_SIZE(array->frames); i++)
+        ASSERT(is_frame_free(&array->frames[i]));
 
     return true;
 }
@@ -171,7 +167,7 @@ static inline frame_t *take_frame(frame_t *frame, frames_array_t *array) {
 }
 
 static inline frame_t *put_frames_array_entry(frame_t *frame, frames_array_t *array) {
-    BUG_ON(is_frame_free(frame));
+    ASSERT(!is_frame_free(frame));
 
     if (!array)
         array = find_frames_array(frame);
@@ -203,7 +199,7 @@ static inline frame_t *get_frames_array_entry(void) {
 }
 
 static inline void destroy_frame(frame_t *frame) {
-    BUG_ON(is_frame_used(frame));
+    ASSERT(!is_frame_used(frame));
 
     if (frame) {
         list_unlink(&frame->list);
@@ -395,8 +391,7 @@ static inline frame_t *reserve_frame(frame_t *frame) {
 }
 
 static inline bool return_frame(frame_t *frame) {
-    if (!is_frame_used(frame))
-        panic("PMM: trying to return unused frame: %p", frame);
+    ASSERT(is_frame_used(frame));
 
     if (--frame->refcount == 0) {
         list_unlink(&frame->list);
@@ -458,7 +453,7 @@ frame_t *get_free_frames_cond(free_frames_cond_t cb) {
 }
 
 static inline void relink_frame_to_order(frame_t *frame, unsigned int new_order) {
-    BUG_ON(new_order > MAX_PAGE_ORDER);
+    ASSERT(new_order <= MAX_PAGE_ORDER);
 
     list_unlink(&frame->list);
     frames_count[frame->order]--;
