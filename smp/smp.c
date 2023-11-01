@@ -50,6 +50,7 @@ cr3_t __data_init ap_cr3;
 
 void __noreturn ap_startup(void) {
     WRITE_SP(ap_new_sp);
+    setup_tlb_global();
 
     cpu_t *cpu = get_cpu(ap_cpuid);
 

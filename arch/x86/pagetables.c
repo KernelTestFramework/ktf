@@ -430,7 +430,7 @@ static void map_tmp_mapping_entry(void) {
     pte_t *entry = l1_table_entry(mfn_to_virt(l1e->mfn), _tmp_mapping);
 
     /* Map _tmp_mapping_entry PTE of new page tables */
-    vmap_kern_4k(mfn_to_virt_kern(l1e->mfn), l1e->mfn, L1_PROT);
+    vmap_kern_4k(mfn_to_virt_kern(l1e->mfn), l1e->mfn, L1_PROT_GLOB);
 
     /* Point _tmp_mapping_entry at new page tables location */
     _tmp_mapping_entry = paddr_to_virt_kern(_paddr(entry));
@@ -1122,5 +1122,6 @@ void init_pagetables(void) {
     map_multiboot_areas();
     map_tmp_mapping_entry();
 
+    setup_tlb_global();
     write_cr3(cr3.paddr);
 }

@@ -107,17 +107,17 @@ static void init_sysenter(percpu_t *percpu) {
 }
 
 void init_usermode(percpu_t *percpu) {
-    vmap_user_4k(&cr3, virt_to_mfn(&cr3), L1_PROT);
+    vmap_user_4k(&cr3, virt_to_mfn(&cr3), L1_PROT_GLOB);
     vmap_user_4k(&user_cr3, virt_to_mfn(&user_cr3), L1_PROT);
 
     BUG_ON(end_exception_handlers - exception_handlers > (long) PAGE_SIZE);
-    vmap_user_4k(exception_handlers, virt_to_mfn(exception_handlers), L1_PROT);
+    vmap_user_4k(exception_handlers, virt_to_mfn(exception_handlers), L1_PROT_RO_GLOB);
 
     BUG_ON(end_interrupt_handlers - interrupt_handlers > (long) PAGE_SIZE);
-    vmap_user_4k(interrupt_handlers, virt_to_mfn(interrupt_handlers), L1_PROT);
+    vmap_user_4k(interrupt_handlers, virt_to_mfn(interrupt_handlers), L1_PROT_RO_GLOB);
 
     BUG_ON(end_usermode_helpers - usermode_helpers > (long) PAGE_SIZE);
-    vmap_user_4k(usermode_helpers, virt_to_mfn(usermode_helpers), L1_PROT);
+    vmap_user_4k(usermode_helpers, virt_to_mfn(usermode_helpers), L1_PROT_RO_GLOB);
 
     init_syscall();
     init_sysenter(percpu);

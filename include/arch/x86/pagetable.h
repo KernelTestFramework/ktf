@@ -381,6 +381,11 @@ static inline void *vmap_user_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
     return vmap_4k(&user_cr3, va, mfn, l1_flags, true);
 }
 
+static inline void setup_tlb_global(void) {
+    unsigned long cr4 = read_cr4();
+    write_cr4(opt_tlb_global ? (cr4 | X86_CR4_PGE) : (cr4 & ~X86_CR4_PGE));
+}
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PAGETABLE_H */

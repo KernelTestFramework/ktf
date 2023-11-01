@@ -81,6 +81,6 @@ void vga_write(void *vga_memory, const char *buf, size_t len, vga_color_t color)
 }
 
 void map_vga_area(void) {
-    vmap_range(VGA_START_ADDR, VGA_END_ADDR - VGA_START_ADDR, L1_PROT_NOCACHE,
+    vmap_range(VGA_START_ADDR, VGA_END_ADDR - VGA_START_ADDR, L1_PROT_NOCACHE_GLOB,
                VMAP_IDENT | VMAP_KERNEL);
 }
