@@ -54,7 +54,7 @@ static uint64_t line_width;
 static void (*put_pixel)(uint32_t x, uint32_t y, uint32_t color);
 
 static void map_fb_area(paddr_t start, size_t size) {
-    vmap_range(start, size, L1_PROT_NOCACHE, VMAP_KERNEL | VMAP_IDENT);
+    vmap_range(start, size, L1_PROT_NOCACHE_GLOB, VMAP_KERNEL | VMAP_IDENT);
 }
 
 static void put_pixel8(uint32_t x, uint32_t y, uint32_t color) {

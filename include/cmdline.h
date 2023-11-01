@@ -69,6 +69,7 @@ extern bool opt_qemu_console;
 extern bool opt_poweroff;
 extern bool opt_fb_scroll;
 extern unsigned long opt_reboot_timeout;
+extern bool opt_tlb_global;
 
 extern const char *kernel_cmdline;
 

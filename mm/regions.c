@@ -59,12 +59,12 @@ addr_range_t addr_ranges[] = {
     USER_RANGE( ".data.user",   L1_PROT_USER,    __start_data_user,     __end_data_user ),
     USER_RANGE( ".bss.user",    L1_PROT_USER,    __start_bss_user,      __end_bss_user  ),
 
-    KERNEL_RANGE( ".text",      L1_PROT_RO,      __start_text,           __end_text     ),
-    KERNEL_RANGE( ".data",      L1_PROT,         __start_data,           __end_data     ),
-    KERNEL_RANGE( ".extables",  L1_PROT_RO,      __start_extables,       __end_extables ),
-    KERNEL_RANGE( ".bss",       L1_PROT,         __start_bss,            __end_bss      ),
-    KERNEL_RANGE( ".rodata",    L1_PROT_RO,      __start_rodata,         __end_rodata   ),
-    KERNEL_RANGE( ".symbols",   L1_PROT_RO,      __start_symbols,        __end_symbols  ),
+    KERNEL_RANGE( ".text",      L1_PROT_RO_GLOB, __start_text,          __end_text      ),
+    KERNEL_RANGE( ".data",      L1_PROT_GLOB,    __start_data,          __end_data      ),
+    KERNEL_RANGE( ".bss",       L1_PROT_GLOB,    __start_bss,           __end_bss       ),
+    KERNEL_RANGE( ".rodata",    L1_PROT_RO,      __start_rodata,        __end_rodata    ),
+    KERNEL_RANGE( ".extables",  L1_PROT_RO_GLOB, __start_extables,      __end_extables  ),
+    KERNEL_RANGE( ".symbols",   L1_PROT_RO,      __start_symbols,       __end_symbols   ),
     /* clang-format on */
 
     {0x0} /* NULL array terminator */

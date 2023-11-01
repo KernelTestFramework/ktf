@@ -76,6 +76,9 @@ bool_cmd("fb_scroll", opt_fb_scroll);
 unsigned long opt_reboot_timeout = 0; /* Disabled by default */
 ulong_cmd("reboot_timeout", opt_reboot_timeout);
 
+bool opt_tlb_global = true;
+bool_cmd("tlb_global", opt_tlb_global);
+
 const char *kernel_cmdline;
 
 void __text_init cmdline_parse(const char *cmdline) {
