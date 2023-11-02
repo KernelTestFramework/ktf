@@ -526,6 +526,26 @@ int get_user_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order) {
     return err;
 }
 
+static frame_t *find_va_frame(const cr3_t *cr3_ptr, const void *va) {
+    unsigned int order;
+    mfn_t mfn;
+    int err;
+
+    spin_lock(&vmap_lock);
+    err = get_va_mfn_order(cr3_ptr, va, &mfn, &order);
+    spin_unlock(&vmap_lock);
+
+    return err ? NULL : find_mfn_frame(mfn, order);
+}
+
+frame_t *find_kern_va_frame(const void *va) {
+    return find_va_frame(&cr3, va);
+}
+
+frame_t *find_user_va_frame(const void *va) {
+    return find_va_frame(&user_cr3, va);
+}
+
 static inline void init_cr3(cr3_t *cr3_ptr) {
     memset(cr3_ptr, 0, sizeof(*cr3_ptr));
     cr3_ptr->mfn = MFN_INVALID;
