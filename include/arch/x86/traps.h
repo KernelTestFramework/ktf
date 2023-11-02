@@ -48,6 +48,8 @@
 #define KB_PORT2_IRQ    KEYBOARD_PORT2_IRQ_VECTOR
 #define APIC_TIMER_IRQ  APIC_TIMER_IRQ_VECTOR
 
+#define APIC_SPI_VECTOR 0xFF
+
 extern void init_traps(const cpu_t *cpu);
 extern void init_boot_traps(void);
 extern void init_rmode_traps(void);

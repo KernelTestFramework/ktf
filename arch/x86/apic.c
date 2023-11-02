@@ -164,7 +164,7 @@ void init_apic(unsigned int cpu_id, apic_mode_t mode) {
         vmap_4k(apic_get_base(apic_base), apic_base.base, L1_PROT_NOCACHE);
 
     spiv.reg = apic_read(APIC_SPIV);
-    spiv.vector = 0xFF;
+    spiv.vector = APIC_SPI_VECTOR;
     spiv.apic_enable = 1;
     apic_write(APIC_SPIV, spiv.reg);
 }
