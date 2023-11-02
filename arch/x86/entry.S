@@ -115,6 +115,10 @@ ENTRY(asm_interrupt_handler_\sym)
 END_FUNC(asm_interrupt_handler_\sym)
 .endm
 
+ENTRY(asm_interrupt_handler_dummy)
+    IRET
+END_FUNC(asm_interrupt_handler_dummy)
+
 ENTRY(handle_exception)
     SAVE_ALL_REGS
 
