@@ -239,6 +239,10 @@ static inline unsigned long read_gs(void) {
     return gs;
 }
 
+static inline void write_ss(unsigned long ss) {
+    asm volatile("mov %0, %%ss" ::"r"(ss));
+}
+
 static inline void write_gs(unsigned long gs) {
     asm volatile("mov %0, %%gs" ::"r"(gs));
 }
