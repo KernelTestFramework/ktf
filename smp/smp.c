@@ -60,6 +60,7 @@ void __noreturn ap_startup(void) {
     smp_wmb();
 
     init_timers(cpu);
+    sti();
 
     if (opt_fpu)
         enable_fpu();
