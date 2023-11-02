@@ -26,6 +26,7 @@
 #include <console.h>
 #include <cpuid.h>
 #include <ktf.h>
+#include <pagetable.h>
 #include <real_mode.h>
 #include <sched.h>
 #include <string.h>
@@ -203,12 +204,15 @@ int unit_tests(void *_unused) {
     task_user3 = new_user_task("test3 user", test_user_task_func3, NULL);
     task_user4 = new_user_task("test4 user", test_user_task_func4, NULL);
 
-    vmap_4k(HIGH_USER_PTR + 0x1000, get_free_frame()->mfn, L1_PROT);
+    frame_t *frame = get_free_frame();
+    vmap_4k(HIGH_USER_PTR + 0x1000, frame->mfn, L1_PROT);
     memset(HIGH_USER_PTR + 0x1000, 0, 0x1000);
-    vmap_user_4k(HIGH_USER_PTR, get_free_frame()->mfn, L1_PROT_USER);
+    vmap_user_4k(HIGH_USER_PTR, frame->mfn, L1_PROT_USER);
 
     /* Be sure that we can still touch this vmap despite the user vmap. */
     BUG_ON(*(unsigned long *) (HIGH_USER_PTR + 0x1000) != 0);
+
+    BUG_ON(frame != find_kern_va_frame(HIGH_USER_PTR + 0x1000));
 
     set_task_repeat(task1, 10);
     schedule_task(task1, get_bsp_cpu());

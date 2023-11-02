@@ -304,6 +304,9 @@ extern void dump_user_pagetable_va(void *va);
 extern int get_kern_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order);
 extern int get_user_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order);
 
+extern frame_t *find_kern_va_frame(const void *va);
+extern frame_t *find_user_va_frame(const void *va);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PAGETABLE_H */
