@@ -264,15 +264,12 @@ static inline int string_equal(const char *s1, const char *s2) {
 
 static inline char *strdup(const char *s1) {
     char *s2;
-    size_t len = 0;
 
     if (string_empty(s1))
         return NULL;
 
-    len = strlen(s1);
-    s2 = (char *) kmalloc(len);
-
-    if (NULL == s2)
+    s2 = (char *) kmalloc(strlen(s1) + 1);
+    if (!s2)
         return NULL;
 
     return strcpy(s2, s1);
