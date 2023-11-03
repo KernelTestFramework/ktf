@@ -1,0 +1,15 @@
+name: Coverity Scan
+
+on:
+  push:
+    branches: [mainline]
+
+jobs:
+  coverity:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: vapier/coverity-scan-action@v1
+      with:
+        email: ${{ secrets.COV_EMAIL }}
+        token: ${{ secrets.COV_TOKEN }}
