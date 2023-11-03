@@ -196,6 +196,9 @@ ENTRY(enter_usermode)
     SAVE_ALL_REGS
     PUSHF
 
+    /* Disable interrupts for stack switch and swapgs */
+    cli
+
     /* Save user stack pointer onto per-cpu */
     mov %_ASM_DX, %gs:(usermode_private)
 
@@ -208,8 +211,8 @@ ENTRY(enter_usermode)
 
     /* EFLAGS */
     PUSHF
-
-    orl $X86_EFLAGS_IOPL, (%_ASM_SP)
+    /* Set IOPL=3 and re-enable interrupts via IRET */
+    orl $(X86_EFLAGS_IOPL | X86_EFLAGS_IF), (%_ASM_SP)
 
     /* CS + IP */
     push $__USER_CS
