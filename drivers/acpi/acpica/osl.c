@@ -60,11 +60,11 @@ ACPI_STATUS AcpiOsInitialize(void) {
 }
 
 ACPI_STATUS AcpiOsTerminate(void) {
-    mapped_frame_t *frame;
+    mapped_frame_t *frame, *safe;
 
     dprintk("ACPI OS Termination:\n");
 
-    list_for_each_entry (frame, &mapped_frames, list) {
+    list_for_each_entry_safe (frame, safe, &mapped_frames, list) {
         list_unlink(&frame->list);
         kfree(frame);
     }
