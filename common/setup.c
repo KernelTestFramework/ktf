@@ -178,9 +178,10 @@ void __text_init init_timers(cpu_t *cpu) {
     if (opt_apic_timer) {
         if (hpet_initialized || opt_pit) /* Needed for APIC timer calibration */
             init_apic_timer();
-        else
-            printk("CPU%u: Unable to initialize APIC timer - no calibration timers!\n",
-                   cpu->id);
+        else {
+            warning("CPU%u: Unable to initialize APIC timer - no calibration timers!",
+                    cpu->id);
+        }
     }
 }
 
@@ -288,7 +289,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
 
     int ret = pfm_initialize();
     if (ret != PFM_SUCCESS)
-        printk("Warning: PFM library initialization failed: %d\n", ret);
+        warning("PFM library initialization failed: %d", ret);
 #endif
 
     /* Jump from .text.init section to .text */

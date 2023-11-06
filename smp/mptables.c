@@ -301,7 +301,7 @@ int init_mptables(void) {
     mpc_hdr_t *mpc_ptr;
 
     if (!mpf_ptr) {
-        printk("No MP Floating Structure Pointer found!\n");
+        warning("No MP Floating Structure Pointer found!");
         return -ENODEV;
     }
 
@@ -309,7 +309,7 @@ int init_mptables(void) {
         dump_mpf(mpf_ptr);
 
     if (mpf_ptr->mpc_type > 0 || mpf_ptr->mpc_base == 0x0) {
-        printk("No MP Configuration Table present!\n");
+        warning("No MP Configuration Table present!");
         return -ENOENT;
     }
 

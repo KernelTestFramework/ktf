@@ -37,7 +37,7 @@
 #endif
 
 void reboot(void) {
-    printk("Rebooting...\n");
+    warning("Rebooting...");
     io_delay();
 
 #ifdef KTF_ACPICA

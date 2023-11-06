@@ -117,9 +117,9 @@ void __text_init cmdline_parse(const char *cmdline) {
                 strncpy(param->var, optval, param->varlen);
                 if (strlen(optval) >= param->varlen) {
                     ((char *) param->var)[param->varlen - 1] = '\0';
-                    printk("WARNING: The commandline parameter value for %s does not fit "
-                           "into the preallocated buffer (size %lu >= %u)\n",
-                           param->name, strlen(optval), param->varlen);
+                    warning("The commandline parameter value for %s does not fit "
+                            "into the preallocated buffer (size %lu >= %u)",
+                            param->name, strlen(optval), param->varlen);
                 }
                 break;
             case ULONG:

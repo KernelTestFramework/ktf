@@ -325,7 +325,7 @@ void do_exception(cpu_regs_t *regs) {
 
     /* Handle user tasks' exceptions */
     if (enter_from_usermode(regs->exc.cs)) {
-        printk("Task exception: %s\n", panic_str);
+        warning("Task exception: %s", panic_str);
         terminate_user_task();
     }
 

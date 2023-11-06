@@ -51,7 +51,7 @@ static get_next_test_result_t get_next_test(test_fn **out_test_fn, char **out_na
     if (*out_name) {
         *out_test_fn = symbol_address(*out_name);
         if (!*out_test_fn) {
-            printk("Symbol for test %s not found\n", *out_name);
+            warning("Symbol for test %s not found", *out_name);
             return TESTS_ERROR;
         }
         return TESTS_FOUND;
