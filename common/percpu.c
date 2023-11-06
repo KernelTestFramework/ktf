@@ -27,6 +27,7 @@
 #include <lib.h>
 #include <list.h>
 #include <percpu.h>
+#include <string.h>
 
 #include <mm/vmm.h>
 
@@ -51,6 +52,7 @@ percpu_t *get_percpu_page(unsigned int cpu) {
      */
     percpu = get_free_page(GFP_IDENT | GFP_KERNEL | GFP_USER);
     BUG_ON(!percpu);
+    memset(percpu, 0, PAGE_SIZE);
 
     percpu->cpu_id = cpu;
 
