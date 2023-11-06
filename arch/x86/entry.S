@@ -175,6 +175,10 @@ ENTRY(syscall_exit)
     SWITCH_STACK
     POPF
 
+    /* Restore default GS (PERCPU) segment selector */
+    mov $__KERN_PERCPU, %_ASM_AX
+    mov %_ASM_AX, %gs
+
     /* Save exit code to return value register (AX) */
     mov %_ASM_SI, cpu_regs_ax(%_ASM_SP)
     RESTORE_ALL_REGS
