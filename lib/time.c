@@ -23,12 +23,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <apic.h>
+#include <percpu.h>
 #include <time.h>
 
 static volatile time_t ticks = 0;
 
 void timer_interrupt_handler(void) {
     ++ticks;
+    apic_EOI();
+}
+
+void apic_timer_interrupt_handler(void) {
+    asm volatile("lock incq %%gs:%[ticks]"
+                 : [ ticks ] "=m"(ACCESS_ONCE(PERCPU_VAR(apic_ticks))));
     apic_EOI();
 }
 
@@ -41,4 +48,15 @@ void msleep(time_t ms) {
 
 time_t get_timer_ticks(void) {
     return ticks;
+}
+
+void msleep_local(time_t ms) {
+    time_t end = PERCPU_GET(apic_ticks) + ms;
+    while (PERCPU_GET(apic_ticks) < end) {
+        cpu_relax();
+    }
+}
+
+time_t get_local_ticks(void) {
+    return PERCPU_GET(apic_ticks);
 }

@@ -44,6 +44,7 @@ extern void asm_interrupt_handler_uart2(void);
 extern void asm_interrupt_handler_keyboard(void);
 extern void asm_interrupt_handler_timer(void);
 extern void asm_interrupt_handler_dummy(void);
+extern void asm_interrupt_handler_apic_timer(void);
 
 extern void terminate_user_task(void);
 
@@ -165,7 +166,7 @@ void init_traps(const cpu_t *cpu) {
     set_intr_gate(&percpu->idt[KB_PORT1_IRQ], __KERN_CS,
                   _ul(asm_interrupt_handler_keyboard), GATE_DPL0, GATE_PRESENT, 0);
     set_intr_gate(&percpu->idt[APIC_TIMER_IRQ], __KERN_CS,
-                  _ul(asm_interrupt_handler_timer), GATE_DPL0, GATE_PRESENT, 0);
+                  _ul(asm_interrupt_handler_apic_timer), GATE_DPL0, GATE_PRESENT, 0);
     set_intr_gate(&percpu->idt[APIC_SPI_VECTOR], __KERN_CS,
                   _ul(asm_interrupt_handler_dummy), GATE_DPL0, GATE_PRESENT, 0);
 

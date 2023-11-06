@@ -58,6 +58,7 @@ struct percpu {
 #endif
 
     unsigned long usermode_private;
+    volatile unsigned long apic_ticks;
 } __aligned(PAGE_SIZE);
 typedef struct percpu percpu_t;
 

@@ -162,6 +162,7 @@ GLOBAL(end_exception_handlers)
 
 GLOBAL(interrupt_handlers)
 interrupt_handler timer timer_interrupt_handler timer_irq
+interrupt_handler apic_timer apic_timer_interrupt_handler apic_timer_irq
 interrupt_handler uart1 uart_interrupt_handler serial_com1_irq
 interrupt_handler uart2 uart_interrupt_handler serial_com2_irq
 interrupt_handler keyboard keyboard_interrupt_handler kb_port1_irq
