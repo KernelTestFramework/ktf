@@ -56,6 +56,7 @@ void __noreturn ap_startup(void) {
     init_traps(cpu);
     init_apic(ap_cpuid, apic_get_mode());
 
+    /* Initialize timers and enable interrupts */
     init_timers(cpu);
     sti();
 

@@ -214,9 +214,6 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
     /* Initialize Programmable Interrupt Controller */
     init_pic();
 
-    /* PIC is initialized - enable local interrupts */
-    sti();
-
     /* Initialize Physical Memory Manager */
     init_regions();
     init_pmm();
@@ -264,8 +261,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
 
     init_ioapic();
 
-    /* Initialize timers */
+    /* Initialize timers and enable interrupts */
     init_timers(bsp);
+    sti();
 
     if (!boot_flags.nosmp)
         init_smp();
