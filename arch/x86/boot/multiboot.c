@@ -141,13 +141,13 @@ void init_multiboot(unsigned long *addr, const char **cmdline) {
         case MULTIBOOT2_TAG_TYPE_EFI32: {
             struct multiboot2_tag_efi32 *efi32 = (struct multiboot2_tag_efi32 *) tag;
 
-            printk("[multiboot2] EFI32 Pointer: 0x%p\n", efi32->pointer);
+            printk("[multiboot2] EFI32 Pointer: 0x%x\n", efi32->pointer);
         } break;
 
         case MULTIBOOT2_TAG_TYPE_EFI64: {
             struct multiboot2_tag_efi64 *efi64 = (struct multiboot2_tag_efi64 *) tag;
 
-            printk("[multiboot2] EFI64 Pointer: 0x%p\n", efi64->pointer);
+            printk("[multiboot2] EFI64 Pointer: 0x%lx\n", efi64->pointer);
         } break;
 
         case MULTIBOOT2_TAG_TYPE_ACPI_OLD: {
@@ -170,7 +170,7 @@ void init_multiboot(unsigned long *addr, const char **cmdline) {
             struct multiboot2_tag_load_base_addr *addr =
                 (struct multiboot2_tag_load_base_addr *) tag;
 
-            printk("[multiboot2] Load base address: 0x%p\n", addr->load_base_addr);
+            printk("[multiboot2] Load base address: 0x%x\n", addr->load_base_addr);
         } break;
 
         default:
