@@ -25,7 +25,6 @@
 #include <apic.h>
 #include <console.h>
 #include <cpu.h>
-#include <drivers/pit.h>
 #include <ktf.h>
 #include <lib.h>
 #include <percpu.h>
@@ -210,6 +209,4 @@ void init_apic_timer(void) {
     timer.vector = APIC_TIMER_IRQ_OFFSET;
     timer.timer_mode = APIC_LVT_TIMER_PERIODIC;
     apic_write(APIC_LVT_TIMER, timer.reg);
-
-    pit_disable();
 }
