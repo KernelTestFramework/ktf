@@ -29,11 +29,17 @@ typedef uint64_t time_t;
 
 extern void msleep(time_t ms);
 extern time_t get_timer_ticks(void);
+extern void msleep_local(time_t ms);
+extern time_t get_local_ticks(void);
 
 /* Static declarations */
 
 static inline void sleep(time_t s) {
     msleep(s * 1000);
+}
+
+static inline void sleep_local(time_t s) {
+    msleep_local(s * 1000);
 }
 
 #endif
