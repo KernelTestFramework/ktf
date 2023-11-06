@@ -136,6 +136,8 @@
 #define __USER_DS __USER_DS64
 #endif
 
+#define __KERN_PERCPU (GDT_PERCPU << 3)
+
 #define _GDT_ENTRY(flags, base, limit)                                                   \
     ((((base) &_U64(0xff000000)) << (56 - 24)) | (((flags) &_U64(0x0000f0ff)) << 40) |   \
      (((limit) &_U64(0x000f0000)) << (48 - 16)) | (((base) &_U64(0x00ffffff)) << 16) |   \

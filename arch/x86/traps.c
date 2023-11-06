@@ -114,7 +114,7 @@ static void init_gdt(percpu_t *percpu) {
     lgdt(&percpu->gdt_ptr);
 
     write_ss(__KERN_DS);
-    write_gs(GDT_PERCPU << 3);
+    write_gs(__KERN_PERCPU);
     wrmsr(MSR_KERNEL_GS_BASE, 0x0);
 
     init_tss(percpu);
