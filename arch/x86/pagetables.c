@@ -216,10 +216,10 @@ static inline void pgentry_fixup_flags(pgentry_t *entry, unsigned long flags) {
     if (unlikely(*entry != entry_new)) {
         char flags_str_old[16];
         char flags_str_new[16];
-        printk("WARNING: Already-present PTE protection flags conflicts with our.\n"
-               "         Updating present flags: %s -> %s\n",
-               dump_pte_flags(flags_str_old, 16, (pte_t) *entry),
-               dump_pte_flags(flags_str_new, 16, (pte_t) entry_new));
+        warning("Already-present PTE protection flags conflict with our.\n"
+                "        Updating present flags: %s -> %s",
+                dump_pte_flags(flags_str_old, 16, (pte_t) *entry),
+                dump_pte_flags(flags_str_new, 16, (pte_t) entry_new));
         *entry = entry_new;
         barrier();
         flush_tlb();

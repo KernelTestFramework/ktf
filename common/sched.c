@@ -175,7 +175,7 @@ int schedule_task(task_t *task, cpu_t *cpu) {
     ASSERT(task);
 
     if (!cpu) {
-        printk("Unable to schedule task: %s. CPU does not exist.", task->name);
+        warning("Unable to schedule task: %s. CPU does not exist.", task->name);
         return -EEXIST;
     }
 

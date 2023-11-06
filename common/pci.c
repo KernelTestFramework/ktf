@@ -119,14 +119,14 @@ static void probe_pci(void) {
     const uint32_t vendor_reg = pci_cfg_read(bus, dev, func, PCI_REG_VENDOR);
 
     if (!PCI_DEV_EXISTS(vendor_reg)) {
-        printk("pci: non-existent host bridge @ 00.0.0\n");
+        warning("pci: non-existent host bridge @ 00.0.0");
         return;
     }
 
     class_reg = pci_cfg_read(bus, dev, func, PCI_REG_CLASS);
     if (PCI_CLASS(class_reg) != PCI_CLASS_BRIDGE &&
         PCI_SUBCLASS(class_reg) != PCI_SUBCLASS_HOST_BRIDGE) {
-        printk("pci: expected host bridge class code @ 00.0.0\n");
+        warning("pci: expected host bridge class code @ 00.0.0");
         return;
     }
 

@@ -123,7 +123,7 @@ void init_keyboard(const cpu_t *cpu) {
     /* Controller self test */
     outb(KEYBOARD_PORT_CMD, KEYBOARD_CMD_SELF_TEST);
     if (inb(KEYBOARD_PORT_DATA) != KEYBOARD_RES_SELF_TEST) {
-        printk("Self test did not succeed\n");
+        warning("Self test did not succeed");
         return;
     }
 
@@ -148,7 +148,7 @@ void init_keyboard(const cpu_t *cpu) {
 
     dprintk("Port1 available? %d - port2 available? %d\n", port1, port2);
     if (!port1 && !port2) {
-        printk("No available PS/2 working ports\n");
+        warning("No available PS/2 working ports");
         return;
     }
 

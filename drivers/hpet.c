@@ -48,7 +48,7 @@ bool init_hpet(const cpu_t *cpu) {
 #endif
 
     if (!hpet) {
-        printk("HPET not initialized\n");
+        warning("HPET not initialized");
         return false;
     }
 
