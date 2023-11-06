@@ -179,6 +179,9 @@ void init_apic_timer(void) {
     apic_lvt_timer_t timer;
     printk("Initializing local APIC timer\n");
 
+    /* Enable interrupts for calibration */
+    sti();
+
     /* Spend 200ms calibrating the timer, 10 iterations of 20ms each */
     for (i = 0; i < CAL_ITERATIONS; ++i) {
         /* Set the counter to the max value (0xFFFFFFFF) */
@@ -196,6 +199,8 @@ void init_apic_timer(void) {
         uint32_t elapsed_ticks = (_U32(-1) - apic_read(APIC_TMR_CCR)) / CAL_SLEEP_TIME;
         min_ticks = min(min_ticks, elapsed_ticks);
     }
+
+    cli();
 
     /* Interrupt every min_ticks ticks */
     apic_write(APIC_TMR_DCR, APIC_TIMER_DIVIDE_BY_16);
