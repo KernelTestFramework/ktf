@@ -165,18 +165,18 @@ static void __text_init init_vga_console(void) {
 }
 
 void __text_init init_timers(cpu_t *cpu) {
-    static bool __data_init hpet_initialized = false;
-
     if (is_cpu_bsp(cpu)) {
         if (opt_hpet)
-            hpet_initialized = init_hpet(cpu);
+            boot_flags.timer_global = init_hpet(cpu);
 
-        if (!hpet_initialized && opt_pit)
+        if (!boot_flags.timer_global && opt_pit) {
             init_pit(cpu);
+            boot_flags.timer_global = true;
+        }
     }
 
     if (opt_apic_timer) {
-        if (hpet_initialized || opt_pit) /* Needed for APIC timer calibration */
+        if (boot_flags.timer_global) /* Needed for APIC timer calibration */
             init_apic_timer();
         else {
             warning("CPU%u: Unable to initialize APIC timer - no calibration timers!",
