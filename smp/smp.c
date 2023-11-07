@@ -56,14 +56,15 @@ void __noreturn ap_startup(void) {
     init_traps(cpu);
     init_apic(ap_cpuid, apic_get_mode());
 
-    ap_callin = true;
-    smp_wmb();
-
     init_timers(cpu);
     sti();
 
     if (opt_fpu)
         enable_fpu();
+
+    /* Release BSP after full AP initialization */
+    ap_callin = true;
+    smp_wmb();
 
     while (true)
         run_tasks(cpu);
@@ -103,6 +104,7 @@ static __text_init void boot_cpu(cpu_t *cpu) {
 
     apic_wait_ready();
 
+    /* Wait for AP initialization */
     while (!ap_callin)
         cpu_relax();
 
