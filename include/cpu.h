@@ -35,19 +35,20 @@
 #define CPU_UNBLOCKED (1 << 0)
 #define CPU_FINISHED  (1 << 1)
 
+struct cpu_flags {
+    uint64_t bsp : 1, enabled : 1, rsvd : 62;
+};
+typedef struct cpu_flags cpu_flags_t;
+
 struct cpu {
     list_head_t list;
-
-    unsigned int id;
-    unsigned int bsp : 1, enabled : 1;
-
+    percpu_t *percpu;
+    spinlock_t lock;
+    list_head_t task_queue;
     atomic_t run_state;
 
-    percpu_t *percpu;
-
-    spinlock_t lock;
-
-    list_head_t task_queue;
+    unsigned int id;
+    cpu_flags_t flags;
 };
 typedef struct cpu cpu_t;
 
@@ -65,6 +66,14 @@ extern void finish_all_cpus(void);
 extern void wait_for_all_cpus(void);
 
 /* Static declarations */
+
+static inline bool is_cpu_bsp(cpu_t *cpu) {
+    return cpu->flags.bsp;
+}
+
+static inline bool is_cpu_enabled(cpu_t *cpu) {
+    return cpu->flags.enabled;
+}
 
 static inline void init_cpu_runstate(cpu_t *cpu) {
     atomic_set(&cpu->run_state, 0);
