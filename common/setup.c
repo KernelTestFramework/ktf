@@ -167,7 +167,7 @@ static void __text_init init_vga_console(void) {
 void __text_init init_timers(cpu_t *cpu) {
     static bool __data_init hpet_initialized = false;
 
-    if (cpu->bsp) {
+    if (is_cpu_bsp(cpu)) {
         if (opt_hpet)
             hpet_initialized = init_hpet(cpu);
 

@@ -75,7 +75,7 @@ static __text_init void boot_cpu(cpu_t *cpu) {
     percpu_t *percpu = cpu->percpu;
     apic_icr_t icr;
 
-    if (cpu->bsp)
+    if (is_cpu_bsp(cpu))
         return;
 
     ap_new_sp = get_free_pages_top(PAGE_ORDER_2M, GFP_KERNEL_MAP);

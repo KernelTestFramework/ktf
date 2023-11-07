@@ -252,7 +252,7 @@ void process_task_repeat(task_t *task) {
 void run_tasks(cpu_t *cpu) {
     task_t *task, *safe;
 
-    if (!cpu->bsp)
+    if (!is_cpu_bsp(cpu))
         wait_cpu_unblocked(cpu);
     set_cpu_unfinished(cpu);
 
@@ -272,7 +272,7 @@ void run_tasks(cpu_t *cpu) {
         }
     } while (!list_is_empty(&cpu->task_queue));
 
-    if (!cpu->bsp)
+    if (!is_cpu_bsp(cpu))
         set_cpu_blocked(cpu);
     set_cpu_finished(cpu);
 }

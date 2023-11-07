@@ -268,7 +268,7 @@ static int process_madt_entries(void) {
 
             cpu_t *cpu = get_cpu(madt_cpu->apic_proc_id)
                              ?: add_cpu(madt_cpu->apic_proc_id, false, enabled);
-            cpu->enabled = enabled;
+            cpu->flags.enabled = enabled;
 
             percpu_t *percpu = cpu->percpu;
             percpu->cpu_id = madt_cpu->apic_proc_id;
@@ -498,7 +498,7 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
 
         cpu_t *cpu =
             get_cpu(lapic->ProcessorId) ?: add_cpu(lapic->ProcessorId, false, enabled);
-        cpu->enabled = enabled;
+        cpu->flags.enabled = enabled;
 
         percpu_t *percpu = cpu->percpu;
         percpu->apic_id = lapic->Id;
@@ -602,7 +602,7 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
         cpu_t *cpu =
             get_cpu(slapic->ProcessorId) ?: add_cpu(slapic->ProcessorId, false, enabled);
 
-        cpu->enabled = enabled;
+        cpu->flags.enabled = enabled;
 
         percpu_t *percpu = cpu->percpu;
         percpu->sapic_id = slapic->Id;
@@ -610,7 +610,7 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
         percpu->sapic_uid = slapic->Uid;
         percpu->sapic_uid_str[0] = slapic->UidString[0];
 
-        if (cpu->enabled) {
+        if (is_cpu_enabled(cpu)) {
             printk("ACPI: [MADT] SAPIC Processor ID: %u, SAPIC ID: %u, SAPIC EID: %u, "
                    "SAPIC UID: %u, SAPIC UID Str: %c Flags: %08x\n",
                    cpu->id, slapic->Id, slapic->Eid, slapic->Uid, slapic->UidString[0],
@@ -627,12 +627,12 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
         bool enabled = !!(x2lapic->LapicFlags & 0x1);
         cpu_t *cpu = get_cpu(x2lapic->Uid) ?: add_cpu(x2lapic->Uid, false, enabled);
 
-        cpu->enabled = enabled;
+        cpu->flags.enabled = enabled;
 
         percpu_t *percpu = cpu->percpu;
         percpu->apic_id = x2lapic->LocalApicId;
 
-        if (cpu->enabled) {
+        if (is_cpu_enabled(cpu)) {
             printk("ACPI: [MADT] X2APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n",
                    cpu->id, percpu->apic_id, x2lapic->LapicFlags);
         }

@@ -223,7 +223,7 @@ static void process_mpc_entries(mpc_hdr_t *mpc_ptr) {
                 cpu = get_cpu(mpc_cpu->lapic_id)
                           ?: add_cpu(mpc_cpu->lapic_id, false, enabled);
 
-            cpu->enabled = enabled;
+            cpu->flags.enabled = enabled;
 
             percpu_t *percpu = cpu->percpu;
             percpu->apic_id = mpc_cpu->lapic_id;

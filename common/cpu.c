@@ -40,8 +40,8 @@ static cpu_t bsp = {0};
 static void init_cpu(cpu_t *cpu, unsigned int id, bool is_bsp, bool enabled) {
     memset(cpu, 0, sizeof(*cpu));
     cpu->id = id;
-    cpu->bsp = is_bsp;
-    cpu->enabled = enabled;
+    cpu->flags.bsp = is_bsp;
+    cpu->flags.enabled = enabled;
 
     init_cpu_runstate(cpu);
     if (is_bsp)
@@ -131,7 +131,7 @@ void wait_for_all_cpus(void) {
     cpu_t *cpu;
 
     list_for_each_entry (cpu, &cpus, list) {
-        if (cpu->bsp)
+        if (is_cpu_bsp(cpu))
             continue;
 
         while (!is_cpu_finished(cpu) || !list_is_empty(&cpu->task_queue))
