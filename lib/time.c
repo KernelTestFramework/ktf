@@ -26,10 +26,10 @@
 #include <percpu.h>
 #include <time.h>
 
-static volatile time_t ticks = 0;
+static __aligned(16) volatile time_t ticks = 0;
 
 void timer_interrupt_handler(void) {
-    ++ticks;
+    asm volatile("lock incq %[ticks]" : [ ticks ] "=m"(ACCESS_ONCE(ticks)));
     apic_EOI();
 }
 
@@ -40,14 +40,11 @@ void apic_timer_interrupt_handler(void) {
 }
 
 void msleep(time_t ms) {
-    time_t end = ticks + ms;
-    while (ticks < end) {
-        cpu_relax();
-    }
-}
+    time_t end;
 
-time_t get_timer_ticks(void) {
-    return ticks;
+    end = ACCESS_ONCE(ticks) + ms;
+    while (ACCESS_ONCE(ticks) < end)
+        cpu_relax();
 }
 
 void msleep_local(time_t ms) {
@@ -55,6 +52,10 @@ void msleep_local(time_t ms) {
     while (PERCPU_GET(apic_ticks) < end) {
         cpu_relax();
     }
+}
+
+time_t get_timer_ticks(void) {
+    return ACCESS_ONCE(ticks);
 }
 
 time_t get_local_ticks(void) {
