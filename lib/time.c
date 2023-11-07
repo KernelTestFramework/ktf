@@ -23,8 +23,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <apic.h>
+#include <errno.h>
 #include <percpu.h>
+#include <setup.h>
 #include <time.h>
+
+extern boot_flags_t boot_flags;
 
 static __aligned(16) volatile time_t ticks = 0;
 
@@ -39,19 +43,30 @@ void apic_timer_interrupt_handler(void) {
     apic_EOI();
 }
 
-void msleep(time_t ms) {
+int msleep(time_t ms) {
     time_t end;
+
+    if (!boot_flags.timer_global)
+        return -ENODEV;
 
     end = ACCESS_ONCE(ticks) + ms;
     while (ACCESS_ONCE(ticks) < end)
         cpu_relax();
+
+    return 0;
 }
 
-void msleep_local(time_t ms) {
-    time_t end = PERCPU_GET(apic_ticks) + ms;
-    while (PERCPU_GET(apic_ticks) < end) {
+int msleep_local(time_t ms) {
+    time_t end;
+
+    if (!PERCPU_GET(apic_timer_enabled))
+        return -ENODEV;
+
+    end = PERCPU_GET(apic_ticks) + ms;
+    while (PERCPU_GET(apic_ticks) < end)
         cpu_relax();
-    }
+
+    return 0;
 }
 
 time_t get_timer_ticks(void) {

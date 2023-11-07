@@ -34,7 +34,7 @@
 
 struct boot_flags {
     uint64_t virt : 1, legacy_devs : 1, i8042 : 1, vga : 1, msi : 1, aspm : 1, rtc : 1,
-        nosmp : 1, rsvd : 56;
+        nosmp : 1, timer_global : 1, rsvd : 55;
 };
 typedef struct boot_flags boot_flags_t;
 
