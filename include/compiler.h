@@ -27,6 +27,7 @@
 #define KTF_COMPILER_H
 
 #define BITS_PER_BYTE 8
+#define BITS_PER_LONG (__SIZEOF_LONG__ * 8)
 
 #define _STR(x) #x
 #define STR(x)  _STR(x)

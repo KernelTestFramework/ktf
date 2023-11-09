@@ -92,6 +92,11 @@ static inline void dump_pte(void *entry, mfn_t table, int level, int index) {
            level, index, paddr, flags);
 }
 
+static inline bool is_canon_va(const void *va) {
+    const unsigned int sign_bits = BITS_PER_LONG - VA_BITS;
+    return _ptr(((long) va << sign_bits) >> sign_bits) == va;
+}
+
 static void dump_pagetable(mfn_t table, int level) {
     pte_t *pt;
 
@@ -262,7 +267,7 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
     mfn_t l1t_mfn, l2t_mfn, l3t_mfn;
     pgentry_t *tab, *entry;
 
-    if (!va || (_ul(va) & ~PAGE_ORDER_TO_MASK(order)))
+    if (!va || (_ul(va) & ~PAGE_ORDER_TO_MASK(order)) || !is_canon_va(va))
         return NULL;
 
     dprintk("%s: va: 0x%p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
