@@ -25,9 +25,9 @@
 #ifndef KTF_BITMAP_H
 #define KTF_BITMAP_H
 
+#include <compiler.h>
 #include <lib.h>
 
-#define BITS_PER_LONG        (__SIZEOF_LONG__ * 8)
 #define BITS_TO_LONGS(nbits) div_round_up(nbits, BITS_PER_LONG)
 
 typedef struct {

@@ -150,6 +150,14 @@ typedef enum pat_memory_type pat_memory_type_t;
 typedef unsigned long paddr_t;
 typedef unsigned long mfn_t;
 
+#if defined(__x86_64__)
+#define la57_enabled() 0 // TODO: 5 level paging unsupported for now
+#define VA_BITS        (la57_enabled() ? 57 : 48) /* Number of canonical address bits */
+#else
+#define la57_enabled() 0
+#define VA_BITS        32
+#endif
+
 #define _paddr(addr) ((paddr_t) _ul(addr))
 
 #define PADDR_INVALID (0UL)
