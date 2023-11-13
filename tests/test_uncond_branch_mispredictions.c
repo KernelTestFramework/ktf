@@ -231,13 +231,13 @@ int __aligned(PAGE_SIZE) test_uncond_branch_mispredictions(void *unused) {
     printk("Testing direct unconditional " STR(BRANCH) " %s BTB flushing\n",
            WITH_BTB_FLUSH ? "with" : "without");
 
-    cli();
+    unsigned long flags = interrupts_disable_save();
     test_uncond_forward_branch_cl0(LOOP_ITERATIONS);
     test_uncond_forward_branch_cl1(LOOP_ITERATIONS);
 
     test_uncond_backward_branch_cl0(LOOP_ITERATIONS);
     test_uncond_backward_branch_cl1(LOOP_ITERATIONS);
-    sti();
+    interrupts_restore(flags);
 
     return 0;
 }
