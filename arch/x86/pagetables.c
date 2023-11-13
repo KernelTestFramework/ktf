@@ -282,8 +282,6 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
     if ((_ul(va) & ~PAGE_ORDER_TO_MASK(order)) || !is_canon_va(va))
         return va ? NULL : MAP_FAILED;
 
-    dprintk("%s: va: 0x%p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
-
 #if defined(__x86_64__)
     l3t_mfn = get_pgentry_mfn(get_cr3_mfn(cr3_ptr), l4_table_index(va), l4_flags);
 #else
@@ -326,6 +324,7 @@ void *vmap_kern(void *va, mfn_t mfn, unsigned int order,
                 unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
     unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(order);
 
+    dprintk("%s: va: 0x%p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
     spin_lock(&vmap_lock);
     va = _vmap(&cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
     spin_unlock(&vmap_lock);
@@ -339,6 +338,7 @@ void *vmap_user(void *va, mfn_t mfn, unsigned int order,
                 unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
     unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(order);
 
+    dprintk("%s: va: 0x%p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
     spin_lock(&vmap_lock);
     va = _vmap(&user_cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
     spin_unlock(&vmap_lock);
@@ -373,8 +373,6 @@ static int _vunmap(cr3_t *cr3_ptr, void *va, mfn_t *mfn, unsigned int *order) {
 
     if (mfn_invalid(cr3_ptr->mfn))
         return -EINVAL;
-
-    dprintk("%s: va: 0x%p (cr3: 0x%p)\n", __func__, va, cr3_ptr);
 
     tab = tmp_map_mfn(cr3_ptr->mfn);
 #if defined(__x86_64__)
@@ -431,6 +429,7 @@ done:
 int vunmap_kern(void *va, mfn_t *mfn, unsigned int *order) {
     int err;
 
+    dprintk("%s: va: 0x%p (cr3: 0x%p)\n", __func__, va, &cr3);
     spin_lock(&vmap_lock);
     err = _vunmap(&cr3, va, mfn, order);
     spin_unlock(&vmap_lock);
@@ -440,6 +439,7 @@ int vunmap_kern(void *va, mfn_t *mfn, unsigned int *order) {
 int vunmap_user(void *va, mfn_t *mfn, unsigned int *order) {
     int err;
 
+    dprintk("%s: va: 0x%p (cr3: 0x%p)\n", __func__, va, &cr3);
     spin_lock(&vmap_lock);
     err = _vunmap(&user_cr3, va, mfn, order);
     spin_unlock(&vmap_lock);
