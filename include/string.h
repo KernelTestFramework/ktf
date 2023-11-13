@@ -263,16 +263,18 @@ static inline int string_equal(const char *s1, const char *s2) {
 }
 
 static inline char *strdup(const char *s1) {
+    size_t len;
     char *s2;
 
     if (!s1)
         return NULL;
 
-    s2 = (char *) kmalloc(strlen(s1) + 1);
-    if (!s2)
-        return NULL;
+    len = strlen(s1) + 1;
+    s2 = kmalloc(len);
+    if (s2)
+        memcpy(s2, s1, len);
 
-    return strcpy(s2, s1);
+    return s2;
 }
 
 static inline size_t strspn(const char *s1, const char *s2) {
