@@ -323,8 +323,10 @@ name ## _end:
     "pop %%" STR(_ASM_BX) "\n"
 
 #if defined(__x86_64__)
+#define PUSHF() "pushfq\n"
 #define POPF() "popfq\n"
 #else
+#define PUSHF() "pushf\n"
 #define POPF() "popf\n"
 #endif
 
