@@ -67,7 +67,7 @@ void keyboard_reboot(void) {
     if (!i8042_present)
         return;
 
-    cli();
+    interrupts_disable();
 
     while ((inb(KEYBOARD_PORT_CMD) & KEYBOARD_STATUS_IN_FULL) != 0)
         cpu_relax();

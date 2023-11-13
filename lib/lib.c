@@ -28,7 +28,7 @@
 #include <extables.h>
 
 void __noreturn halt(void) {
-    cli();
+    interrupts_disable();
 
     while (1) {
         hlt();
@@ -40,7 +40,7 @@ void __noreturn halt(void) {
 void __noreturn hard_reboot(void) {
     idt_ptr_t idt_ptr = {0};
 
-    cli();
+    interrupts_disable();
     lidt(&idt_ptr);
     int3();
 

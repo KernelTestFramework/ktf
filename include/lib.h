@@ -183,6 +183,14 @@ static inline void write_eflags(unsigned long flags) {
     asm volatile("push %0\n" POPF()::"r"(flags));
 }
 
+static inline void interrupts_enable(void) {
+    sti();
+}
+
+static inline void interrupts_disable(void) {
+    cli();
+}
+
 static inline unsigned long read_cs(void) {
     unsigned long cs;
 

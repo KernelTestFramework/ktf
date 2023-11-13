@@ -263,7 +263,7 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
 
     /* Initialize timers and enable interrupts */
     init_timers(bsp);
-    sti();
+    interrupts_enable();
 
     if (!boot_flags.nosmp)
         init_smp();
