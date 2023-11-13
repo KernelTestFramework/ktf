@@ -171,20 +171,16 @@ static inline void int3(void) {
     asm volatile("int3");
 }
 
-static inline unsigned long read_flags(void) {
+static inline unsigned long read_eflags(void) {
     unsigned long flags;
 
-    asm volatile(
-#if defined(__i386__)
-        "pushfd;"
-        "popl %0"
-#elif defined(__x86_64__)
-        "pushfq;"
-        "popq %0"
-#endif
-        : "=r"(flags));
+    asm volatile(PUSHF() "pop %0" : "=r"(flags));
 
     return flags;
+}
+
+static inline void write_eflags(unsigned long flags) {
+    asm volatile("push %0\n" POPF()::"r"(flags));
 }
 
 static inline unsigned long read_cs(void) {
