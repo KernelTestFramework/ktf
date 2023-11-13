@@ -2,7 +2,7 @@
 #
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
-# This script builds the project's boot.iso file in the docker environment
+# This script builds the project's ktf.iso file in the docker environment
 set -e
 
 COMPILER=$1
@@ -16,4 +16,4 @@ cd "$SCRIPTDIR"/../..
 
 # Build project in docker
 make clean V=1
-make docker:boot.iso V=1 CC=$COMPILER
+make docker:ktf.iso V=1 CC=$COMPILER

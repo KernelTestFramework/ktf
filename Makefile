@@ -271,10 +271,10 @@ QEMU_PARAMS += $(QEMU_PARAMS_NOGFX)
 
 QEMU_PARAMS_DEBUG := -s -S &
 
-ISO_FILE := boot.iso
+ISO_FILE := ktf.iso
 
 ifneq ($(SYSTEM), LINUX)
-$(ISO_FILE): dockerboot.iso
+$(ISO_FILE): docker${ISO_FILE}
 else
 $(ISO_FILE): $(TARGET)
 	@echo "GEN ISO" $(ISO_FILE)
