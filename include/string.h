@@ -265,7 +265,7 @@ static inline int string_equal(const char *s1, const char *s2) {
 static inline char *strdup(const char *s1) {
     char *s2;
 
-    if (string_empty(s1))
+    if (!s1)
         return NULL;
 
     s2 = (char *) kmalloc(strlen(s1) + 1);
