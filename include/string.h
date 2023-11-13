@@ -113,7 +113,7 @@ static inline void *memset(void *s, int c, size_t n) {
     return s;
 }
 
-static inline void *memcpy(void *d, void *s, size_t n) {
+static inline void *memcpy(void *d, const void *s, size_t n) {
     unsigned long d0;
 
     /* clang-format off */
@@ -138,7 +138,7 @@ static inline void *memmove(void *d, const void *s, size_t n) {
 
     /* if we don't have a range overlap, just use memcpy */
     if ((d > s && d > s + n) || (d < s && d + n < s)) {
-        return memcpy(d, (void *) s, n);
+        return memcpy(d, s, n);
     }
 
     /*
@@ -156,7 +156,7 @@ static inline void *memmove(void *d, const void *s, size_t n) {
          * d   -----
          * normal copy
          */
-        return memcpy(d, (void *) s, n);
+        return memcpy(d, s, n);
 
     return d;
 }

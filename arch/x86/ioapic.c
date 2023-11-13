@@ -47,7 +47,7 @@ static int __get_system_bus_name(uint8_t bus_name[IOAPIC_SYSTEM_BUS_NAME_SIZE],
         return -EINVAL;
 
     memset(bus_name, ' ', IOAPIC_SYSTEM_BUS_NAME_SIZE);
-    memcpy(bus_name, (char *) name, namelen);
+    memcpy(bus_name, name, namelen);
     return 0;
 }
 
