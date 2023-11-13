@@ -179,7 +179,7 @@ void init_apic_timer(void) {
     printk("Initializing local APIC timer\n");
 
     /* Enable interrupts for calibration */
-    sti();
+    unsigned long flags = interrupts_enable_save();
 
     /* Spend 200ms calibrating the timer, 10 iterations of 20ms each */
     for (i = 0; i < CAL_ITERATIONS; ++i) {
@@ -199,7 +199,7 @@ void init_apic_timer(void) {
         min_ticks = min(min_ticks, elapsed_ticks);
     }
 
-    cli();
+    interrupts_restore(flags);
 
     /* Interrupt every min_ticks ticks */
     apic_write(APIC_TMR_DCR, APIC_TIMER_DIVIDE_BY_16);

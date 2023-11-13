@@ -215,13 +215,13 @@ int __aligned(PAGE_SIZE) test_cond_branch_mispredictions(void *unused) {
     printk("Testing conditional branch %s BTB flushing\n",
            WITH_BTB_FLUSH ? "with" : "without");
 
-    cli();
+    unsigned long flags = interrupts_disable_save();
     test_cond_forward_branch_cl0(LOOP_ITERATIONS);
     test_cond_forward_branch_cl1(LOOP_ITERATIONS);
 
     test_cond_backward_branch_cl0(LOOP_ITERATIONS);
     test_cond_backward_branch_cl1(LOOP_ITERATIONS);
-    sti();
+    interrupts_restore(flags);
 
     return 0;
 }

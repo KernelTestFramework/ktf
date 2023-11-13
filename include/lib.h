@@ -187,8 +187,31 @@ static inline void interrupts_enable(void) {
     sti();
 }
 
+static inline unsigned long interrupts_enable_save(void) {
+    unsigned long flags = read_eflags();
+    interrupts_enable();
+    return flags;
+}
+
 static inline void interrupts_disable(void) {
     cli();
+}
+
+static inline unsigned long interrupts_disable_save(void) {
+    unsigned long flags = read_eflags();
+    interrupts_disable();
+    return flags;
+}
+
+static inline void interrupts_restore(unsigned long flags) {
+    if (flags & X86_EFLAGS_IF)
+        sti();
+    else
+        cli();
+}
+
+static inline bool interrupts_enabled(void) {
+    return read_eflags() & X86_EFLAGS_IF;
 }
 
 static inline unsigned long read_cs(void) {
