@@ -122,7 +122,7 @@ void register_console_callback(console_callback_t cb, void *arg) {
     console_callbacks[num_console_callbacks++].arg = arg;
 }
 
-void __noreturn panic(const char *fmt, ...) {
+void panic(const char *fmt, ...) {
     va_list args;
 
     printk("************** PANIC **************\n");
