@@ -185,19 +185,20 @@ endif
 $(PREP_LINK_SCRIPT) : $(LINK_SCRIPT)
 	$(VERBOSE) $(CC) $(AFLAGS) -E -P -C -x c $< -o $@
 
-$(TARGET): $(OBJS) $(PREP_LINK_SCRIPT)
+$(TARGET_DEBUG): $(OBJS) $(PREP_LINK_SCRIPT)
 	@echo "LD " $@
 	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(PFMLIB_LINKER_FLAGS)
 	@echo "GEN " $(SYMBOLS_NAME).S
-	$(VERBOSE) $(NM) -p --format=posix $(TARGET) | $(PYTHON) $(SYMBOLS_DIR)/$(SYMBOLS_TOOL)
+	$(VERBOSE) $(NM) -p --format=posix $@ | $(PYTHON) $(SYMBOLS_DIR)/$(SYMBOLS_TOOL)
 	@echo "CC " $(SYMBOLS_NAME).S
 	$(VERBOSE) $(CC) -c -o $(SYMBOLS_NAME).o $(AFLAGS) $(SYMBOLS_NAME).S
 	$(VERBOSE) rm -rf $(SYMBOLS_NAME).S
-	@echo "LD " $(TARGET) $(SYMBOLS_NAME).o
+	@echo "LD " $@ $(SYMBOLS_NAME).o
 	$(VERBOSE) $(LD) -T $(PREP_LINK_SCRIPT) -o $@ $(OBJS) $(PFMLIB_LINKER_FLAGS) $(SYMBOLS_NAME).o
+
+$(TARGET): $(TARGET_DEBUG)
 	@echo "STRIP"
-	$(VERBOSE) $(OBJCOPY) --only-keep-debug $(TARGET) $(TARGET_DEBUG)
-	$(VERBOSE) $(STRIP) $(STRIP_OPTS) $(TARGET)
+	$(VERBOSE) $(STRIP) $(STRIP_OPTS) -o $@ $<
 
 $(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
 	@echo "UNTAR libpfm"
@@ -242,7 +243,7 @@ clean:
 	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
 	$(VERBOSE) $(RM) -f $(ASM_OFFSETS_H) $(ASM_OFFSETS_S)
 	$(VERBOSE) $(RM) -rf $(ACPICA_DEST_DIR)/source
-	$(VERBOSE) $(RM) -f $(TARGET_DEBUG)
+	$(VERBOSE) $(RM) -f $(TARGET_DEBUG) $(TARGET)
 	$(VERBOSE) $(RM) -rf $(GRUB_DIR)
 
 # Check whether we can use kvm for qemu
@@ -277,11 +278,11 @@ $(ISO_FILE): dockerboot.iso
 else
 $(ISO_FILE): $(TARGET)
 	@echo "GEN ISO" $(ISO_FILE)
-	$(VERBOSE) $(GRUB_FILE) --is-x86-multiboot2 $(TARGET) || { echo "Multiboot not supported"; exit 1; }
+	$(VERBOSE) $(GRUB_FILE) --is-x86-multiboot2 $< || { echo "Multiboot not supported"; exit 1; }
 	$(VERBOSE) $(RM) -rf $(GRUB_DIR) && mkdir -p $(GRUB_DIR)/grub
-	$(VERBOSE) cp $(TARGET) $(GRUB_DIR)/
+	$(VERBOSE) cp $< $(GRUB_DIR)/
 	$(VERBOSE) cp $(GRUB_CONFIG) $(GRUB_DIR)/grub/grub.cfg
-	$(VERBOSE) $(XZ) -q -f $(GRUB_DIR)/$(TARGET)
+	$(VERBOSE) $(XZ) -q -f $(GRUB_DIR)/$<
 	$(VERBOSE) $(GRUB_MKRESCUE) --install-modules="$(GRUB_MODULES)" --fonts=no --compress=xz -o $(ISO_FILE) grub &> /dev/null
 endif
 
