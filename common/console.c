@@ -122,17 +122,30 @@ void register_console_callback(console_callback_t cb, void *arg) {
     console_callbacks[num_console_callbacks++].arg = arg;
 }
 
+static void oops_print(const char *fmt, va_list args, const char *type) {
+    static const char stars[] = "***********************************";
+    size_t slen = sizeof(stars) - 1;
+    size_t tlen = strlen(type);
+    int s1_len, s2_len;
+
+    if (tlen > slen - 4)
+        tlen = slen - 4;
+
+    s1_len = (slen - tlen - 2) / 2;
+    s2_len = slen - tlen - 2 - s1_len;
+
+    printk("%.*s %s %.*s\n", s1_len, stars, type, s2_len, stars);
+    printk("CPU[%u]: ", smp_processor_id());
+    vprintk(fmt, args);
+    printk("\n%s\n", stars);
+}
+
 void panic(const char *fmt, ...) {
     va_list args;
 
-    printk("************** PANIC **************\n");
-    printk("CPU[%u]: ", smp_processor_id());
-
     va_start(args, fmt);
-    vprintk(fmt, args);
+    oops_print(fmt, args, "PANIC");
     va_end(args);
-
-    printk("\n***********************************\n");
 
     while (1)
         halt();
@@ -141,12 +154,7 @@ void panic(const char *fmt, ...) {
 void warning(const char *fmt, ...) {
     va_list args;
 
-    printk("************* WARNING *************\n");
-    printk("CPU[%u]: ", smp_processor_id());
-
     va_start(args, fmt);
-    vprintk(fmt, args);
+    oops_print(fmt, args, "WARNING");
     va_end(args);
-
-    printk("\n***********************************\n");
 }
