@@ -150,8 +150,6 @@ ACPICA_INSTALL := $(shell [ -d $(ACPICA_DEST_DIR)/source ] ||                   
 endif
 
 ASM_OFFSETS_C := asm-offsets.c
-ASM_OFFSETS_S := asm-offsets.s
-ASM_OFFSETS_H := asm-offsets.h
 ASM_OFFSETS_SH := $(KTF_ROOT)/tools/asm-offsets/asm-offsets.sh
 
 SOURCES     := $(shell find . -name \*.c -and -not -name $(ASM_OFFSETS_C))
@@ -159,6 +157,9 @@ HEADERS     := $(shell find . -name \*.h)
 ASM_SOURCES := $(shell find . -name \*.S)
 ASM_OFFSETS := $(shell find . -name $(ASM_OFFSETS_C))
 LINK_SCRIPT := $(shell find . -name \*.ld)
+
+ASM_OFFSETS_S := $(ASM_OFFSETS:.c=.s)
+ASM_OFFSETS_H := $(addprefix include/,$(ASM_OFFSETS:.c=.h))
 
 SYMBOLS_NAME := symbols
 SYMBOLS_TOOL := symbols.py
@@ -217,10 +218,12 @@ $(PFMLIB_ARCHIVE): $(PFMLIB_TARBALL)
 	@echo "CC " $@
 	$(VERBOSE) $(CC) -c -o $@ $(CFLAGS) $<
 
-$(ASM_OFFSETS_H): $(ASM_OFFSETS)
-	@echo "GEN" include/$(shell dirname $<)/$(ASM_OFFSETS_H)
-	$(VERBOSE) $(CC) $(CFLAGS) -S -g0 -o $(KTF_ROOT)/$(shell dirname $<)/$(ASM_OFFSETS_S) $<
-	$(VERBOSE) $(ASM_OFFSETS_SH) $(KTF_ROOT)/$(shell dirname $<)/$(ASM_OFFSETS_S) $(KTF_ROOT)/include/$(shell dirname $<)/$(ASM_OFFSETS_H)
+$(ASM_OFFSETS_S): $(ASM_OFFSETS)
+	$(VERBOSE) $(CC) $(CFLAGS) -S -g0 -o $@ $<
+
+$(ASM_OFFSETS_H): $(ASM_OFFSETS_S)
+	@echo "GEN" $@
+	$(VERBOSE) $(ASM_OFFSETS_SH) $< $@
 
 DEPFILES := $(OBJS:.o=.d)
 -include $(wildcard $(DEPFILES))
@@ -236,9 +239,8 @@ clean:
 	$(VERBOSE) find $(KTF_ROOT) -name \*.xz -delete
 	$(VERBOSE) find $(KTF_ROOT) -name cscope.\* -delete
 	$(VERBOSE) find $(KTF_ROOT) -maxdepth 1 \( -name tags -or -name TAGS \) -delete
-	$(VERBOSE) find $(KTF_ROOT) -name $(ASM_OFFSETS_S) -delete
-	$(VERBOSE) find $(KTF_ROOT) -name $(ASM_OFFSETS_H) -delete
 	$(VERBOSE) find $(PFMLIB_DIR) -mindepth 1 ! -name $(PFMLIB_NAME)-$(PFMLIB_VER).tar.gz -delete
+	$(VERBOSE) $(RM) -f $(ASM_OFFSETS_H) $(ASM_OFFSETS_S)
 	$(VERBOSE) $(RM) -rf $(ACPICA_DEST_DIR)/source
 	$(VERBOSE) $(RM) -f $(TARGET_DEBUG)
 	$(VERBOSE) $(RM) -rf $(GRUB_DIR)
