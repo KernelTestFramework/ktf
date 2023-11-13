@@ -2,7 +2,7 @@
 #
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
-# This script builds the project's boot.iso file in the docker environment and
+# This script builds the project's ktf.iso file in the docker environment and
 # next launches a test and checks for a successful timeout.
 set -e
 
@@ -18,7 +18,7 @@ cd "$SCRIPTDIR"/../..
 # Build project in docker
 echo "Building project from scratch"
 make clean V=1
-make UNITTEST=1 docker:boot.iso V=1 CC=$COMPILER
+make UNITTEST=1 docker:ktf.iso V=1 CC=$COMPILER
 
 # Use QEMU to launch the guest
 echo "Launching KTF"

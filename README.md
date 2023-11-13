@@ -28,11 +28,11 @@ Some more features are in the making. Check out the issues.
 The quick start is to run the following commands. The content of the file tests/test.c
 will be executed. Note, the last command will block.
 
-Build a boot.iso from scratch, in the docker container.
+Build a ktf.iso from scratch, in the docker container.
 
 ```
 make clean
-make docker:boot.iso
+make docker:ktf.iso
 ```
 
 Boot the resulting image:
@@ -66,17 +66,17 @@ make docker:all
 
 * Native
 ```
-make boot.iso
+make ktf.iso
 ```
 
 * Docker
 
 ```
-make docker:boot.iso
+make docker:ktf.iso
 ```
 
 The `make` command generates the `kernel64.bin` multiboot-compatible ELF file, that you can directly boot with QEMU.
-The `make boot.iso` command takes the `kernel64.bin`, places it in `grub/boot/` directory hierarchy and generates a `boot.iso`
+The `make ktf.iso` command takes the `kernel64.bin`, places it in `grub/boot/` directory hierarchy and generates a `ktf.iso`
 out of the `grub/` (using `grub/boot/grub/grub.cfg` as a default GRUB config).
 
 #### Fedora
@@ -127,7 +127,7 @@ memory=1024
 
 serial= [ 'file:/tmp/kernel.log', 'pty' ]
 
-disk = [ '/home/user/boot.iso,,hdc,cdrom' ]
+disk = [ '/home/user/ktf.iso,,hdc,cdrom' ]
 
 on_reboot = "destroy"
 
@@ -223,4 +223,3 @@ and we're actively sharing ideas, bugs and anything related to KTF there. Feel f
 ![GitHub](https://img.shields.io/github/license/awslabs/ktf)
 
 This project is licensed under the BSD 2-Clause License.
-
