@@ -750,7 +750,7 @@ ACPI_STATUS init_acpi(void) {
 
 void acpi_power_off(void) {
     AcpiEnterSleepStatePrep(ACPI_STATE_S5);
-    cli();
+    interrupts_disable();
     AcpiEnterSleepState(ACPI_STATE_S5);
     panic("Power Off");
 }

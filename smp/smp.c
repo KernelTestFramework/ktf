@@ -58,7 +58,7 @@ void __noreturn ap_startup(void) {
 
     /* Initialize timers and enable interrupts */
     init_timers(cpu);
-    sti();
+    interrupts_enable();
 
     if (opt_fpu)
         enable_fpu();
