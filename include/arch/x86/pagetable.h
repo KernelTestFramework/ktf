@@ -301,6 +301,9 @@ extern void dump_pagetables(cr3_t *cr3_ptr);
 extern void dump_kern_pagetable_va(void *va);
 extern void dump_user_pagetable_va(void *va);
 
+extern int get_kern_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order);
+extern int get_user_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PAGETABLE_H */

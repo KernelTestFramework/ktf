@@ -446,6 +446,86 @@ int vunmap_user(void *va, mfn_t *mfn, unsigned int *order) {
     return err;
 }
 
+static int get_va_mfn_order(const cr3_t *cr3_ptr, const void *va, mfn_t *mfn,
+                            unsigned int *order) {
+    unsigned int _order;
+    mfn_t _mfn;
+    pgentry_t *tab;
+
+    ASSERT(mfn || order);
+    if (mfn_invalid(cr3_ptr->mfn))
+        return -EINVAL;
+
+    tab = tmp_map_mfn(cr3_ptr->mfn);
+#if defined(__x86_64__)
+    pml4_t *l4e = l4_table_entry((pml4_t *) tab, va);
+    if (mfn_invalid(l4e->mfn) || !l4e->P)
+        return -ENOENT;
+
+    tab = tmp_map_mfn(l4e->mfn);
+#endif
+    pdpe_t *l3e = l3_table_entry((pdpe_t *) tab, va);
+    if (mfn_invalid(l3e->mfn) || !l3e->P)
+        return -ENOENT;
+
+    if (l3e->PS) {
+        _mfn = l3e->mfn;
+        _order = PAGE_ORDER_1G;
+        goto done;
+    }
+
+    tab = tmp_map_mfn(l3e->mfn);
+    pde_t *l2e = l2_table_entry((pde_t *) tab, va);
+    if (mfn_invalid(l2e->mfn) || !l2e->P)
+        return -ENOENT;
+
+    if (l2e->PS) {
+        _mfn = l2e->mfn;
+        _order = PAGE_ORDER_2M;
+        goto done;
+    }
+
+    tab = tmp_map_mfn(l2e->mfn);
+    pte_t *l1e = l1_table_entry((pte_t *) tab, va);
+    if (mfn_invalid(l1e->mfn) || !l1e->P)
+        return -ENOENT;
+
+    _mfn = l1e->mfn;
+    _order = PAGE_ORDER_4K;
+
+done:
+    if (mfn)
+        *mfn = _mfn;
+    if (order)
+        *order = _order;
+
+    return 0;
+}
+
+int get_kern_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order) {
+    int err;
+
+    dprintk("%s: va: 0x%p (cr3: 0x%p)\n", __func__, va, &cr3);
+
+    spin_lock(&vmap_lock);
+    err = get_va_mfn_order(&cr3, va, mfn, order);
+    spin_unlock(&vmap_lock);
+
+    return err;
+}
+
+int get_user_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order) {
+    int err;
+
+    dprintk("%s: va: 0x%p (cr3: 0x%p)\n", __func__, va, &user_cr3);
+
+    spin_lock(&vmap_lock);
+    err = get_va_mfn_order(&user_cr3, va, mfn, order);
+    spin_unlock(&vmap_lock);
+
+    return err;
+}
+
 static inline void init_cr3(cr3_t *cr3_ptr) {
     memset(cr3_ptr, 0, sizeof(*cr3_ptr));
     cr3_ptr->mfn = MFN_INVALID;
