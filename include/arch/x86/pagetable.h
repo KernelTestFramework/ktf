@@ -136,10 +136,38 @@ union cr3 {
 };
 typedef union cr3 cr3_t;
 
-extern cr3_t cr3;
-extern cr3_t user_cr3;
-
 typedef unsigned int pt_index_t;
+
+/* External declarations */
+
+extern cr3_t cr3, user_cr3;
+
+extern pte_t l1_pt_entries1[L1_PT_ENTRIES];
+extern pte_t l1_pt_entries2[L1_PT_ENTRIES];
+extern pte_t l1_pt_entries3[L1_PT_ENTRIES];
+extern pde_t l2_pt_entries[L2_PT_ENTRIES];
+extern pdpe_t l3_pt_entries[L3_PT_ENTRIES];
+#if !defined(__i386__)
+extern pml4_t l4_pt_entries[L4_PT_ENTRIES];
+#endif
+
+extern void init_pagetables(void);
+extern void dump_pagetables(cr3_t *cr3_ptr);
+extern void dump_kern_pagetable_va(void *va);
+extern void dump_user_pagetable_va(void *va);
+
+extern int get_kern_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order);
+extern int get_user_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order);
+
+extern frame_t *find_kern_va_frame(const void *va);
+extern frame_t *find_user_va_frame(const void *va);
+
+extern void map_pagetables(cr3_t *to_cr3, cr3_t *from_cr3);
+extern void unmap_pagetables(cr3_t *from_cr3, cr3_t *of_cr3);
+extern int map_pagetables_va(cr3_t *cr3_ptr, void *va);
+extern int unmap_pagetables_va(cr3_t *cr3_ptr, void *va);
+
+/* Static declarations */
 
 static inline pt_index_t l1_table_index(const void *va) {
     return (_ul(va) >> L1_PT_SHIFT) & (L1_PT_ENTRIES - 1);
@@ -291,34 +319,6 @@ static inline bool is_pgentry_huge(pgentry_t e) {
 static inline bool is_pgentry_present(pgentry_t e) {
     return !!(e & _PAGE_PRESENT);
 }
-
-/* External declarations */
-
-extern pte_t l1_pt_entries1[L1_PT_ENTRIES];
-extern pte_t l1_pt_entries2[L1_PT_ENTRIES];
-extern pte_t l1_pt_entries3[L1_PT_ENTRIES];
-extern pde_t l2_pt_entries[L2_PT_ENTRIES];
-extern pdpe_t l3_pt_entries[L3_PT_ENTRIES];
-#if defined(__x86_64__)
-extern pml4_t l4_pt_entries[L4_PT_ENTRIES];
-#elif defined(__i386__)
-#endif
-
-extern void init_pagetables(void);
-extern void dump_pagetables(cr3_t *cr3_ptr);
-extern void dump_kern_pagetable_va(void *va);
-extern void dump_user_pagetable_va(void *va);
-
-extern int get_kern_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order);
-extern int get_user_va_mfn_order(void *va, mfn_t *mfn, unsigned int *order);
-
-extern frame_t *find_kern_va_frame(const void *va);
-extern frame_t *find_user_va_frame(const void *va);
-
-extern void map_pagetables(cr3_t *to_cr3, cr3_t *from_cr3);
-extern void unmap_pagetables(cr3_t *from_cr3, cr3_t *of_cr3);
-extern int map_pagetables_va(cr3_t *cr3_ptr, void *va);
-extern int unmap_pagetables_va(cr3_t *cr3_ptr, void *va);
 
 #endif /* __ASSEMBLY__ */
 
