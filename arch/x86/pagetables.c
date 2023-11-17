@@ -308,31 +308,112 @@ done:
     return va;
 }
 
-void *vmap_kern(void *va, mfn_t mfn, unsigned int order,
-#if defined(__x86_64__)
-                unsigned long l4_flags,
-#endif
-                unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
-    unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(order);
+static inline void *__vmap_1g(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l4_flags,
+                              unsigned long l3_flags) {
+    return _vmap(cr3_ptr, va, mfn, PAGE_ORDER_1G, l4_flags, l3_flags | _PAGE_PSE,
+                 PT_NO_FLAGS, PT_NO_FLAGS);
+}
 
+static inline void *__vmap_2m(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l4_flags,
+                              unsigned long l3_flags, unsigned long l2_flags) {
+    return _vmap(cr3_ptr, va, mfn, PAGE_ORDER_2M, l4_flags, l3_flags,
+                 l2_flags | _PAGE_PSE, PT_NO_FLAGS);
+}
+
+static inline void *__vmap_4k(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l4_flags,
+                              unsigned long l3_flags, unsigned long l2_flags,
+                              unsigned long l1_flags) {
+    return _vmap(cr3_ptr, va, mfn, PAGE_ORDER_4K, l4_flags, l3_flags, l2_flags, l1_flags);
+}
+
+static inline void *_vmap_1g(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l3_flags,
+                             bool propagate_user) {
+    unsigned long l4_flags = L4_PROT;
+
+    if (propagate_user)
+        l4_flags |= l3_flags & _PAGE_USER;
+    return __vmap_1g(cr3_ptr, va, mfn, l4_flags, l3_flags);
+}
+
+static inline void *_vmap_2m(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l2_flags,
+                             bool propagate_user) {
+    unsigned long l4_flags = L4_PROT;
+    unsigned long l3_flags = L3_PROT;
+
+    if (propagate_user) {
+        unsigned long user_bit = l2_flags & _PAGE_USER;
+        l4_flags |= user_bit;
+        l3_flags |= user_bit;
+    }
+    return __vmap_2m(cr3_ptr, va, mfn, l4_flags, l3_flags, l2_flags);
+}
+
+static inline void *_vmap_4k(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l1_flags,
+                             bool propagate_user) {
+    unsigned long l4_flags = L4_PROT;
+    unsigned long l3_flags = L3_PROT;
+    unsigned long l2_flags = L2_PROT;
+
+    if (propagate_user) {
+        unsigned long user_bit = l1_flags & _PAGE_USER;
+        l4_flags |= user_bit;
+        l3_flags |= user_bit;
+        l2_flags |= user_bit;
+    }
+
+    return __vmap_4k(cr3_ptr, va, mfn, l4_flags, l3_flags, l2_flags, l1_flags);
+}
+
+void *vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+           unsigned long l4_flags,
+#endif
+           unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
     dprintk("%s: va: 0x%p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
+
     spin_lock(&vmap_lock);
-    va = _vmap(&cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
+    va = _vmap(cr3_ptr, va, mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
     spin_unlock(&vmap_lock);
+
     return va;
 }
 
-void *vmap_user(void *va, mfn_t mfn, unsigned int order,
-#if defined(__x86_64__)
-                unsigned long l4_flags,
-#endif
-                unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags) {
-    unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(order);
+void *vmap_1g(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l3_flags,
+              bool propagate_user) {
+    unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(PAGE_ORDER_1G);
 
-    dprintk("%s: va: 0x%p mfn: 0x%lx (order: %u)\n", __func__, va, mfn, order);
+    dprintk("%s: va: 0x%p mfn: 0x%lx\n", __func__, va, mfn);
+
     spin_lock(&vmap_lock);
-    va = _vmap(&user_cr3, _ptr(_va), mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
+    va = _vmap_1g(cr3_ptr, _ptr(_va), mfn, l3_flags, propagate_user);
     spin_unlock(&vmap_lock);
+
+    return va;
+}
+
+void *vmap_2m(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l2_flags,
+              bool propagate_user) {
+    unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(PAGE_ORDER_2M);
+
+    dprintk("%s: va: 0x%p mfn: 0x%lx\n", __func__, va, mfn);
+
+    spin_lock(&vmap_lock);
+    va = _vmap_2m(cr3_ptr, _ptr(_va), mfn, l2_flags, propagate_user);
+    spin_unlock(&vmap_lock);
+
+    return va;
+}
+
+void *vmap_4k(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l1_flags,
+              bool propagate_user) {
+    unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(PAGE_ORDER_4K);
+
+    dprintk("%s: va: 0x%p mfn: 0x%lx\n", __func__, va, mfn);
+
+    spin_lock(&vmap_lock);
+    va = _vmap_4k(cr3_ptr, _ptr(_va), mfn, l1_flags, propagate_user);
+    spin_unlock(&vmap_lock);
+
     return va;
 }
 
@@ -349,7 +430,7 @@ static void map_tmp_mapping_entry(void) {
     pte_t *entry = l1_table_entry(mfn_to_virt(l1e->mfn), _tmp_mapping);
 
     /* Map _tmp_mapping_entry PTE of new page tables */
-    kmap_4k(l1e->mfn, L1_PROT);
+    vmap_kern_4k(mfn_to_virt_kern(l1e->mfn), l1e->mfn, L1_PROT);
 
     /* Point _tmp_mapping_entry at new page tables location */
     _tmp_mapping_entry = paddr_to_virt_kern(_paddr(entry));
@@ -789,17 +870,17 @@ void init_pagetables(void) {
         switch (r->base) {
         case VIRT_IDENT_BASE:
             for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)
-                vmap_4k(mfn_to_virt(mfn), mfn, r->flags);
+                vmap_kern_4k(mfn_to_virt(mfn), mfn, r->flags);
             break;
         case VIRT_KERNEL_BASE:
             for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)
-                kmap_4k(mfn, r->flags);
+                vmap_kern_4k(mfn_to_virt_kern(mfn), mfn, r->flags);
             break;
         case VIRT_USER_BASE:
             for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++) {
                 void *va = mfn_to_virt_user(mfn);
 
-                vmap_4k(va, mfn, r->flags);
+                vmap_kern_4k(va, mfn, r->flags);
                 vmap_user_4k(va, mfn, r->flags);
             }
             break;

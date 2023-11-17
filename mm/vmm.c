@@ -24,7 +24,7 @@
  */
 #include <ktf.h>
 #include <lib.h>
-#include <page.h>
+#include <pagetable.h>
 #include <setup.h>
 
 #include <mm/pmm.h>
@@ -61,7 +61,8 @@ void *get_free_pages(unsigned int order, gfp_flags_t flags) {
     }
 
     if (flags & GFP_KERNEL) {
-        va = kmap(mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
+        va = vmap_kern(mfn_to_virt_kern(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
+                       L1_PROT);
         if (flags & GFP_USER)
             vmap_user(mfn_to_virt_kern(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
                       L1_PROT);

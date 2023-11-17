@@ -27,6 +27,7 @@
 #include <cpu.h>
 #include <ktf.h>
 #include <mm/slab.h>
+#include <pagetable.h>
 #include <pci_cfg.h>
 #include <percpu.h>
 #include <sched.h>
@@ -306,7 +307,7 @@ void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
         void *_va;
 
         if (!frame) {
-            _va = vmap_4k(mfn_to_virt_map(mfn), mfn, L1_PROT);
+            _va = vmap_kern_4k(mfn_to_virt_map(mfn), mfn, L1_PROT);
             if (!_va) {
                 spin_unlock(&map_lock);
                 return NULL;

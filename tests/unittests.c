@@ -26,16 +26,15 @@
 #include <console.h>
 #include <cpuid.h>
 #include <ktf.h>
+#include <mm/pmm.h>
 #include <pagetable.h>
 #include <real_mode.h>
 #include <sched.h>
+#include <smp/smp.h>
 #include <string.h>
 #include <symbols.h>
 #include <test.h>
 #include <usermode.h>
-
-#include <mm/pmm.h>
-#include <smp/smp.h>
 
 static char opt_string[4];
 string_cmd("string", opt_string);
@@ -217,7 +216,7 @@ int unit_tests(void *_unused) {
     task_user4 = new_user_task("test4 user", test_user_task_func4, NULL);
 
     frame_t *frame = get_free_frame();
-    vmap_4k(HIGH_USER_PTR + 0x1000, frame->mfn, L1_PROT);
+    vmap_kern_4k(HIGH_USER_PTR + 0x1000, frame->mfn, L1_PROT);
     memset(HIGH_USER_PTR + 0x1000, 0, 0x1000);
     vmap_user_4k(HIGH_USER_PTR, frame->mfn, L1_PROT_USER);
 
