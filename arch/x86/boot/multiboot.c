@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <mm/pmm.h>
 #include <multiboot2.h>
+#include <pagetable.h>
 
 #define TAG_ADDR(tag)                                                                    \
     ((multiboot2_tag_t *) ((multiboot2_uint8_t *) (tag) + (((tag)->size + 7) & ~7)))
@@ -186,8 +187,8 @@ void map_multiboot_areas(void) {
     paddr_t mbi_stop = mbi_start + multiboot2_hdr_size;
 
     for (mfn_t mfn = paddr_to_mfn(mbi_start); mfn <= paddr_to_mfn(mbi_stop); mfn++) {
-        vmap_4k(mfn_to_virt(mfn), mfn, L1_PROT_RO);
-        kmap_4k(mfn, L1_PROT_RO);
+        vmap_kern_4k(mfn_to_virt(mfn), mfn, L1_PROT_RO);
+        vmap_kern_4k(mfn_to_virt_kern(mfn), mfn, L1_PROT_RO);
     }
 }
 

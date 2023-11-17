@@ -29,7 +29,7 @@
 #include <ktf.h>
 #include <lib.h>
 #include <multiboot.h>
-#include <page.h>
+#include <pagetable.h>
 #include <percpu.h>
 #include <setup.h>
 
@@ -88,7 +88,8 @@ static mpf_t *get_mpf_addr(void) {
     if (get_memory_range(KB(512), &range) < 0)
         return NULL;
 
-    sysm_addr = kmap_4k(paddr_to_mfn(_paddr(range.end) - KB(1)), L1_PROT_RO);
+    mfn_t mfn = paddr_to_mfn(_paddr(range.end) - KB(1));
+    sysm_addr = vmap_kern_4k(mfn_to_virt_kern(mfn), mfn, L1_PROT_RO);
     if (sysm_addr) {
         ptr = find_mpf(sysm_addr, sysm_addr + KB(1));
         if (ptr)

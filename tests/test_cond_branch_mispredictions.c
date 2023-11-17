@@ -26,6 +26,7 @@
  */
 #include <ktf.h>
 #include <mm/pmm.h>
+#include <pagetable.h>
 #include <string.h>
 #include <toolkit/cache/lib.h>
 
@@ -204,7 +205,7 @@ void __aligned(PAGE_SIZE) test_cond_forward_branch_cl1(unsigned iterations) {
 
 int __aligned(PAGE_SIZE) test_cond_branch_mispredictions(void *unused) {
     frame_t *frame = get_free_frame();
-    channel = vmap_4k(_ptr(CHANNEL_ADDR), frame->mfn, L1_PROT);
+    channel = vmap_kern_4k(_ptr(CHANNEL_ADDR), frame->mfn, L1_PROT);
 
     cl0 = &channel->lines[CACHE_LINE1]; /* CACHE_LINE_0_ADDR */
     cl1 = &channel->lines[CACHE_LINE2]; /* CACHE_LINE_1_ADDR */

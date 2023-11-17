@@ -167,6 +167,21 @@ extern void unmap_pagetables(cr3_t *from_cr3, cr3_t *of_cr3);
 extern int map_pagetables_va(cr3_t *cr3_ptr, void *va);
 extern int unmap_pagetables_va(cr3_t *cr3_ptr, void *va);
 
+extern void *vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                  unsigned long l4_flags,
+#endif
+                  unsigned long l3_flags, unsigned long l2_flags, unsigned long l1_flags);
+extern void *vmap_1g(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l3_flags,
+                     bool propagate_user);
+extern void *vmap_2m(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l2_flags,
+                     bool propagate_user);
+extern void *vmap_4k(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l1_flags,
+                     bool propagate_user);
+
+extern int vunmap_kern(void *va, mfn_t *mfn, unsigned int *order);
+extern int vunmap_user(void *va, mfn_t *mfn, unsigned int *order);
+
 /* Static declarations */
 
 static inline pt_index_t l1_table_index(const void *va) {
@@ -318,6 +333,48 @@ static inline bool is_pgentry_huge(pgentry_t e) {
 
 static inline bool is_pgentry_present(pgentry_t e) {
     return !!(e & _PAGE_PRESENT);
+}
+
+static inline void *vmap_kern(void *va, mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                              unsigned long l4_flags,
+#endif
+                              unsigned long l3_flags, unsigned long l2_flags,
+                              unsigned long l1_flags) {
+    return vmap(&cr3, va, mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
+}
+
+static inline void *vmap_kern_1g(void *va, mfn_t mfn, unsigned long l3_flags) {
+    return vmap_1g(&cr3, va, mfn, l3_flags, false);
+}
+
+static inline void *vmap_kern_2m(void *va, mfn_t mfn, unsigned long l2_flags) {
+    return vmap_2m(&cr3, va, mfn, l2_flags, false);
+}
+
+static inline void *vmap_kern_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
+    return vmap_4k(&cr3, va, mfn, l1_flags, false);
+}
+
+static inline void *vmap_user(void *va, mfn_t mfn, unsigned int order,
+#if defined(__x86_64__)
+                              unsigned long l4_flags,
+#endif
+                              unsigned long l3_flags, unsigned long l2_flags,
+                              unsigned long l1_flags) {
+    return vmap(&user_cr3, va, mfn, order, l4_flags, l3_flags, l2_flags, l1_flags);
+}
+
+static inline void *vmap_user_1g(void *va, mfn_t mfn, unsigned long l3_flags) {
+    return vmap_1g(&user_cr3, va, mfn, l3_flags, true);
+}
+
+static inline void *vmap_user_2m(void *va, mfn_t mfn, unsigned long l2_flags) {
+    return vmap_2m(&user_cr3, va, mfn, l2_flags, true);
+}
+
+static inline void *vmap_user_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
+    return vmap_4k(&user_cr3, va, mfn, l1_flags, true);
 }
 
 #endif /* __ASSEMBLY__ */

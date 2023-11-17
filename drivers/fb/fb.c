@@ -27,7 +27,7 @@
 #include <drivers/logo.h>
 #include <ktf.h>
 #include <multiboot2.h>
-#include <page.h>
+#include <pagetable.h>
 #include <string.h>
 
 extern uint64_t fonts[];
@@ -56,8 +56,8 @@ static void (*put_pixel)(uint32_t x, uint32_t y, uint32_t color);
 static void map_fb_area(paddr_t start, size_t size) {
     for (mfn_t video_mfn = paddr_to_mfn(start); video_mfn < paddr_to_mfn(start + size);
          video_mfn++) {
-        vmap_4k(mfn_to_virt(video_mfn), video_mfn, L1_PROT_NOCACHE);
-        kmap_4k(video_mfn, L1_PROT_NOCACHE);
+        vmap_kern_4k(mfn_to_virt(video_mfn), video_mfn, L1_PROT_NOCACHE);
+        vmap_kern_4k(mfn_to_virt_kern(video_mfn), video_mfn, L1_PROT_NOCACHE);
     }
 }
 

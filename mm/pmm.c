@@ -23,12 +23,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <list.h>
-#include <setup.h>
-#include <spinlock.h>
-
 #include <mm/pmm.h>
 #include <mm/regions.h>
 #include <mm/vmm.h>
+#include <pagetable.h>
+#include <setup.h>
+#include <spinlock.h>
 
 size_t total_phys_memory;
 
@@ -641,5 +641,9 @@ unlock:
 void map_frames_array(void) {
     frames_array_t *array;
 
-    list_for_each_entry (array, &frames, list) { kmap_4k(virt_to_mfn(array), L1_PROT); }
+    list_for_each_entry (array, &frames, list) {
+        mfn_t mfn = virt_to_mfn(array);
+
+        BUG_ON(!vmap_kern_4k(mfn_to_virt_kern(mfn), mfn, L1_PROT));
+    }
 }

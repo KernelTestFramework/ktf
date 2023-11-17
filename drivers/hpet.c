@@ -26,6 +26,7 @@
 #include <acpi_ktf.h>
 #include <drivers/hpet.h>
 #include <ioapic.h>
+#include <pagetable.h>
 
 bool init_hpet(const cpu_t *cpu) {
 #ifndef KTF_ACPICA
@@ -59,7 +60,7 @@ bool init_hpet(const cpu_t *cpu) {
 #endif
 
     hpet_base_mfn = paddr_to_mfn(address);
-    vmap_4k(_ptr(address), hpet_base_mfn, L1_PROT_NOCACHE);
+    vmap_kern_4k(_ptr(address), hpet_base_mfn, L1_PROT_NOCACHE);
     config = (acpi_hpet_timer_t *) (address + HPET_OFFSET_TIMER_0_CONFIG_CAP_REG);
     general = (acpi_hpet_general_t *) (address + HPET_OFFSET_GENERAL_CAP_REG);
     main_counter = (uint64_t *) (address + HPET_OFFSET_GENERAL_MAIN_COUNTER_REG);
