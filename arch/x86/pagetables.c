@@ -121,11 +121,6 @@ static void dump_pagetable(mfn_t table, int level) {
 }
 
 void dump_pagetables(cr3_t *cr3_ptr) {
-#if defined(__x86_64__)
-    int level = 4;
-#else
-    int level = 3;
-#endif
     ASSERT(cr3_ptr);
     if (mfn_invalid(cr3_ptr->mfn)) {
         warning("CR3: 0x%lx is invalid", cr3.paddr);
@@ -134,18 +129,14 @@ void dump_pagetables(cr3_t *cr3_ptr) {
 
     printk("Page Tables: CR3 paddr: 0x%lx\n", cr3.paddr);
     spin_lock(&vmap_lock);
-    dump_pagetable(cr3_ptr->mfn, level);
+    dump_pagetable(cr3_ptr->mfn, PT_LEVELS);
     spin_unlock(&vmap_lock);
 }
 
 static void dump_pagetable_va(cr3_t *cr3_ptr, void *va) {
     paddr_t tab_paddr;
     pgentry_t *tab;
-#if defined(__x86_64__)
-    int level = 4;
-#else
-    int level = 3;
-#endif
+    int level = PT_LEVELS;
 
     ASSERT(cr3_ptr);
     if (mfn_invalid(cr3_ptr->mfn)) {
