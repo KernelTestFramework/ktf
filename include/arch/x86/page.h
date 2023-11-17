@@ -158,6 +158,12 @@ typedef unsigned long mfn_t;
 #define VA_BITS        32
 #endif
 
+#ifdef __i386__
+#define PT_LEVELS 3 /* assumes PAE */
+#else
+#define PT_LEVELS (la57_enabled() ? 5 : 4)
+#endif
+
 #define _paddr(addr) ((paddr_t) _ul(addr))
 
 #define PADDR_INVALID (~0x0UL)
