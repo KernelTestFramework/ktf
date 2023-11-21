@@ -254,14 +254,17 @@ endif # USE_KVM
 endif # SYSTEM == LINUX
 
 # Set qemu parameters
+QEMU_CONFIG := $(KTF_ROOT)/.qemu_config
+include $(QEMU_CONFIG)
+
 ifeq ($(SYSTEM)$(HAVE_KVM),LINUXkvm)
 QEMU_PARAMS := -cpu host -enable-kvm
 else
 QEMU_PARAMS := -cpu max
 endif
-QEMU_PARAMS += -m 128
+QEMU_PARAMS += -m $(QEMU_RAM)
 QEMU_PARAMS += -serial stdio
-QEMU_PARAMS += -smp cpus=2
+QEMU_PARAMS += -smp cpus=$(QEMU_CPUS)
 QEMU_PARAMS_NOGFX := -display none -vga none -vnc none
 QEMU_PARAMS_GFX := $(QEMU_PARAMS)
 QEMU_PARAMS += $(QEMU_PARAMS_NOGFX)
