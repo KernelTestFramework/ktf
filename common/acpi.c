@@ -135,29 +135,14 @@ static rsdp_rev1_t *acpi_find_rsdp(void) {
     return NULL;
 }
 
-static unsigned acpi_table_map_pages(paddr_t pa, size_t len) {
-    unsigned offset = pa & ~PAGE_MASK;
-    unsigned num_pages = ((offset + len) / PAGE_SIZE) + 1;
-    mfn_t mfn = paddr_to_mfn(pa);
-
-    for (unsigned i = 0; i < num_pages; i++, mfn++) {
-        if (mfn_invalid(mfn)) {
-            panic("ACPI table at %p of length %lx has invalid MFN: %lx", _ptr(pa), len,
-                  mfn);
-        }
-
-        BUG_ON(!kmap_4k(mfn, L1_PROT));
-    }
-
-    return num_pages;
+static void *acpi_table_map_pages(paddr_t pa, size_t len) {
+    if (vmap_range(pa, len, L1_PROT, VMAP_KERNEL_MAP) < 0)
+        return NULL;
+    return paddr_to_virt_map(pa);
 }
 
-static void acpi_table_unmap_pages(void *addr, unsigned mapped_pages) {
-    mfn_t mfn = virt_to_mfn(addr);
-
-    for (unsigned i = 0; i < mapped_pages; i++, mfn++) {
-        vunmap_kern(mfn_to_virt_kern(mfn), NULL, NULL);
-    }
+static void acpi_table_unmap_pages(void *addr, size_t len) {
+    vunmap_range(virt_to_paddr(addr), len, VMAP_KERNEL_MAP);
 }
 
 static inline void acpi_dump_table(const void *tab, const acpi_table_hdr_t *hdr) {
@@ -170,38 +155,35 @@ static inline void acpi_dump_table(const void *tab, const acpi_table_hdr_t *hdr)
 
 static rsdt_t *acpi_find_rsdt(const rsdp_rev1_t *rsdp) {
     paddr_t pa = rsdp->rsdt_paddr;
-    unsigned mapped_pages;
+    size_t map_size = PAGE_SIZE;
     rsdt_t *rsdt;
 
-    mapped_pages = acpi_table_map_pages(pa, PAGE_SIZE);
-    rsdt = paddr_to_virt_kern(pa);
+    rsdt = acpi_table_map_pages(pa, map_size);
     BUG_ON(!rsdt);
 
     if (RSDT_SIGNATURE != rsdt->header.signature)
         goto error;
 
-    mapped_pages = acpi_table_map_pages(pa, rsdt->header.length);
-    rsdt = paddr_to_virt_kern(pa);
+    map_size = rsdt->header.length;
+    rsdt = acpi_table_map_pages(pa, map_size);
     BUG_ON(!rsdt);
 
-    if (get_checksum(rsdt, rsdt->header.length) != 0x0)
+    if (get_checksum(rsdt, map_size) != 0x0)
         goto error;
 
     acpi_dump_table(rsdt, &rsdt->header);
     return rsdt;
 error:
-    acpi_table_unmap_pages(rsdt, mapped_pages);
+    acpi_table_unmap_pages(rsdt, map_size);
     return NULL;
 }
 
 static xsdt_t *acpi_find_xsdt(const rsdp_rev2_t *rsdp) {
     uint32_t tab_len = rsdp->length;
     paddr_t pa = rsdp->xsdt_paddr;
-    unsigned mapped_pages;
     xsdt_t *xsdt;
 
-    mapped_pages = acpi_table_map_pages(pa, tab_len);
-    xsdt = paddr_to_virt_kern(pa);
+    xsdt = acpi_table_map_pages(pa, tab_len);
 
     if (XSDT_SIGNATURE != xsdt->header.signature)
         goto error;
@@ -212,7 +194,7 @@ static xsdt_t *acpi_find_xsdt(const rsdp_rev2_t *rsdp) {
     acpi_dump_table(xsdt, &xsdt->header);
     return xsdt;
 error:
-    acpi_table_unmap_pages(xsdt, mapped_pages);
+    acpi_table_unmap_pages(xsdt, tab_len);
     return NULL;
 }
 
@@ -410,26 +392,23 @@ int init_acpi(void) {
 
     for (unsigned int i = 0; i < acpi_nr_tables; i++) {
         paddr_t pa = (rsdt) ? rsdt->entry[i] : xsdt->entry[i];
-        unsigned mapped_pages;
+        uint32_t tab_len = PAGE_SIZE;
         acpi_table_t *tab;
-        uint32_t tab_len;
 
         /* Map at least a header of the ACPI table */
-        mapped_pages = acpi_table_map_pages(pa, PAGE_SIZE);
-        tab = paddr_to_virt_kern(pa);
+        tab = acpi_table_map_pages(pa, tab_len);
         BUG_ON(!tab);
 
         /* Find ACPI table actual length */
         tab_len = tab->header.length;
 
         /* Map entire ACPI table */
-        mapped_pages = acpi_table_map_pages(pa, tab_len);
-        tab = paddr_to_virt_kern(pa);
+        tab = acpi_table_map_pages(pa, tab_len);
         BUG_ON(!tab);
 
         /* Verify ACPI table checksum and unmap when invalid */
         if (get_checksum(tab, tab->header.length) != 0x0)
-            acpi_table_unmap_pages(tab, mapped_pages);
+            acpi_table_unmap_pages(tab, tab_len);
 
         acpi_tables[max_acpi_tables++] = tab;
     }

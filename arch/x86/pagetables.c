@@ -618,6 +618,238 @@ frame_t *find_user_va_frame(const void *va) {
     return find_va_frame(&user_cr3, va);
 }
 
+static inline void *_vmap_range_chunk(cr3_t *cr3_ptr, void *va, mfn_t mfn,
+                                      unsigned int order, unsigned long flags,
+                                      bool propagate_user) {
+    switch (order) {
+    case PAGE_ORDER_4K:
+        return _vmap_4k(cr3_ptr, va, mfn, flags, propagate_user);
+    case PAGE_ORDER_2M:
+        return _vmap_2m(cr3_ptr, va, mfn, flags, propagate_user);
+    case PAGE_ORDER_1G:
+        return _vmap_1g(cr3_ptr, va, mfn, flags, propagate_user);
+    default:
+        BUG();
+    }
+
+    return NULL;
+}
+
+static inline int _vmap_range(mfn_t mfn, unsigned int order, unsigned long flags,
+                              vmap_flags_t vmap_flags) {
+    const int err = -EFAULT;
+
+    /* NOTE: It might make sense to unmap partial completed mappings in case of an
+     *       error. For now, we just return an error and let the caller handle it.
+     */
+    if (vmap_flags & VMAP_KERNEL) {
+        if (!_vmap_range_chunk(&cr3, mfn_to_virt_kern(mfn), mfn, order, flags, false))
+            return err;
+    }
+
+    if (vmap_flags & VMAP_IDENT) {
+        if (virt_invalid(
+                _vmap_range_chunk(&cr3, mfn_to_virt(mfn), mfn, order, flags, false)))
+            return err;
+    }
+
+    if (vmap_flags & VMAP_KERNEL_MAP) {
+        if (!_vmap_range_chunk(&cr3, mfn_to_virt_map(mfn), mfn, order, flags, false))
+            return err;
+    }
+
+    if (vmap_flags & (VMAP_KERNEL_USER | VMAP_KERNEL_USER_ACCESS)) {
+        unsigned long _flags = flags & ~_PAGE_USER;
+        if (vmap_flags & VMAP_KERNEL_USER_ACCESS)
+            _flags |= _PAGE_USER;
+
+        if (!_vmap_range_chunk(&cr3, mfn_to_virt_user(mfn), mfn, order, _flags, false))
+            return err;
+    }
+
+    if (vmap_flags & VMAP_USER) {
+        if (!_vmap_range_chunk(&user_cr3, mfn_to_virt_user(mfn), mfn, order,
+                               flags | _PAGE_USER, true))
+            return err;
+    }
+
+    if (vmap_flags & VMAP_USER_IDENT) {
+        if (!_vmap_range_chunk(&user_cr3, mfn_to_virt(mfn), mfn, order,
+                               flags & ~_PAGE_USER, false))
+            return err;
+    }
+
+    if (vmap_flags & VMAP_USER_KERNEL) {
+        if (!_vmap_range_chunk(&user_cr3, mfn_to_virt_kern(mfn), mfn, order,
+                               flags & ~_PAGE_USER, false))
+            return err;
+    }
+
+    if (vmap_flags & VMAP_USER_KERNEL_MAP) {
+        if (!_vmap_range_chunk(&user_cr3, mfn_to_virt_map(mfn), mfn, order,
+                               flags & ~_PAGE_USER, false))
+            return err;
+    }
+
+    return 0;
+}
+
+int vmap_range(paddr_t paddr, size_t size, unsigned long flags, vmap_flags_t vmap_flags) {
+    paddr_t cur = paddr;
+    paddr_t end = cur + size;
+    mfn_t mfn;
+    int err;
+
+    dprintk("%s: paddr: 0x%p, size: %lx\n", __func__, paddr, size);
+
+    if (!has_vmap_flags(vmap_flags))
+        return -EINVAL;
+
+    /* Round up to the next page boundary unless it is page aligned */
+    end = paddr_round_up(end);
+    if (end <= cur)
+        return -EINVAL;
+
+    spin_lock(&vmap_lock);
+    while (cur < end) {
+        mfn = paddr_to_mfn(cur);
+
+        if (size >= PAGE_SIZE_1G && !(cur % PAGE_SIZE_1G)) {
+            err = _vmap_range(mfn, PAGE_ORDER_1G, flags, vmap_flags);
+            if (err < 0)
+                goto unlock;
+
+            cur += PAGE_SIZE_1G;
+            size -= PAGE_SIZE_1G;
+            continue;
+        }
+
+        if (size >= PAGE_SIZE_2M && !(cur % PAGE_SIZE_2M)) {
+            err = _vmap_range(mfn, PAGE_ORDER_2M, flags, vmap_flags);
+            if (err < 0)
+                goto unlock;
+
+            cur += PAGE_SIZE_2M;
+            size -= PAGE_SIZE_2M;
+            continue;
+        }
+
+        err = _vmap_range(mfn, PAGE_ORDER_4K, flags, vmap_flags);
+        if (err < 0)
+            goto unlock;
+
+        cur += PAGE_SIZE;
+        size -= PAGE_SIZE;
+    }
+
+    BUG_ON(paddr_to_mfn(cur) != paddr_to_mfn(end));
+    err = 0;
+
+unlock:
+    spin_unlock(&vmap_lock);
+    return err;
+}
+
+static inline int _vunmap_range_chunk(cr3_t *cr3_ptr, void *va, unsigned int *order) {
+    mfn_t mfn = MFN_INVALID;
+    int err;
+
+    err = _vunmap(cr3_ptr, va, &mfn, order);
+    if (err)
+        return err;
+
+    if (mfn_invalid(mfn))
+        return -ENOENT;
+
+    BUG_ON(*order != PAGE_ORDER_4K && *order != PAGE_ORDER_2M && *order != PAGE_ORDER_1G);
+    return 0;
+}
+
+static inline int _vunmap_range(cr3_t *cr3_ptr, void *start, void *end) {
+    unsigned int order = PAGE_ORDER_4K;
+
+    for (void *cur = start; cur < end; cur += ORDER_TO_SIZE(order)) {
+        int err = _vunmap_range_chunk(cr3_ptr, cur, &order);
+        if (err)
+            return err;
+    }
+
+    return 0;
+}
+
+int vunmap_range(paddr_t paddr, size_t size, vmap_flags_t vmap_flags) {
+    paddr_t start = paddr;
+    paddr_t end = start + size;
+    int err;
+
+    dprintk("%s: paddr: 0x%p, size: %lx\n", __func__, paddr, size);
+
+    if (!has_vmap_flags(vmap_flags))
+        return -EINVAL;
+
+    /* Round up to the next page boundary unless it is page aligned */
+    end = paddr_round_up(end);
+    if (end <= start)
+        return -EINVAL;
+
+    spin_lock(&vmap_lock);
+
+    if (vmap_flags & VMAP_KERNEL) {
+        err = _vunmap_range(&cr3, paddr_to_virt_kern(start), paddr_to_virt_kern(end));
+        if (err < 0)
+            goto unlock;
+    }
+
+    if (vmap_flags & VMAP_IDENT) {
+        err = _vunmap_range(&cr3, paddr_to_virt(start), paddr_to_virt(end));
+        if (err < 0)
+            goto unlock;
+    }
+
+    if (vmap_flags & VMAP_KERNEL_MAP) {
+        err = _vunmap_range(&cr3, paddr_to_virt_map(start), paddr_to_virt_map(end));
+        if (err < 0)
+            goto unlock;
+    }
+
+    if (vmap_flags & (VMAP_KERNEL_USER | VMAP_KERNEL_USER_ACCESS)) {
+        err = _vunmap_range(&cr3, paddr_to_virt_user(start), paddr_to_virt_user(end));
+        if (err < 0)
+            goto unlock;
+    }
+
+    if (vmap_flags & VMAP_USER) {
+        err =
+            _vunmap_range(&user_cr3, paddr_to_virt_user(start), paddr_to_virt_user(end));
+        if (err < 0)
+            goto unlock;
+    }
+
+    if (vmap_flags & VMAP_USER_IDENT) {
+        err = _vunmap_range(&user_cr3, paddr_to_virt(start), paddr_to_virt(end));
+        if (err < 0)
+            goto unlock;
+    }
+
+    if (vmap_flags & VMAP_USER_KERNEL) {
+        err =
+            _vunmap_range(&user_cr3, paddr_to_virt_kern(start), paddr_to_virt_kern(end));
+        if (err < 0)
+            goto unlock;
+    }
+
+    if (vmap_flags & VMAP_USER_KERNEL_MAP) {
+        err = _vunmap_range(&user_cr3, paddr_to_virt_map(start), paddr_to_virt_map(end));
+        if (err < 0)
+            goto unlock;
+    }
+
+    err = 0;
+unlock:
+    spin_unlock(&vmap_lock);
+    return err;
+}
+
 static inline void init_cr3(cr3_t *cr3_ptr) {
     memset(cr3_ptr, 0, sizeof(*cr3_ptr));
     cr3_ptr->mfn = MFN_INVALID;
@@ -867,26 +1099,23 @@ void init_pagetables(void) {
     init_tmp_mapping();
 
     for_each_memory_range (r) {
+        vmap_flags_t flags = VMAP_NONE;
+
         switch (r->base) {
         case VIRT_IDENT_BASE:
-            for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)
-                vmap_kern_4k(mfn_to_virt(mfn), mfn, r->flags);
+            flags = VMAP_IDENT;
             break;
         case VIRT_KERNEL_BASE:
-            for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)
-                vmap_kern_4k(mfn_to_virt_kern(mfn), mfn, r->flags);
+            flags = VMAP_KERNEL;
             break;
         case VIRT_USER_BASE:
-            for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++) {
-                void *va = mfn_to_virt_user(mfn);
-
-                vmap_kern_4k(va, mfn, r->flags);
-                vmap_user_4k(va, mfn, r->flags);
-            }
+            flags = VMAP_USER | VMAP_KERNEL_USER;
             break;
         default:
-            break;
+            continue;
         }
+
+        vmap_range(virt_to_paddr(r->start), r->end - r->start, r->flags, flags);
     }
 
     map_frames_array();

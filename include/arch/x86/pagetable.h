@@ -182,6 +182,10 @@ extern void *vmap_4k(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l1_flags
 extern int vunmap_kern(void *va, mfn_t *mfn, unsigned int *order);
 extern int vunmap_user(void *va, mfn_t *mfn, unsigned int *order);
 
+extern int vmap_range(paddr_t paddr, size_t size, unsigned long flags,
+                      vmap_flags_t vmap_flags);
+extern int vunmap_range(paddr_t paddr, size_t size, vmap_flags_t vmap_flags);
+
 /* Static declarations */
 
 static inline pt_index_t l1_table_index(const void *va) {

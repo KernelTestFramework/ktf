@@ -54,11 +54,7 @@ static uint64_t line_width;
 static void (*put_pixel)(uint32_t x, uint32_t y, uint32_t color);
 
 static void map_fb_area(paddr_t start, size_t size) {
-    for (mfn_t video_mfn = paddr_to_mfn(start); video_mfn < paddr_to_mfn(start + size);
-         video_mfn++) {
-        vmap_kern_4k(mfn_to_virt(video_mfn), video_mfn, L1_PROT_NOCACHE);
-        vmap_kern_4k(mfn_to_virt_kern(video_mfn), video_mfn, L1_PROT_NOCACHE);
-    }
+    vmap_range(start, size, L1_PROT_NOCACHE, VMAP_KERNEL | VMAP_IDENT);
 }
 
 static void put_pixel8(uint32_t x, uint32_t y, uint32_t color) {

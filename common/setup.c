@@ -117,36 +117,19 @@ static __always_inline void zero_bss(void) {
 void zap_boot_mappings(void) {
     for_each_memory_range (r) {
         if (r->base == VIRT_IDENT_BASE && IS_INIT_SECTION(r->name)) {
-            unsigned int order = PAGE_ORDER_4K;
-
             memset(r->start, 0, r->end - r->start);
-            for (void *va = r->start; va < r->end; va += ORDER_TO_SIZE(order)) {
-                mfn_t mfn;
-
-                if (vunmap_kern(va, &mfn, &order)) {
-                    /* FIXME: Use warning */
-                    printk("Unable to unmap kernel boot mapping at %p\n", va);
-                    order = PAGE_ORDER_4K;
-                    continue;
-                }
-                reclaim_frame(mfn, order);
-            }
+            vunmap_range(_paddr(r->start), _paddr(r->end - r->start), VMAP_IDENT);
+            for (mfn_t mfn = virt_to_mfn(r->start); mfn < virt_to_mfn(r->end); mfn++)
+                reclaim_frame(mfn, PAGE_ORDER_4K);
         }
     }
 }
 
 static void __text_init map_bios_area(void) {
-    vmap_kern_4k(paddr_to_virt(BDA_ADDR_START), paddr_to_mfn(BDA_ADDR_START), L1_PROT_RO);
-    vmap_kern_4k(paddr_to_virt_kern(BDA_ADDR_START), paddr_to_mfn(BDA_ADDR_START),
-                 L1_PROT_RO);
-
-    uint32_t ebda_addr = get_bios_ebda_addr();
-    vmap_kern_4k(paddr_to_virt(ebda_addr), paddr_to_mfn(ebda_addr), L1_PROT_RO);
-    vmap_kern_4k(paddr_to_virt_kern(ebda_addr), paddr_to_mfn(ebda_addr), L1_PROT_RO);
-
-    for (mfn_t bios_mfn = paddr_to_mfn(BIOS_ACPI_ROM_START);
-         bios_mfn < paddr_to_mfn(BIOS_ACPI_ROM_STOP); bios_mfn++)
-        vmap_kern_4k(mfn_to_virt_kern(bios_mfn), bios_mfn, L1_PROT_RO);
+    vmap_range(BDA_ADDR_START, PAGE_SIZE, L1_PROT_RO, VMAP_IDENT | VMAP_KERNEL);
+    vmap_range(get_bios_ebda_addr(), PAGE_SIZE, L1_PROT_RO, VMAP_IDENT | VMAP_KERNEL);
+    vmap_range(BIOS_ACPI_ROM_START, BIOS_ACPI_ROM_STOP - BIOS_ACPI_ROM_START, L1_PROT_RO,
+               VMAP_KERNEL);
 }
 
 static void display_cpu_info(void) {
