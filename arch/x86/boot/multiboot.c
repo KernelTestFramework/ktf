@@ -184,12 +184,7 @@ void init_multiboot(unsigned long *addr, const char **cmdline) {
 
 void map_multiboot_areas(void) {
     paddr_t mbi_start = _paddr(multiboot2_hdr);
-    paddr_t mbi_stop = mbi_start + multiboot2_hdr_size;
-
-    for (mfn_t mfn = paddr_to_mfn(mbi_start); mfn <= paddr_to_mfn(mbi_stop); mfn++) {
-        vmap_kern_4k(mfn_to_virt(mfn), mfn, L1_PROT_RO);
-        vmap_kern_4k(mfn_to_virt_kern(mfn), mfn, L1_PROT_RO);
-    }
+    vmap_range(mbi_start, multiboot2_hdr_size, L1_PROT_RO, VMAP_KERNEL | VMAP_IDENT);
 }
 
 unsigned mbi_get_avail_memory_ranges_num(void) {

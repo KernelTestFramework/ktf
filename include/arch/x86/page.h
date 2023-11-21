@@ -147,6 +147,24 @@ enum pat_memory_type {
 };
 typedef enum pat_memory_type pat_memory_type_t;
 
+/* clang-format off */
+enum vmap_flags {
+    VMAP_NONE               = 0x00000000,
+    VMAP_IDENT              = 0x00000001,
+    VMAP_KERNEL             = 0x00000002,
+    VMAP_KERNEL_MAP         = 0x00000004,
+    VMAP_KERNEL_USER        = 0x00000008,
+    VMAP_KERNEL_USER_ACCESS = 0x00000010,
+    VMAP_USER               = 0x00000020,
+    VMAP_USER_IDENT         = 0x00000040,
+    VMAP_USER_KERNEL        = 0x00000080,
+    VMAP_USER_KERNEL_MAP    = 0x00000100,
+
+    VMAP_ALL                = 0x000001ff,
+};
+/* clang-format on */
+typedef enum vmap_flags vmap_flags_t;
+
 typedef unsigned long paddr_t;
 typedef unsigned long mfn_t;
 
@@ -179,6 +197,22 @@ extern void pat_set_type(pat_field_t field, pat_memory_type_t type);
 extern pat_memory_type_t pat_get_type(pat_field_t field);
 
 /* Static declarations */
+
+static inline bool virt_invalid(const void *va) {
+    return !va || va == MAP_FAILED;
+}
+
+static inline paddr_t paddr_round_up(paddr_t pa) {
+    return (pa + PAGE_SIZE - 1) & PAGE_MASK;
+}
+
+static inline void *virt_round_up(void *va) {
+    return (void *) paddr_round_up(_paddr(va));
+}
+
+static inline bool has_vmap_flags(vmap_flags_t flags) {
+    return (flags & VMAP_ALL) != VMAP_NONE;
+}
 
 static inline mfn_t paddr_to_mfn(paddr_t pa) {
     return (mfn_t)(pa >> PAGE_SHIFT);
