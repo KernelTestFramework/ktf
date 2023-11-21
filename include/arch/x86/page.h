@@ -275,6 +275,18 @@ static inline mfn_t virt_to_mfn(const void *va) {
     return paddr_to_mfn(virt_to_paddr(va));
 }
 
+static inline unsigned long order_to_flags(unsigned int order) {
+    switch (order) {
+    case PAGE_ORDER_2M:
+        return L2_PROT;
+    case PAGE_ORDER_1G:
+        return L3_PROT;
+    case PAGE_ORDER_4K:
+    default:
+        return L1_PROT;
+    }
+}
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* KTF_PAGE_H */
