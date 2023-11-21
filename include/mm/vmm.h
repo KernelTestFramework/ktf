@@ -27,12 +27,15 @@
 
 #include <page.h>
 
+/* clang-format off */
 enum gfp_flags {
-    GFP_KERNEL = 0x00000001,
-    GFP_USER = 0x00000002,
-    GFP_IDENT = 0x00000004,
+    GFP_NONE       = 0x00000000,
+    GFP_IDENT      = 0x00000001,
+    GFP_USER       = 0x00000002,
+    GFP_KERNEL     = 0x00000004,
     GFP_KERNEL_MAP = 0x00000008,
 };
+/* clang-format on */
 typedef enum gfp_flags gfp_flags_t;
 
 /* External definitions */

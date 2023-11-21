@@ -33,10 +33,70 @@
 /* Used by higher level mmap_range() functions - must be taken before vmap_lock */
 static spinlock_t mmap_lock = SPINLOCK_INIT;
 
-void *get_free_pages(unsigned int order, gfp_flags_t flags) {
-    frame_t *frame;
+static inline vmap_flags_t gfp_to_vmap_flags(gfp_flags_t gfp_flags) {
+    vmap_flags_t vmap_flags = VMAP_NONE;
+
+    if (gfp_flags == GFP_USER)
+        return VMAP_KERNEL_USER | VMAP_USER;
+
+    if (gfp_flags & GFP_IDENT) {
+        vmap_flags |= VMAP_IDENT;
+        if (gfp_flags & GFP_USER)
+            vmap_flags |= VMAP_USER_IDENT;
+    }
+
+    if (gfp_flags & GFP_KERNEL) {
+        vmap_flags |= VMAP_KERNEL;
+        if (gfp_flags & GFP_USER)
+            vmap_flags |= VMAP_USER_KERNEL;
+    }
+
+    if (gfp_flags & GFP_KERNEL_MAP) {
+        vmap_flags |= VMAP_KERNEL_MAP;
+        if (gfp_flags & GFP_USER)
+            vmap_flags |= VMAP_USER_KERNEL_MAP;
+    }
+
+    return vmap_flags;
+}
+
+static inline void *gfp_mfn_to_virt(gfp_flags_t gfp_flags, mfn_t mfn) {
+    /* Return virtual address if a single area is specified ... */
+    switch (gfp_flags) {
+    case GFP_IDENT:
+        return mfn_to_virt(mfn);
+    case GFP_KERNEL_MAP:
+        return mfn_to_virt_map(mfn);
+    case GFP_USER:
+        return mfn_to_virt_user(mfn);
+    case GFP_KERNEL:
+        return mfn_to_virt_kern(mfn);
+    default:
+        /* Otherwise, return kernel addresses if specified before identity
+         * mapping or user. The below order reflects most common uses.
+         */
+        if (gfp_flags & GFP_KERNEL_MAP)
+            return mfn_to_virt_map(mfn);
+        else if (gfp_flags & GFP_KERNEL)
+            return mfn_to_virt_kern(mfn);
+        else if (gfp_flags & GFP_IDENT)
+            return mfn_to_virt(mfn);
+        else if (gfp_flags & GFP_USER)
+            return mfn_to_virt_user(mfn);
+    }
+
+    return NULL;
+}
+
+void *get_free_pages(unsigned int order, gfp_flags_t gfp_flags) {
     void *va = NULL;
+    frame_t *frame;
     mfn_t mfn;
+    size_t size;
+    unsigned long pt_flags;
+    vmap_flags_t vmap_flags;
+
+    ASSERT(gfp_flags != GFP_NONE);
 
     if (!boot_flags.virt)
         panic("Unable to use %s() before final page tables are set", __func__);
@@ -46,35 +106,13 @@ void *get_free_pages(unsigned int order, gfp_flags_t flags) {
         return va;
     mfn = frame->mfn;
 
+    size = ORDER_TO_SIZE(order);
+    pt_flags = order_to_flags(order);
+    vmap_flags = gfp_to_vmap_flags(gfp_flags);
+
     spin_lock(&mmap_lock);
-    if (flags == GFP_USER) {
-        va = vmap_kern(mfn_to_virt_user(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
-                       L1_PROT);
-        vmap_user(mfn_to_virt_user(mfn), mfn, order, L4_PROT_USER, L3_PROT_USER,
-                  L2_PROT_USER, L1_PROT_USER);
-    }
-
-    if (flags & GFP_IDENT) {
-        va = vmap_kern(mfn_to_virt(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
-        if (flags & GFP_USER)
-            vmap_user(mfn_to_virt(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT, L1_PROT);
-    }
-
-    if (flags & GFP_KERNEL) {
-        va = vmap_kern(mfn_to_virt_kern(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
-                       L1_PROT);
-        if (flags & GFP_USER)
-            vmap_user(mfn_to_virt_kern(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
-                      L1_PROT);
-    }
-
-    if (flags & GFP_KERNEL_MAP) {
-        va = vmap_kern(mfn_to_virt_map(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
-                       L1_PROT);
-        if (flags & GFP_USER)
-            vmap_user(mfn_to_virt_map(mfn), mfn, order, L4_PROT, L3_PROT, L2_PROT,
-                      L1_PROT);
-    }
+    if (vmap_range(mfn_to_paddr(mfn), size, pt_flags, vmap_flags) == 0)
+        va = gfp_mfn_to_virt(gfp_flags, mfn);
     spin_unlock(&mmap_lock);
 
     return va;
