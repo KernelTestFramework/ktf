@@ -249,19 +249,16 @@ clean:
 # Check whether we can use kvm for qemu
 ifeq ($(SYSTEM),LINUX)
 ifneq ($(USE_KVM), false) # you can hard-disable KVM use with the USE_KVM environment variable
-HAVE_KVM=$(shell lsmod | awk '/^kvm / {print $$1}')
+HAVE_KVM=$(shell test -w /dev/kvm && echo kvm)
 endif # USE_KVM
 endif # SYSTEM == LINUX
 
 # Set qemu parameters
 ifeq ($(SYSTEM)$(HAVE_KVM),LINUXkvm)
-QEMU_PARAMS := -cpu host
+QEMU_PARAMS := -cpu host -enable-kvm
 else
 QEMU_PARAMS := -cpu max
 endif
-ifeq ($(HAVE_KVM), kvm)
-QEMU_PARAMS += -enable-kvm
-endif # HAVE_KVM
 QEMU_PARAMS += -m 128
 QEMU_PARAMS += -serial stdio
 QEMU_PARAMS += -smp cpus=2
