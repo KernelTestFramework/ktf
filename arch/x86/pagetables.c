@@ -700,7 +700,7 @@ int vmap_range(paddr_t paddr, size_t size, unsigned long flags, vmap_flags_t vma
     mfn_t mfn;
     int err;
 
-    dprintk("%s: paddr: 0x%p, size: %lx\n", __func__, paddr, size);
+    dprintk("%s: paddr: 0x%lx, size: %lx\n", __func__, paddr, size);
 
     if (!has_vmap_flags(vmap_flags))
         return -EINVAL;
@@ -782,7 +782,7 @@ int vunmap_range(paddr_t paddr, size_t size, vmap_flags_t vmap_flags) {
     paddr_t end = start + size;
     int err;
 
-    dprintk("%s: paddr: 0x%p, size: %lx\n", __func__, paddr, size);
+    dprintk("%s: paddr: 0x%lx, size: %lx\n", __func__, paddr, size);
 
     if (!has_vmap_flags(vmap_flags))
         return -EINVAL;
