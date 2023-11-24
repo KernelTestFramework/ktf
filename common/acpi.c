@@ -248,16 +248,15 @@ static int process_madt_entries(void) {
             if (!enabled)
                 break;
 
-            cpu_t *cpu = get_cpu(madt_cpu->apic_proc_id)
-                             ?: add_cpu(madt_cpu->apic_proc_id, false, enabled);
+            cpu_t *cpu =
+                get_cpu(madt_cpu->apic_id) ?: add_cpu(madt_cpu->apic_id, false, enabled);
             cpu->flags.enabled = enabled;
 
             percpu_t *percpu = cpu->percpu;
-            percpu->cpu_id = madt_cpu->apic_proc_id;
-            percpu->apic_id = madt_cpu->apic_id;
+            percpu->acpi_id = madt_cpu->apic_proc_id;
 
-            printk("ACPI: [MADT] APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n",
-                   cpu->id, percpu->apic_id, madt_cpu->flags);
+            printk("ACPI: [MADT] ACPI Processor ID: %u, APIC ID: %u, Flags: %08x\n",
+                   percpu->acpi_id, percpu->apic_id, madt_cpu->flags);
             break;
         }
         case ACPI_MADT_TYPE_IOAPIC: {
@@ -475,15 +474,14 @@ static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
         if (!enabled)
             break;
 
-        cpu_t *cpu =
-            get_cpu(lapic->ProcessorId) ?: add_cpu(lapic->ProcessorId, false, enabled);
+        cpu_t *cpu = get_cpu(lapic->Id) ?: add_cpu(lapic->Id, false, enabled);
         cpu->flags.enabled = enabled;
 
         percpu_t *percpu = cpu->percpu;
-        percpu->apic_id = lapic->Id;
+        percpu->acpi_id = lapic->ProcessorId;
 
-        printk("ACPI: [MADT] APIC Processor ID: %u, APIC ID: %u, Flags: %08x\n", cpu->id,
-               percpu->apic_id, lapic->LapicFlags);
+        printk("ACPI: [MADT] ACPI Processor ID: %u, APIC ID: %u, Flags: %08x\n",
+               percpu->acpi_id, percpu->apic_id, lapic->LapicFlags);
         break;
     }
     case ACPI_MADT_TYPE_IO_APIC: {
