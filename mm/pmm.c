@@ -107,7 +107,7 @@ static frames_array_t *new_frames_array(void) {
     if (!boot_flags.virt)
         array = (frames_array_t *) mfn_to_virt_kern(frame->mfn);
     else {
-        array = vmap_kern_4k(mfn_to_virt_kern(frame->mfn), frame->mfn, L1_PROT);
+        array = vmap_kern_4k(mfn_to_virt_map(frame->mfn), frame->mfn, L1_PROT);
         if (!array)
             goto error;
     }
@@ -645,7 +645,9 @@ void map_frames_array(void) {
 
     list_for_each_entry (array, &frames, list) {
         mfn_t mfn = virt_to_mfn(array);
+        void *va = IS_ADDR_SPACE_VA(array, VIRT_KERNEL_BASE) ? mfn_to_virt_kern(mfn)
+                                                             : mfn_to_virt_map(mfn);
 
-        BUG_ON(!vmap_kern_4k(mfn_to_virt_kern(mfn), mfn, L1_PROT));
+        BUG_ON(!vmap_kern_4k(va, mfn, L1_PROT));
     }
 }
