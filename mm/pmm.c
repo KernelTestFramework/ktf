@@ -64,6 +64,30 @@ static inline void init_frame(frame_t *frame) {
     frame->flags.free = true;
 }
 
+static inline frame_t *reserve_frame(frame_t *frame) {
+    if (!frame)
+        return NULL;
+
+    if (frame->refcount++ == 0) {
+        list_unlink(&frame->list);
+        list_add(&frame->list, &busy_frames[frame->order]);
+    }
+
+    return frame;
+}
+
+static inline bool return_frame(frame_t *frame) {
+    ASSERT(is_frame_used(frame));
+
+    if (--frame->refcount == 0) {
+        list_unlink(&frame->list);
+        list_add(&frame->list, &free_frames[frame->order]);
+        return true;
+    }
+
+    return false;
+}
+
 static inline void init_frames_array(frames_array_t *array) {
     memset(array, 0, sizeof(*array));
     array->meta.free_count = ARRAY_SIZE(array->frames);
@@ -383,30 +407,6 @@ void init_pmm(void) {
         display_frames();
 }
 
-static inline frame_t *reserve_frame(frame_t *frame) {
-    if (!frame)
-        return NULL;
-
-    if (frame->refcount++ == 0) {
-        list_unlink(&frame->list);
-        list_add(&frame->list, &busy_frames[frame->order]);
-    }
-
-    return frame;
-}
-
-static inline bool return_frame(frame_t *frame) {
-    ASSERT(is_frame_used(frame));
-
-    if (--frame->refcount == 0) {
-        list_unlink(&frame->list);
-        list_add(&frame->list, &free_frames[frame->order]);
-        return true;
-    }
-
-    return false;
-}
-
 static frame_t *_find_mfn_frame(list_head_t *list, mfn_t mfn, unsigned int order) {
     frame_t *frame;
 
@@ -509,31 +509,6 @@ static frame_t *find_larger_frame(list_head_t *list, unsigned int order) {
     return NULL;
 }
 
-/* Reserves and returns the first free frame fulfilling
- * the condition specified by the callback.
- * This function does not split larger frames.
- */
-frame_t *get_free_frames_cond(free_frames_cond_t cb) {
-    spin_lock(&lock);
-    for_each_order (order) {
-        frame_t *frame;
-
-        if (list_is_empty(&free_frames[order]))
-            continue;
-
-        list_for_each_entry (frame, &free_frames[order], list) {
-            if (cb(frame)) {
-                reserve_frame(frame);
-                spin_unlock(&lock);
-                return frame;
-            }
-        }
-    }
-    spin_unlock(&lock);
-
-    return NULL;
-}
-
 static inline void relink_frame_to_order(frame_t *frame, unsigned int new_order) {
     ASSERT(new_order <= MAX_PAGE_ORDER);
 
@@ -594,6 +569,32 @@ static void merge_frames(frame_t *first) {
 
     /* Try to merge higher order frames */
     merge_frames(first);
+}
+
+/* Reserves and returns the first free frame fulfilling
+ * the condition specified by the callback.
+ * This function does not split larger frames.
+ */
+frame_t *get_free_frames_cond(free_frames_cond_t cb) {
+    spin_lock(&lock);
+    for_each_order (order) {
+        frame_t *frame;
+
+        if (list_is_empty(&free_frames[order])) {
+            continue;
+        }
+
+        list_for_each_entry (frame, &free_frames[order], list) {
+            if (cb(frame)) {
+                reserve_frame(frame);
+                spin_unlock(&lock);
+                return frame;
+            }
+        }
+    }
+    spin_unlock(&lock);
+
+    return NULL;
 }
 
 frame_t *get_free_frames(unsigned int order) {
