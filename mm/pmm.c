@@ -98,15 +98,16 @@ static inline void init_frames_array(frames_array_t *array) {
 
 static frames_array_t *new_frames_array(void) {
     frames_array_t *array;
+    frame_t *frame;
 
-    if (!boot_flags.virt) {
-        frame_t *frame = get_free_frame();
-        if (!frame)
-            goto error;
+    frame = reserve_frame(get_first_frame(free_frames, PAGE_ORDER_4K));
+    if (!frame)
+        goto error;
+
+    if (!boot_flags.virt)
         array = (frames_array_t *) mfn_to_virt_kern(frame->mfn);
-    }
     else {
-        array = get_free_page(GFP_KERNEL);
+        array = vmap_kern_4k(mfn_to_virt_kern(frame->mfn), frame->mfn, L1_PROT);
         if (!array)
             goto error;
     }
