@@ -41,6 +41,7 @@ static frames_array_t early_frames;
 static list_head_t free_frames[MAX_PAGE_ORDER + 1];
 static list_head_t busy_frames[MAX_PAGE_ORDER + 1];
 
+#define MIN_NUM_4K_FRAMES 2
 static size_t frames_count[MAX_PAGE_ORDER + 1];
 
 static spinlock_t lock = SPINLOCK_INIT;
@@ -572,18 +573,36 @@ static void merge_frames(frame_t *first) {
     merge_frames(first);
 }
 
+static inline bool enough_4k_frames(void) {
+    frame_t *frame;
+    int count = 0;
+
+    list_for_each_entry (frame, &free_frames[PAGE_ORDER_4K], list) {
+        if (++count >= MIN_NUM_4K_FRAMES)
+            return true;
+    }
+
+    return false;
+}
+
+static void try_create_4k_frames(void) {
+    while (!enough_4k_frames()) {
+        frame_t *frame = find_larger_frame(free_frames, PAGE_ORDER_4K);
+        if (!frame)
+            panic("No more frames available to create 4K frames");
+        split_frame(frame);
+    }
+}
+
 /* Reserves and returns the first free frame fulfilling
  * the condition specified by the callback.
  * This function does not split larger frames.
  */
 frame_t *get_free_frames_cond(free_frames_cond_t cb) {
     spin_lock(&lock);
+    try_create_4k_frames();
     for_each_order (order) {
         frame_t *frame;
-
-        if (list_is_empty(&free_frames[order])) {
-            continue;
-        }
 
         list_for_each_entry (frame, &free_frames[order], list) {
             if (cb(frame)) {
@@ -605,7 +624,11 @@ frame_t *get_free_frames(unsigned int order) {
         return NULL;
 
     spin_lock(&lock);
+    if (order == PAGE_ORDER_4K)
+        try_create_4k_frames();
+
     while (list_is_empty(&free_frames[order])) {
+        BUG_ON(order == PAGE_ORDER_4K);
         frame = find_larger_frame(free_frames, order);
         if (!frame) {
             spin_unlock(&lock);
