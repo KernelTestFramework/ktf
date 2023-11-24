@@ -34,7 +34,7 @@
 struct percpu {
     list_head_t list;
 
-    unsigned int cpu_id;
+    uint32_t acpi_id;
     uint32_t apic_id;
     uint32_t sapic_uid;
     uint8_t sapic_id;

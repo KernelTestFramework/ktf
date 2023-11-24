@@ -43,7 +43,7 @@ percpu_t *get_percpu_page(unsigned int cpu) {
     percpu_t *percpu;
 
     list_for_each_entry (percpu, &percpu_frames, list) {
-        if (percpu->cpu_id == cpu)
+        if (percpu->apic_id == cpu)
             return percpu;
     }
 
@@ -54,7 +54,7 @@ percpu_t *get_percpu_page(unsigned int cpu) {
     BUG_ON(!percpu);
     memset(percpu, 0, PAGE_SIZE);
 
-    percpu->cpu_id = cpu;
+    percpu->apic_id = cpu;
 
     list_add(&percpu->list, &percpu_frames);
     return percpu;
