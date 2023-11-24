@@ -130,7 +130,7 @@ void init_traps(const cpu_t *cpu) {
 
     BUG_ON(!percpu);
 
-    percpu->idt = get_free_page(GFP_KERNEL | GFP_USER);
+    percpu->idt = get_free_page(GFP_KERNEL_MAP | GFP_USER);
     BUG_ON(!percpu->idt);
 
     percpu->idt_ptr.size = (sizeof(idt_entry_t) * MAX_INT) - 1;
