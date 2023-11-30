@@ -101,6 +101,9 @@ static inline bool is_canon_va(const void *va) {
 static void dump_pagetable(mfn_t table, int level) {
     pte_t *pt;
 
+    if (level == 0)
+        return;
+
     BUG_ON(mfn_invalid(table));
     pt = tmp_map_mfn(table);
     BUG_ON(!pt);

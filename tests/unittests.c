@@ -189,6 +189,8 @@ int unit_tests(void *_unused) {
     cpu_freq_expect("Prototyp Amazing Foo One @ 1GHz", 1000000000);
     cpu_freq_expect("Prototyp Amazing Foo Two @ 1.00GHz", 1000000000);
 
+    dump_pagetables(&cr3);
+
     map_pagetables(&cr3, NULL);
     map_pagetables(&cr3, &user_cr3);
     pte_t *pte = get_pte(unit_tests);
