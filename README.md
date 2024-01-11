@@ -47,7 +47,7 @@ make boot
 
 You may need to install the following (unless you already have it):
 * GRUB2 bootloader tools - `grub2-common` package (e.g. `apt install grub2-common`)
-* ISO generation tools - `xorriso` and `mtools` package (e.g. `apt install xorriso mtools`)
+* ISO generation tools - `xorriso`, `grub-pc-bin`, and `mtools` package (e.g. `apt install xorriso grub-pc-bin mtools`)
 
 #### Kernel image build (for example to be used with QEMU)
 
