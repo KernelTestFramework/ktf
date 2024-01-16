@@ -262,15 +262,6 @@ static inline void add_frame(mfn_t mfn, unsigned int order) {
     list_add_tail(&frame->list, &free_frames[order]);
 }
 
-static inline unsigned int find_max_avail_order(size_t size) {
-    for (unsigned int order = MAX_PAGE_ORDER; order > PAGE_ORDER_4K; order--) {
-        if (ORDER_TO_SIZE(order) <= size)
-            return order;
-    }
-
-    return PAGE_ORDER_4K;
-}
-
 static unsigned find_first_avail_region(void) {
     addr_range_t range;
 
