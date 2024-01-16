@@ -157,4 +157,6 @@ typedef uint64_t off_t;
         _str;                                                                            \
     })
 
+/* count trailing zeros */
+#define ctz __builtin_ctz
 #endif /* KTF_COMPILER_H */
