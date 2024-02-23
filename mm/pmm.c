@@ -262,15 +262,6 @@ static inline void add_frame(mfn_t mfn, unsigned int order) {
     list_add_tail(&frame->list, &free_frames[order]);
 }
 
-static inline unsigned int find_max_avail_order(size_t size) {
-    for (unsigned int order = MAX_PAGE_ORDER; order > PAGE_ORDER_4K; order--) {
-        if (ORDER_TO_SIZE(order) <= size)
-            return order;
-    }
-
-    return PAGE_ORDER_4K;
-}
-
 static unsigned find_first_avail_region(void) {
     addr_range_t range;
 
@@ -293,7 +284,6 @@ static unsigned find_first_avail_region(void) {
 
 static size_t process_memory_range(unsigned index, unsigned first_avail_region) {
     paddr_t start, end, cur;
-    unsigned int max_order;
     addr_range_t range;
     size_t size;
 
@@ -310,39 +300,34 @@ static size_t process_memory_range(unsigned index, unsigned first_avail_region) 
      * because initial virtual memory mapping is small.
      */
 
-    /* Add initial 4K frames and align to 2M. */
-    while ((cur < MB(EARLY_VIRT_MEM) || cur % PAGE_SIZE_2M) && cur + PAGE_SIZE <= end) {
-        if (index <= first_avail_region)
-            add_early_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
-        else
-            add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
+    /* Add initial 4K frames for early memory. */
+    while (cur < MB(EARLY_VIRT_MEM) && cur + PAGE_SIZE <= end) {
+        add_early_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
         cur += ORDER_TO_SIZE(PAGE_ORDER_4K);
     }
 
-    max_order = find_max_avail_order(end - cur);
+    while (cur + PAGE_SIZE <= end) {
+        unsigned int order = PADDR_TO_ORDER(cur);
+        if (order >= PAGE_ORDER_1G && cur + PAGE_SIZE_1G <= end) {
+            add_frame(paddr_to_mfn(cur), PAGE_ORDER_1G);
+            cur += ORDER_TO_SIZE(PAGE_ORDER_1G);
+            continue;
+        }
 
-    /* Add all available max_order frames. */
-    while (cur + ORDER_TO_SIZE(max_order) <= end) {
-        add_frame(paddr_to_mfn(cur), max_order);
-        cur += ORDER_TO_SIZE(max_order);
-    }
+        if (order >= PAGE_ORDER_2M && cur + PAGE_SIZE_2M <= end) {
+            add_frame(paddr_to_mfn(cur), PAGE_ORDER_2M);
+            cur += ORDER_TO_SIZE(PAGE_ORDER_2M);
+            continue;
+        }
 
-    /* Add all remaining 2M frames. */
-    while (cur + PAGE_SIZE_2M <= end) {
-        add_frame(paddr_to_mfn(cur), PAGE_ORDER_2M);
-        cur += ORDER_TO_SIZE(PAGE_ORDER_2M);
-    }
-
-    /* Add all remaining 4K frames. */
-    while (cur < end) {
         add_frame(paddr_to_mfn(cur), PAGE_ORDER_4K);
         cur += ORDER_TO_SIZE(PAGE_ORDER_4K);
     }
 
     if (cur != end) {
-        warning(
-            "PMM range processing failed: start=0x%016lx end=0x%016lx current=0x%016lx",
-            start, end, cur);
+        warning("PMM range processing failed: start=0x%016lx end=0x%016lx "
+                "current=0x%016lx",
+                start, end, cur);
     }
 
     return size;

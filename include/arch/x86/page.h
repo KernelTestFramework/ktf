@@ -193,6 +193,7 @@ typedef unsigned long mfn_t;
 #define MAP_FAILED ((void *) 1)
 
 #define IS_ADDR_SPACE_VA(va, as) (_ul(va) >= (as))
+#define PADDR_TO_ORDER(addr)     (ctz(addr) - PAGE_SHIFT)
 
 /* External declarations */
 
