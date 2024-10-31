@@ -1,5 +1,5 @@
 +++ b/./config.mk
-@@ -28,8 +28,15 @@
+@@ -28,8 +28,14 @@
  # It is included by every Makefile
  #
  #
@@ -11,11 +11,10 @@
 +endif
  ARCH := $(shell uname -m)
 +
-+
  ifeq (i686,$(findstring i686,$(ARCH)))
  override ARCH=i386
  endif
-@@ -92,7 +99,7 @@ endif
+@@ -92,7 +98,7 @@ endif
  # CONFIG_PFMLIB_NOPYTHON: do not generate the python support, incompatible
  # with PFMLIB_SHARED=n
  #
@@ -24,13 +23,12 @@
  CONFIG_PFMLIB_DEBUG?=y
  CONFIG_PFMLIB_NOPYTHON?=y
  
-@@ -116,11 +123,14 @@ AGE=1
+@@ -116,11 +122,13 @@ AGE=0
  #
  # Where should things (lib, headers, man) go in the end.
  #
-+
 +ifneq ($(KTF_PFMLIB_COMPILE),1)
- PREFIX=/usr/local
+ PREFIX?=/usr/local
  LIBDIR=$(PREFIX)/lib
  INCDIR=$(PREFIX)/include
  MANDIR=$(PREFIX)/share/man
@@ -39,21 +37,21 @@
  
  #
  # System header files
-@@ -194,6 +204,9 @@ LDCONFIG=ldconfig
+@@ -194,6 +202,10 @@ LDCONFIG=ldconfig
  LN?=ln -sf
  PFMINCDIR=$(TOPDIR)/include
  PFMLIBDIR=$(TOPDIR)/lib
 +ifeq ($(KTF_PFMLIB_COMPILE),1)
 +KTF_INC_DIRS= -I$(KTF_ROOT)/include -I$(KTF_ROOT)/include/arch/x86
 +endif
++
  #
  # -Wextra: to enable extra compiler sanity checks (e.g., signed vs. unsigned)
  # -Wno-unused-parameter: to avoid warnings on unused foo(void *this) parameter
-@@ -221,6 +234,11 @@ ifeq ($(CONFIG_PFMLIB_DEBUG),y)
+@@ -221,6 +233,10 @@ ifeq ($(CONFIG_PFMLIB_DEBUG),y)
  CFLAGS += -DCONFIG_PFMLIB_DEBUG
  endif
  
-+
 +ifeq ($(KTF_PFMLIB_COMPILE),1)
 +CFLAGS += $(KTF_INC_DIRS) -U__linux__ -std=gnu99 -O3 -ffreestanding -nostdlib -nostdinc
 +endif
@@ -61,7 +59,6 @@
  CTAGS?=ctags
  
  #
-index 2f2c116..aca8b1d 100755
 +++ b/./include/perfmon/err.h
 @@ -22,6 +22,8 @@
  #define __PFM_ERR_H__
@@ -91,7 +88,7 @@ index 2f2c116..aca8b1d 100755
  
  #ifdef __cplusplus
  extern "C" {
-@@ -516,6 +516,9 @@ enum perf_callchain_context {
+@@ -593,6 +593,9 @@ enum perf_callchain_context {
  /*
   * perf_event_open() syscall stub
   */
@@ -101,7 +98,7 @@ index 2f2c116..aca8b1d 100755
  static inline int
  perf_event_open(
  	struct perf_event_attr		*hw_event_uptr,
-@@ -527,6 +530,7 @@ perf_event_open(
+@@ -604,6 +607,7 @@ perf_event_open(
  	return syscall(
  		__NR_perf_event_open, hw_event_uptr, pid, cpu, group_fd, flags);
  }
@@ -110,7 +107,7 @@ index 2f2c116..aca8b1d 100755
  /*
   * compensate for some distros which do not
 +++ b/./include/perfmon/pfmlib.h
-@@ -31,10 +31,12 @@
+@@ -34,10 +34,13 @@
  #ifdef __cplusplus
  extern "C" {
  #endif
@@ -123,6 +120,7 @@ index 2f2c116..aca8b1d 100755
 +
 +/* dkgupta: No FILE on KTF, punting to void */
 +typedef void FILE;
++
  
  #define LIBPFM_VERSION		(4 << 16 | 0)
  #define PFM_MAJ_VERSION(v)	((v)>>16)
@@ -149,11 +147,10 @@ index 2f2c116..aca8b1d 100755
  
  /* private headers */
  #include "pfmlib_priv.h"		/* library private */
-@@ -188,8 +188,19 @@ amd64_get_revision(pfm_amd64_config_t *cfg)
-  * Some gcc's (4.1.2 on Core2) object to pairing push/pop and ebx in 64 bit mode.
-  * Using the opcode directly avoids this problem.
-  */
-+
+@@ -191,8 +191,18 @@ amd64_get_revision(pfm_amd64_config_t *cfg)
+         cfg->revision = rev;
+ }
+ 
 +/*
 + * cpuid name def is colliding with cpuid definition in KTF. 
 + * for sake of keeping this library self contained and using its own cpuid impl
@@ -167,9 +164,9 @@ index 2f2c116..aca8b1d 100755
  cpuid(unsigned int op, unsigned int *a, unsigned int *b, unsigned int *c, unsigned int *d)
 +#endif
  {
-   __asm__ __volatile__ (".byte 0x53\n\tcpuid\n\tmovl %%ebx, %%esi\n\t.byte 0x5b"
-        : "=a" (*a),
-@@ -326,7 +337,11 @@ pfm_amd64_detect(void *this)
+ 	asm volatile("cpuid" : "=a" (*a), "=b" (*b), "=c" (*c), "=d" (*d) : "a" (op) : "memory");
+ }
+@@ -313,7 +323,12 @@ pfm_amd64_detect(void *this)
  	if (pfm_amd64_cfg.family)
  		return PFM_SUCCESS;
  
@@ -178,10 +175,11 @@ index 2f2c116..aca8b1d 100755
 +#else
  	cpuid(0, &a, &b, &c, &d);
 +#endif
++
  	strncpy(&buffer[0], (char *)(&b), 4);
  	strncpy(&buffer[4], (char *)(&d), 4);
  	strncpy(&buffer[8], (char *)(&c), 4);
-@@ -335,7 +350,11 @@ pfm_amd64_detect(void *this)
+@@ -322,7 +337,11 @@ pfm_amd64_detect(void *this)
  	if (strcmp(buffer, "AuthenticAMD"))
  		return PFM_ERR_NOTSUPP;
  
@@ -262,7 +260,32 @@ index 2f2c116..aca8b1d 100755
 +#include <ktf.h>
  #include "pfmlib_priv.h"
  #include "pfmlib_amd64_priv.h"
- #include "events/amd64_events_fam17h.h"
+ #include "events/amd64_events_fam17h_zen1.h"
++++ b/./lib/pfmlib_amd64_fam19h.c
+@@ -23,6 +23,8 @@
+  */
+ 
+ /* private headers */
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include "pfmlib_priv.h"
+ #include "pfmlib_amd64_priv.h"
+ #include "events/amd64_events_fam19h_zen3.h"
++++ b/./lib/pfmlib_amd64_fam19h_l3.c
+@@ -21,11 +21,9 @@
+  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+-#include <sys/types.h>
+-#include <ctype.h>
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include <string.h>
+-#include <stdlib.h>
+-#include <stdio.h>
+ 
+ /* private headers */
+ #include "pfmlib_priv.h"
 +++ b/./lib/pfmlib_amd64_k7.c
 @@ -24,6 +24,8 @@
   */
@@ -297,6 +320,16 @@ index 2f2c116..aca8b1d 100755
  
  /* private headers */
  #include "pfmlib_priv.h"		/* library private */
++++ b/./lib/pfmlib_amd64_rapl.c
+@@ -25,6 +25,8 @@
+  */
+ 
+ /* private headers */
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include "pfmlib_priv.h"
+ /*
+  * for now, we reuse the x86 table entry format and callback to avoid duplicating
 +++ b/./lib/pfmlib_arm.c
 @@ -23,11 +23,9 @@
   * 
@@ -343,7 +376,20 @@ index 2f2c116..aca8b1d 100755
  /* private headers */
  #include "pfmlib_priv.h"			/* library private */
 +++ b/./lib/pfmlib_arm_armv8.c
-@@ -22,9 +22,9 @@
+@@ -25,9 +25,9 @@
+  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  *
+  */
+-#include <sys/types.h>
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include <string.h>
+-#include <stdlib.h>
+ 
+ /* private headers */
+ #include "pfmlib_priv.h"			/* library private */
++++ b/./lib/pfmlib_arm_armv9.c
+@@ -25,9 +25,9 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   *
   */
@@ -384,7 +430,7 @@ index 2f2c116..aca8b1d 100755
  /* public headers */
  #include <perfmon/pfmlib_cell.h>
 +++ b/./lib/pfmlib_common.c
-@@ -25,18 +25,18 @@
+@@ -28,18 +28,18 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
@@ -409,7 +455,7 @@ index 2f2c116..aca8b1d 100755
  static pfmlib_pmu_t *pfmlib_pmus[]=
  {
  
-@@ -573,6 +573,11 @@ __pfm_vbprintf(const char *fmt, ...)
+@@ -747,6 +747,11 @@ __pfm_vbprintf(const char *fmt, ...)
   * This avoids a dependency on having a C library with
   * support for getline().
   */
@@ -421,20 +467,19 @@ index 2f2c116..aca8b1d 100755
  int
  pfmlib_getl(char **buffer, size_t *len, FILE *fp)
  {
-@@ -620,7 +625,7 @@ pfmlib_getl(char **buffer, size_t *len, FILE *fp)
+@@ -794,6 +799,7 @@ pfmlib_getl(char **buffer, size_t *len, FILE *fp)
  	b[i] = '\0';
  	return c != EOF ? 0 : -1;
  }
--
 +#endif
  
  
- /*
-@@ -811,18 +816,29 @@ pfmlib_check_struct(void *st, size_t usz, size_t refsz, size_t sz)
+ 
+@@ -991,18 +997,29 @@ pfmlib_check_struct(void *st, size_t usz, size_t refsz, size_t sz)
  static void
  pfmlib_init_env(void)
  {
-+#ifndef KTF_PFMLIB_INTEGRATION	
++#ifndef KTF_PFMLIB_INTEGRATION
  	char *str;
  
  	pfm_cfg.fp = stderr;
@@ -442,7 +487,7 @@ index 2f2c116..aca8b1d 100755
 +	pfm_cfg.fp = NULL;
 +#endif
  
-+#ifndef KTF_PFMLIB_INTEGRATION	
++#ifndef KTF_PFMLIB_INTEGRATION
  	str = getenv("LIBPFM_VERBOSE");
  	if (str && isdigit((int)*str))
  		pfm_cfg.verbose = *str - '0';
@@ -450,17 +495,17 @@ index 2f2c116..aca8b1d 100755
 +	pfm_cfg.verbose = 0;
 +#endif	
  
-+#ifndef KTF_PFMLIB_INTEGRATION	
++#ifndef KTF_PFMLIB_INTEGRATION
  	str = getenv("LIBPFM_DEBUG");
  	if (str && isdigit((int)*str))
  		pfm_cfg.debug = *str - '0';
 +#endif
  
-+#ifndef KTF_PFMLIB_INTEGRATION	
++#ifndef KTF_PFMLIB_INTEGRATION
  	str = getenv("LIBPFM_DEBUG_STDOUT");
  	if (str)
  		pfm_cfg.fp = stdout;
-@@ -836,6 +852,7 @@ pfmlib_init_env(void)
+@@ -1016,6 +1033,7 @@ pfmlib_init_env(void)
  	str = getenv("LIBPFM_DISABLED_PMUS");
  	if (str)
  		pfm_cfg.blacklist_pmus = str;
@@ -468,13 +513,14 @@ index 2f2c116..aca8b1d 100755
  }
  
  static int
-@@ -861,13 +878,24 @@ pfmlib_pmu_sanity_checks(pfmlib_pmu_t *p)
+@@ -1041,13 +1059,25 @@ pfmlib_pmu_sanity_checks(pfmlib_pmu_t *p)
  int
  pfmlib_build_fstr(pfmlib_event_desc_t *e, char **fstr)
  {
 +#ifdef KTF_PFMLIB_INTEGRATION
 +	int len = 0;
 +#endif	
++
  	/* nothing to do */
  	if (!fstr)
  		return PFM_SUCCESS;
@@ -493,11 +539,23 @@ index 2f2c116..aca8b1d 100755
  
  	return *fstr ? PFM_SUCCESS : PFM_ERR_NOMEM;
  }
-@@ -1774,7 +1802,11 @@ pfmlib_pmu_validate_encoding(pfmlib_pmu_t *pmu, FILE *fp)
+@@ -1511,7 +1541,11 @@ pfmlib_build_event_pattrs(pfmlib_event_desc_t  *e)
+ 		npattrs++;
+ 
+ 	if (npattrs) {
++#ifdef KTF_PFMLIB_INTEGRATION
++		e->pattrs = malloc(npattrs * sizeof(*e->pattrs));
++#else
+ 		e->pattrs = calloc(npattrs, sizeof(*e->pattrs));
++#endif
+ 		if (!e->pattrs)
+ 			return PFM_ERR_NOMEM;
+ 	}
+@@ -1962,7 +1996,11 @@ pfmlib_pmu_validate_encoding(pfmlib_pmu_t *pmu, FILE *fp)
  			/*
  			 * XXX: some events may require more than one umasks to encode
  			 */
-+#ifdef KTF_PFMLIB_INTEGRATION	
++#ifdef KTF_PFMLIB_INTEGRATION
 +			snprintf(buf, maxlen, "%s::%s:%s", pmu->name, einfo.name, ainfo.name);
 +#else
  			sprintf(buf, "%s::%s:%s", pmu->name, einfo.name, ainfo.name);
@@ -505,7 +563,7 @@ index 2f2c116..aca8b1d 100755
  			ret = pfmlib_validate_encoding(buf, PFM_PLM3|PFM_PLM0);
  			if (ret != PFM_SUCCESS) {
  				if (pmu->can_auto_encode) {
-@@ -1793,7 +1825,11 @@ pfmlib_pmu_validate_encoding(pfmlib_pmu_t *pmu, FILE *fp)
+@@ -1981,7 +2019,11 @@ pfmlib_pmu_validate_encoding(pfmlib_pmu_t *pmu, FILE *fp)
  			um++;
  		}
  		if (um == 0) {
@@ -517,14 +575,14 @@ index 2f2c116..aca8b1d 100755
  			ret = pfmlib_validate_encoding(buf, PFM_PLM3|PFM_PLM0);
  			if (ret != PFM_SUCCESS) {
  				if (pmu->can_auto_encode) {
-@@ -1815,14 +1851,20 @@ pfmlib_pmu_validate_encoding(pfmlib_pmu_t *pmu, FILE *fp)
+@@ -2003,14 +2045,20 @@ pfmlib_pmu_validate_encoding(pfmlib_pmu_t *pmu, FILE *fp)
  }
  
  int
 -pfm_pmu_validate(pfm_pmu_t pmu_id, FILE *fp)
-+pfm_pmu_validate(pfm_pmu_t pmu_id, 
++pfm_pmu_validate(pfm_pmu_t pmu_id,
 +#ifdef KTF_PFMLIB_INTEGRATION
-+	       	__attribute__((unused)) 
++	       	__attribute__((unused))
 +#endif
 +		FILE *fp)
  {
@@ -532,24 +590,23 @@ index 2f2c116..aca8b1d 100755
  	int nos = 0;
  	int i, ret;
  
-+#ifdef KTF_PFMLIB_INTEGRATION 
++#ifdef KTF_PFMLIB_INTEGRATION
  	if (fp == NULL)
  		return PFM_ERR_INVAL;
 +#endif
  
  	pmu = pmu2pmuidx(pmu_id);
  	if (!pmu)
-@@ -2127,6 +2169,9 @@ pfmlib_get_pmu_by_type(pfm_pmu_type_t t)
+@@ -2314,6 +2362,8 @@ pfmlib_get_pmu_by_type(pfm_pmu_type_t t)
  	return NULL;
  }
  
-+
 +#ifndef KTF_PFMLIB_INTEGRATION
 +/* qsort implementaiton is punted out, so this compare routine is dead as well */
  static int
  pfmlib_compare_attr_id(const void *a, const void *b)
  {
-@@ -2137,11 +2182,15 @@ pfmlib_compare_attr_id(const void *a, const void *b)
+@@ -2324,11 +2374,15 @@ pfmlib_compare_attr_id(const void *a, const void *b)
  		return -1;
  	return t1->id == t2->id ? 0 : 1;
  }
@@ -939,6 +996,16 @@ index 2f2c116..aca8b1d 100755
  
  /* private headers */
  #include "pfmlib_priv.h"
++++ b/./lib/pfmlib_intel_icl.c
+@@ -22,6 +22,8 @@
+  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+ /* private headers */
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include "pfmlib_priv.h"
+ #include "pfmlib_intel_x86_priv.h"
+ #include "events/intel_icl_events.h"
 +++ b/./lib/pfmlib_intel_ivb.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1570,6 +1637,26 @@ index 2f2c116..aca8b1d 100755
  
  /* private headers */
  #include "pfmlib_priv.h"
++++ b/./lib/pfmlib_intel_spr.c
+@@ -22,6 +22,8 @@
+  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+ /* private headers */
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include "pfmlib_priv.h"
+ #include "pfmlib_intel_x86_priv.h"
+ #include "events/intel_spr_events.h"
++++ b/./lib/pfmlib_intel_tmt.c
+@@ -23,6 +23,8 @@
+  */
+ 
+ /* private headers */
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include "pfmlib_priv.h"
+ #include "pfmlib_intel_x86_priv.h"
+ #include "events/intel_tmt_events.h"
 +++ b/./lib/pfmlib_intel_wsm.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -1595,11 +1682,10 @@ index 2f2c116..aca8b1d 100755
  
  /* private headers */
  #include "pfmlib_priv.h"
-@@ -56,14 +54,25 @@ pfm_intel_x86_config_t pfm_intel_x86_cfg;
-  * Some gcc's (4.1.2 on Core2) object to pairing push/pop and ebx in 64 bit mode.
-  * Using the opcode directly avoids this problem.
-  */
-+
+@@ -50,8 +48,18 @@ pfm_intel_x86_config_t pfm_intel_x86_cfg;
+ 
+ #define mdhw(m, u, at) (m & u & _INTEL_X86_##at)
+ 
 +/*
 + * cpuid name def is colliding with cpuid definition in KTF.
 + * for sake of keeping this library self contained and using its own cpuid impl
@@ -1613,18 +1699,9 @@ index 2f2c116..aca8b1d 100755
  cpuid(unsigned int op, unsigned int *a, unsigned int *b, unsigned int *c, unsigned int *d)
 +#endif
  {
-   __asm__ __volatile__ (".byte 0x53\n\tcpuid\n\tmovl %%ebx, %%esi\n\t.byte 0x5b"
-        : "=a" (*a),
--	     "=S" (*b),
--		 "=c" (*c),
--		 "=d" (*d)
-+	 "=S" (*b),
-+	 "=c" (*c),
-+	 "=d" (*d)
-        : "a" (op));
+ 	asm volatile("cpuid" : "=a" (*a), "=b" (*b), "=c" (*c), "=d" (*d) : "a" (op) : "memory");
  }
- 
-@@ -149,7 +158,11 @@ pfm_intel_x86_detect(void)
+@@ -138,7 +146,11 @@ pfm_intel_x86_detect(void)
  	if (pfm_intel_x86_cfg.family)
  		return PFM_SUCCESS;
  
@@ -1636,15 +1713,14 @@ index 2f2c116..aca8b1d 100755
  	strncpy(&buffer[0], (char *)(&b), 4);
  	strncpy(&buffer[4], (char *)(&d), 4);
  	strncpy(&buffer[8], (char *)(&c), 4);
-@@ -159,7 +172,11 @@ pfm_intel_x86_detect(void)
+@@ -148,7 +160,11 @@ pfm_intel_x86_detect(void)
  	if (strcmp(buffer, "GenuineIntel"))
  		return PFM_ERR_NOTSUPP;
  
--	cpuid(1, &a, &b, &c, &d);
 +#ifdef KTF_PFMLIB_INTEGRATION
-+	cpuid_intel(0, &a, &b, &c, &d);
++	cpuid_intel(1, &a, &b, &c, &d);
 +#else
-+	cpuid(0, &a, &b, &c, &d);
+ 	cpuid(1, &a, &b, &c, &d);
 +#endif
  
  	pfm_intel_x86_cfg.family = (a >> 8) & 0xf;  // bits 11 - 8
@@ -1664,11 +1740,10 @@ index 2f2c116..aca8b1d 100755
  
  /* private headers */
  #include "pfmlib_priv.h"			/* library private */
-@@ -49,14 +47,25 @@ static intel_x86_entry_t *x86_arch_pe;
-  * Some gcc's (4.1.2 on Core2) object to pairing push/pop and ebx in 64 bit mode.
-  * Using the opcode directly avoids this problem.
-  */
-+
+@@ -44,8 +42,18 @@ extern pfmlib_pmu_t intel_x86_arch_support;
+ 
+ static intel_x86_entry_t *x86_arch_pe;
+ 
 +/*
 + * cpuid name def is colliding with cpuid definition in KTF.
 + * for sake of keeping this library self contained and using its own cpuid impl
@@ -1682,18 +1757,9 @@ index 2f2c116..aca8b1d 100755
  cpuid(unsigned int op, unsigned int *a, unsigned int *b, unsigned int *c, unsigned int *d)
 +#endif
  {
-   __asm__ __volatile__ (".byte 0x53\n\tcpuid\n\tmovl %%ebx, %%esi\n\t.byte 0x5b"
-        : "=a" (*a),
--	     "=S" (*b),
--		 "=c" (*c),
--		 "=d" (*d)
-+	 "=S" (*b),
-+	 "=c" (*c),
-+	 "=d" (*d)
-        : "a" (op));
+ 	asm volatile("cpuid" : "=a" (*a), "=b" (*b), "=c" (*c), "=d" (*d) : "a" (op) : "memory");
  }
- 
-@@ -83,7 +92,11 @@ create_arch_event_table(unsigned int mask, int version)
+@@ -72,7 +80,11 @@ create_arch_event_table(unsigned int mask, int version)
  	}
  	intel_x86_arch_support.pme_count = num_events;
  
@@ -1705,7 +1771,16 @@ index 2f2c116..aca8b1d 100755
  	if (pe == NULL)
  		return PFM_ERR_NOTSUPP;
  
-@@ -137,14 +150,22 @@ check_arch_pmu(int family)
+@@ -111,7 +123,7 @@ check_arch_pmu(int family)
+ 		unsigned int val;
+ 		intel_x86_pmu_eax_t eax;
+ 		intel_x86_pmu_edx_t edx;
+-	} eax, ecx, edx, ebx;
++	} eax = {0}, ecx = {0}, edx = {0}, ebx = {0}; // jcjgraf: initialize to prevent compiler error
+ 
+ 	/*
+ 	 * check family number to reject for processors
+@@ -126,14 +138,22 @@ check_arch_pmu(int family)
  	 * 0xa started with Core Duo. Needed to detect if
  	 * architected PMU is present
  	 */
@@ -1720,28 +1795,23 @@ index 2f2c116..aca8b1d 100755
  	/*
  	 * extract architected PMU information
  	 */
--	cpuid(0xa, &eax.val, &ebx.val, &ecx.val, &edx.val);
 +#ifdef KTF_PFMLIB_INTEGRATION
-+	cpuid_intel(0x0, &eax.val, &ebx.val, &ecx.val, &edx.val);
++	cpuid_intel(0xa, &eax.val, &ebx.val, &ecx.val, &edx.val);
 +#else
-+	cpuid(0x0, &eax.val, &ebx.val, &ecx.val, &edx.val);
+ 	cpuid(0xa, &eax.val, &ebx.val, &ecx.val, &edx.val);
 +#endif
  
  	/*
  	 * version must be greater than zero
-@@ -177,7 +198,11 @@ pfm_intel_x86_arch_init(void *this)
+@@ -160,7 +180,7 @@ pfm_intel_x86_arch_init(void *this)
+ 		unsigned int val;
+ 		intel_x86_pmu_eax_t eax;
+ 		intel_x86_pmu_edx_t edx;
+-	} eax, ecx, edx, ebx;
++	} eax = {0}, ecx = {0}, edx = {0}, ebx = {0}; // jcjgraf: initialize to prevent compiler error
+ 
+ 	/*
  	 * extract architected PMU information
- 	 */
- 	if (!pfm_cfg.forced_pmu) {
--		cpuid(0xa, &eax.val, &ebx.val, &ecx.val, &edx.val);
-+#ifdef KTF_PFMLIB_INTEGRATION
-+	cpuid_intel(0x0, &eax.val, &ebx.val, &ecx.val, &edx.val);
-+#else
-+	cpuid(0x0, &eax.val, &ebx.val, &ecx.val, &edx.val);
-+#endif
- 		intel_x86_arch_support.num_cntrs = eax.eax.num_cnt;
- 		intel_x86_arch_support.num_fixed_cntrs = edx.edx.num_cnt;
- 	} else {
 +++ b/./lib/pfmlib_intel_x86_perf_event.c
 @@ -20,12 +20,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
@@ -1786,6 +1856,22 @@ index 2f2c116..aca8b1d 100755
  
  /* public headers */
  #include <perfmon/pfmlib_itanium2.h>
++++ b/./lib/pfmlib_kunpeng_unc_perf_event.c
+@@ -21,12 +21,9 @@
+  *
+  */
+ 
+-#include <sys/types.h>
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include <string.h>
+-#include <stdlib.h>
+-#include <stdio.h>
+-#include <stdarg.h>
+-#include <limits.h>
+ 
+ /* private headers */
+ #include "pfmlib_priv.h"
 +++ b/./lib/pfmlib_mips.c
 @@ -23,11 +23,9 @@
   *
@@ -1886,7 +1972,7 @@ index 2f2c116..aca8b1d 100755
  #include "perfmon/pfmlib_perf_event.h"
  
 +++ b/./lib/pfmlib_perf_event_raw.c
-@@ -21,12 +21,9 @@
+@@ -21,13 +21,9 @@
   * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
@@ -1898,9 +1984,20 @@ index 2f2c116..aca8b1d 100755
 -#include <stdio.h>
 -#include <unistd.h>
 -#include <ctype.h>
+-#include <limits.h>
+ #include <errno.h>
  
  #include "pfmlib_priv.h"
- #include "pfmlib_perf_event_priv.h"
++++ b/./lib/pfmlib_power10.c
+@@ -22,6 +22,8 @@
+  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+ /* private headers */
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include "pfmlib_priv.h"
+ #include "pfmlib_power_priv.h"
+ #include "events/power10_events.h"
 +++ b/./lib/pfmlib_power4.c
 @@ -22,6 +22,8 @@
   * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -2007,7 +2104,7 @@ index 2f2c116..aca8b1d 100755
  #include "pfmlib_power_priv.h"
  #include "events/ppc970_events.h"
 +++ b/./lib/pfmlib_priv.h
-@@ -24,6 +24,8 @@
+@@ -27,6 +27,8 @@
   */
  #ifndef __PFMLIB_PRIV_H__
  #define __PFMLIB_PRIV_H__
@@ -2016,7 +2113,7 @@ index 2f2c116..aca8b1d 100755
  #include <perfmon/pfmlib.h>
  #include <string.h>
  
-@@ -738,4 +740,18 @@ is_empty_attr(const pfmlib_attr_desc_t *a)
+@@ -831,4 +833,18 @@ is_empty_attr(const pfmlib_attr_desc_t *a)
  	return !a || !a->name || strlen(a->name) == 0 ? 1 : 0;
  }
  
@@ -2168,3 +2265,16 @@ index 2f2c116..aca8b1d 100755
  #include <dirent.h>
  #include <string.h>
  
++++ b/./lib/pfmlib_tx2_unc_perf_event.c
+@@ -1,9 +1,6 @@
+-#include <sys/types.h>
++/* Auto generated disclaimer by KTF project to patch headers */
++#include <ktf.h>
+ #include <string.h>
+-#include <stdlib.h>
+-#include <stdio.h>
+-#include <stdarg.h>
+-#include <limits.h>
+ 
+ /* private headers */
+ #include "pfmlib_priv.h"
