@@ -26,6 +26,7 @@
 #include <console.h>
 #include <cpuid.h>
 #include <ktf.h>
+#include <lib.h>
 #include <mm/pmm.h>
 #include <pagetable.h>
 #include <real_mode.h>
@@ -70,6 +71,33 @@ static void cpu_freq_expect(const char *cpu_str, uint64_t expectation) {
 static unsigned long test_kernel_task_func(void *arg) {
     printk("CPU[%u]: Executing %s\n", smp_processor_id(), __func__);
     return _ul(arg);
+}
+
+static inline uint64_t rand47(void) {
+    return (_ul(rand()) << 16) ^ rand();
+}
+
+#define KT2_ROUNDS 100
+#define KT2_CHUNKS 10
+static unsigned long test_kernel_pmm_vmm_stress_test(void *arg) {
+    srand(rdtsc());
+
+    uint64_t blocks[KT2_CHUNKS] = {0};
+
+    for (size_t i = 0; i < KT2_ROUNDS; i++) {
+        for (size_t j = 0; j < KT2_CHUNKS; j++) {
+            blocks[j] = rand47() & ~(PAGE_SIZE - 1);
+            void *res = vmap_kern_4k(_ptr(blocks[j]), get_free_frame()->mfn, L1_PROT);
+            ASSERT(res == _ptr(blocks[j]));
+        }
+
+        for (int j = 0; j < KT2_CHUNKS; j++) {
+            mfn_t mfn;
+            ASSERT(!vunmap_kern(_ptr(blocks[j]), &mfn, PAGE_ORDER_4K));
+            put_free_frame(mfn);
+        }
+    }
+    return 0;
 }
 
 static unsigned long __user_text test_user_task_func1(void *arg) {
@@ -203,11 +231,12 @@ int unit_tests(void *_unused) {
     printk("PTE: 0x%lx\n", pte2->entry);
     unmap_pagetables_va(&cr3, unit_tests);
 
-    task_t *task1, *task2, *task_user1, *task_user1_se, *task_user1_int80, *task_user2,
-        *task_user3, *task_user4;
+    task_t *task1, *task2, *task3, *task_user1, *task_user1_se, *task_user1_int80,
+        *task_user2, *task_user3, *task_user4;
 
     task1 = new_kernel_task("test1", test_kernel_task_func, _ptr(98));
     task2 = new_kernel_task("test2", test_kernel_task_func, _ptr(-99));
+    task3 = new_kernel_task("test3", test_kernel_pmm_vmm_stress_test, NULL);
     task_user1 = new_user_task("test1 user", test_user_task_func1, NULL);
     task_user1_se =
         new_user_task("test1 user sysenter", test_user_task_func1_sysenter, NULL);
@@ -230,6 +259,7 @@ int unit_tests(void *_unused) {
     set_task_repeat(task1, 10);
     schedule_task(task1, get_bsp_cpu());
     schedule_task(task2, get_cpu(1));
+    schedule_task(task3, get_cpu(1));
     schedule_task(task_user1, get_bsp_cpu());
     schedule_task(task_user1_se, get_bsp_cpu());
     schedule_task(task_user1_int80, get_bsp_cpu());
