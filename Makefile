@@ -135,6 +135,9 @@ CFLAGS  += -fno-stack-protector -fno-exceptions -fno-builtin -fomit-frame-pointe
 CFLAGS  += -mcmodel=kernel -fno-pic -fno-asynchronous-unwind-tables -fno-unwind-tables
 CFLAGS  += -Wno-unused-parameter -Wno-address-of-packed-member
 CFLAGS  += -Werror
+# Newer versions of GCC warn about memory accesses at non-zero offsets from null pointers.
+# As we use this intentionally at different places in our code, these warnings result in many false positives.
+CFLAGS  += -Wno-array-bounds
 
 ifneq ($(V), 1)
 VERBOSE=@
