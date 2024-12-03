@@ -93,7 +93,9 @@ static unsigned long test_kernel_pmm_vmm_stress_test(void *arg) {
 
         for (int j = 0; j < KT2_CHUNKS; j++) {
             mfn_t mfn;
-            ASSERT(!vunmap_kern(_ptr(blocks[j]), &mfn, PAGE_ORDER_4K));
+            unsigned int order;
+            ASSERT(!vunmap_kern(_ptr(blocks[j]), &mfn, &order));
+            ASSERT(order == PAGE_ORDER_4K);
             put_free_frame(mfn);
         }
     }
