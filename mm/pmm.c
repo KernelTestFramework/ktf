@@ -95,6 +95,7 @@ static inline void init_frames_array(frames_array_t *array) {
     for (unsigned i = 0; i < ARRAY_SIZE(array->frames); i++)
         init_frame(&array->frames[i]);
     list_add(&array->list, &frames);
+    total_free_frames += array->meta.free_count;
 }
 
 static frames_array_t *new_frames_array(void) {
@@ -117,7 +118,6 @@ static frames_array_t *new_frames_array(void) {
 
     init_frames_array(array);
 
-    total_free_frames += array->meta.free_count;
     return array;
 error:
     panic("PMM: Unable to allocate new page for frame array");
