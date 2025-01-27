@@ -11,3 +11,13 @@
  #include "aclinux.h"
  
  #elif defined(_APPLE) || defined(__APPLE__)
+--- drivers/acpi/acpica/source/components/namespace/nsaccess.c  2023-06-28 23:38:40.000000000 +0200
+@@ -613,6 +613,8 @@
+ 
+             if (SearchParentFlag == ACPI_NS_NO_UPSEARCH)
+             {
++                /* avoid compiler error when not debugging */
++                (void)NumCarats;
+                 ACPI_DEBUG_PRINT ((ACPI_DB_NAMES,
+                     "Search scope is [%4.4s], path has %u carat(s)\n",
+                     AcpiUtGetNodeName (ThisNode), NumCarats));
