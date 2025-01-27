@@ -200,7 +200,7 @@ static mfn_t get_cr3_mfn(cr3_t *cr3_entry) {
     void *cr3_mapped = NULL;
 
     if (mfn_invalid(cr3_entry->mfn)) {
-        frame_t *frame = get_free_frame();
+        frame_t *frame = get_free_frame_norefill();
         BUG_ON(!frame);
         frame->flags.pagetable = 1;
 
@@ -243,7 +243,7 @@ static mfn_t get_pgentry_mfn(mfn_t tab_mfn, pt_index_t index, unsigned long flag
 
     mfn = mfn_from_pgentry(*entry);
     if (mfn_invalid(mfn)) {
-        frame_t *frame = get_free_frame();
+        frame_t *frame = get_free_frame_norefill();
         BUG_ON(!frame);
         frame->flags.pagetable = 1;
 
@@ -308,6 +308,7 @@ static void *_vmap(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned int order,
     invlpg(va);
 
 done:
+    refill_from_paging();
     return va;
 }
 
@@ -416,6 +417,19 @@ void *vmap_4k(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l1_flags,
     spin_lock(&vmap_lock);
     va = _vmap_4k(cr3_ptr, _ptr(_va), mfn, l1_flags, propagate_user);
     spin_unlock(&vmap_lock);
+
+    return va;
+}
+
+void *vmap_4k_nolock(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l1_flags,
+                     bool propagate_user) {
+    unsigned long _va = _ul(va) & PAGE_ORDER_TO_MASK(PAGE_ORDER_4K);
+
+    dprintk("%s: va: 0x%p mfn: 0x%lx\n", __func__, va, mfn);
+
+    ASSERT(vmap_lock);
+    va = _vmap_4k(&cr3, _ptr(_va), mfn, l1_flags, propagate_user);
+    ASSERT(vmap_lock);
 
     return va;
 }

@@ -73,6 +73,7 @@ extern void init_pmm(void);
 
 extern frame_t *get_free_frames_cond(free_frames_cond_t cb);
 extern frame_t *get_free_frames(unsigned int order);
+extern frame_t *get_free_frame_norefill(void);
 extern void put_free_frames(mfn_t mfn, unsigned int order);
 extern void reclaim_frame(mfn_t mfn, unsigned int order);
 
@@ -84,6 +85,7 @@ extern frame_t *find_busy_paddr_frame(paddr_t paddr);
 extern frame_t *find_paddr_frame(paddr_t paddr);
 
 extern void map_frames_array(void);
+extern void refill_from_paging(void);
 
 /* Static definitions */
 

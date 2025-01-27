@@ -178,6 +178,9 @@ extern void *vmap_2m(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l2_flags
                      bool propagate_user);
 extern void *vmap_4k(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l1_flags,
                      bool propagate_user);
+/* this function may only be called while already holding the vmap_lock */
+extern void *vmap_4k_nolock(cr3_t *cr3_ptr, void *va, mfn_t mfn, unsigned long l1_flags,
+                            bool propagate_user);
 
 extern int vunmap_kern(void *va, mfn_t *mfn, unsigned int *order);
 extern int vunmap_user(void *va, mfn_t *mfn, unsigned int *order);
@@ -358,6 +361,11 @@ static inline void *vmap_kern_2m(void *va, mfn_t mfn, unsigned long l2_flags) {
 
 static inline void *vmap_kern_4k(void *va, mfn_t mfn, unsigned long l1_flags) {
     return vmap_4k(&cr3, va, mfn, l1_flags, false);
+}
+
+/* Same as vmap_kern_4k but does not take vmap_lock. Callers must hold vmap_lock! */
+static inline void *vmap_kern_4k_nolock(void *va, mfn_t mfn, unsigned long l1_flags) {
+    return vmap_4k_nolock(&cr3, va, mfn, l1_flags, false);
 }
 
 static inline void *vmap_user(void *va, mfn_t mfn, unsigned int order,
