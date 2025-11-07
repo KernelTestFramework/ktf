@@ -91,7 +91,7 @@ endif
 GRUB_DIR := grub/boot
 GRUB_FILE := grub-file
 GRUB_MKRESCUE := grub-mkrescue
-GRUB_MODULES := multiboot2 iso9660 serial normal
+GRUB_MODULES := multiboot2 iso9660 serial normal all_video
 ifneq ($(UNITTEST),)
 GRUB_CONFIG := grub/grub-test.cfg
 else
