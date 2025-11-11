@@ -245,7 +245,8 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
 #ifndef KTF_ACPICA
     if (init_acpi() < 0) {
 #else
-    if (ACPI_FAILURE(init_acpi())) {
+    ACPI_STATUS acpi_status = init_acpi_tables();
+    if (ACPI_FAILURE(acpi_status)) {
 #endif
         /* Fallback to MP tables when no ACPI */
         if (init_mptables() < 0)
@@ -253,6 +254,13 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
     }
 
     init_ioapic();
+
+#ifdef KTF_ACPICA
+    if (ACPI_SUCCESS(acpi_status)) {
+        if (ACPI_FAILURE(init_acpi_subsystem()))
+            panic("Failed to initialize ACPICA subsystem\n");
+    }
+#endif
 
     /* Initialize timers and enable interrupts */
     init_timers(bsp);
