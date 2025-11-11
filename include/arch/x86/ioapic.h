@@ -216,8 +216,12 @@ extern int get_ioapic_redirtbl_entry(ioapic_t *ioapic, unsigned n,
 extern int set_ioapic_redirtbl_entry(ioapic_t *ioapic, unsigned n,
                                      ioapic_redirtbl_entry_t *entry);
 extern void set_ioapic_irq_mask(ioapic_t *ioapic, unsigned irq, ioapic_int_mask_t mask);
+extern void configure_irq(unsigned irq_src, uint8_t vector, ioapic_dest_mode_t dst_mode,
+                          uint8_t dst_ids, ioapic_polarity_t polarity,
+                          ioapic_trigger_mode_t trigger_mode);
 extern void configure_isa_irq(unsigned irq_src, uint8_t vector,
                               ioapic_dest_mode_t dst_mode, uint8_t dst_ids);
+extern void mask_irq(unsigned irq_src);
 
 /* Static declarations */
 

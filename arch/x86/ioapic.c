@@ -275,30 +275,42 @@ static ioapic_t *find_ioapic_for_irq(uint32_t irq_src) {
     return NULL;
 }
 
-void configure_isa_irq(unsigned irq_src, uint8_t vector, ioapic_dest_mode_t dst_mode,
-                       uint8_t dst_ids) {
-    irq_override_t *irq_override = get_system_isa_bus_irq(IOAPIC_IRQ_TYPE_INT, irq_src);
-    ioapic_redirtbl_entry_t entry;
-    ioapic_polarity_t polarity = IOAPIC_POLARITY_AH;
-    ioapic_trigger_mode_t trigger_mode = IOAPIC_TRIGGER_MODE_EDGE;
-    ioapic_t *ioapic;
-
+/**
+ * Find the IOAPIC for an interrupt source while applying the override.
+ * If irq_dst is not NULL, it is updated with the irq_src or the override
+ * destination.
+ */
+static ioapic_t *find_ioapic_with_override(uint32_t irq_src, uint32_t *irq_dst,
+                                           irq_override_t *irq_override) {
     if (irq_override) {
         irq_src = irq_override->dst;
+        if (irq_override->dst_id != IOAPIC_DEST_ID_UNKNOWN)
+            return get_ioapic(irq_override->dst_id);
+    }
 
-        if (irq_override->dst_id == IOAPIC_DEST_ID_UNKNOWN)
-            ioapic = find_ioapic_for_irq(irq_src);
-        else
-            ioapic = get_ioapic(irq_override->dst_id);
+    if (irq_dst)
+        *irq_dst = irq_src;
 
+    return find_ioapic_for_irq(irq_src);
+}
+
+void configure_irq(unsigned irq_src, uint8_t vector, ioapic_dest_mode_t dst_mode,
+                   uint8_t dst_ids, ioapic_polarity_t polarity,
+                   ioapic_trigger_mode_t trigger_mode) {
+    irq_override_t *irq_override = get_system_isa_bus_irq(IOAPIC_IRQ_TYPE_INT, irq_src);
+    ioapic_t *ioapic = find_ioapic_with_override(irq_src, &irq_src, irq_override);
+    ioapic_redirtbl_entry_t entry;
+
+    if (irq_override) {
         if (irq_override->polarity == IOAPIC_IRQ_OVR_POLARITY_AL)
             polarity = IOAPIC_POLARITY_AL;
+        else if (irq_override->polarity == IOAPIC_IRQ_OVR_POLARITY_AH)
+            polarity = IOAPIC_POLARITY_AH;
 
         if (irq_override->trigger_mode == IOAPIC_IRQ_OVR_TRIGGER_LT)
             trigger_mode = IOAPIC_TRIGGER_MODE_LEVEL;
-    }
-    else {
-        ioapic = find_ioapic_for_irq(irq_src);
+        else if (irq_override->trigger_mode == IOAPIC_IRQ_OVR_TRIGGER_ET)
+            trigger_mode = IOAPIC_TRIGGER_MODE_EDGE;
     }
 
     get_ioapic_redirtbl_entry(ioapic, irq_src, &entry);
@@ -310,4 +322,17 @@ void configure_isa_irq(unsigned irq_src, uint8_t vector, ioapic_dest_mode_t dst_
     entry.destination = dst_ids;
     entry.int_mask = IOAPIC_INT_UNMASK;
     set_ioapic_redirtbl_entry(ioapic, irq_src, &entry);
+}
+
+void configure_isa_irq(unsigned irq_src, uint8_t vector, ioapic_dest_mode_t dst_mode,
+                       uint8_t dst_ids) {
+    configure_irq(irq_src, vector, dst_mode, dst_ids, IOAPIC_POLARITY_AH,
+                  IOAPIC_TRIGGER_MODE_EDGE);
+}
+
+void mask_irq(unsigned irq_src) {
+    irq_override_t *irq_override = get_system_isa_bus_irq(IOAPIC_IRQ_TYPE_INT, irq_src);
+    ioapic_t *ioapic = find_ioapic_with_override(irq_src, &irq_src, irq_override);
+
+    set_ioapic_irq_mask(ioapic, irq_src, IOAPIC_INT_MASK);
 }
