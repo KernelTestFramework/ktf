@@ -25,6 +25,7 @@
 #ifdef KTF_ACPICA
 #include <acpi_ktf.h>
 #include <cpu.h>
+#include <ioapic.h>
 #include <ktf.h>
 #include <mm/slab.h>
 #include <pagetable.h>
@@ -574,6 +575,8 @@ void acpi_interrupt_handler(void) {
         acpi_irq_handled = true;
     else if (ret == ACPI_INTERRUPT_NOT_HANDLED)
         acpi_irq_handled = false;
+
+    apic_EOI();
 }
 
 ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 InterruptLevel, ACPI_OSD_HANDLER Handler,
@@ -591,9 +594,12 @@ ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 InterruptLevel, ACPI_OSD_HANDLE
     acpi_irq_handler = Handler;
     acpi_irq_context = Context;
 
-    set_intr_gate(&percpu->idt[acpi_irq_num], __KERN_CS, _ul(asm_interrupt_handler_acpi),
+    set_intr_gate(&percpu->idt[ACPI_SCI_IRQ], __KERN_CS, _ul(asm_interrupt_handler_acpi),
                   GATE_DPL0, GATE_PRESENT, 1);
     barrier();
+
+    configure_irq(acpi_irq_num, ACPI_SCI_IRQ, IOAPIC_DEST_MODE_PHYSICAL, cpu->id,
+                  IOAPIC_POLARITY_AL, IOAPIC_TRIGGER_MODE_LEVEL);
 
     acpi_irq_installed = true;
     return AE_OK;
@@ -613,6 +619,9 @@ ACPI_STATUS AcpiOsRemoveInterruptHandler(UINT32 InterruptLevel,
     if (Handler != _ptr(get_intr_handler(&percpu->idt[acpi_irq_num])))
         return AE_BAD_PARAMETER;
 
+    mask_irq(acpi_irq_num);
+
+    barrier();
     set_intr_gate(&percpu->idt[acpi_irq_num], __KERN_CS, _ul(NULL), GATE_DPL0,
                   GATE_NOT_PRESENT, 0);
     barrier();
