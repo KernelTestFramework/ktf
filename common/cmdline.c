@@ -58,6 +58,9 @@ bool_cmd("qemu_console", opt_qemu_console);
 bool opt_poweroff = true;
 bool_cmd("poweroff", opt_poweroff);
 
+bool opt_power_button = false;
+bool_cmd("power_button", opt_power_button);
+
 static char opt_com1[20];
 string_cmd("com1", opt_com1);
 

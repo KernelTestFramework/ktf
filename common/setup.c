@@ -55,6 +55,7 @@
 #include <drivers/hpet.h>
 #include <drivers/pic.h>
 #include <drivers/pit.h>
+#include <drivers/power_button.h>
 #include <drivers/serial.h>
 #include <drivers/vga.h>
 
@@ -282,6 +283,9 @@ void __noreturn __text_init kernel_start(uint32_t multiboot_magic, unsigned long
         printk("Enabling FPU instructions support\n");
         enable_fpu();
     }
+
+    if (opt_power_button)
+        init_power_button();
 
 #ifdef KTF_PMU
     printk("Initializing PFM library\n");
