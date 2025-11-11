@@ -293,7 +293,8 @@ extern void *acpi_find_table(char *signature);
 extern void acpi_walk_subtables(ACPI_SUBTABLE_HEADER *entry, uint32_t length,
                                 acpi_subtable_parser_t parser, void *arg);
 
-extern ACPI_STATUS init_acpi(void);
+extern ACPI_STATUS init_acpi_tables(void);
+extern ACPI_STATUS init_acpi_subsystem(void);
 extern void acpi_power_off(void);
 extern void acpi_reboot(void);
 

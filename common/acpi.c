@@ -425,38 +425,6 @@ int init_acpi(void) {
 
 /* ACPI initialization and termination functions */
 
-static ACPI_STATUS InitializeFullAcpi(void) {
-    ACPI_STATUS status;
-
-    /* Initialize the ACPICA subsystem */
-    status = AcpiInitializeSubsystem();
-    if (ACPI_FAILURE(status))
-        return status;
-
-    /* Initialize the ACPICA Table Manager and get all ACPI tables */
-    status = AcpiInitializeTables(NULL, 16, true);
-    if (ACPI_FAILURE(status))
-        return status;
-
-    /* Create the ACPI namespace from ACPI tables */
-    status = AcpiLoadTables();
-    if (ACPI_FAILURE(status))
-        return status;
-
-    /* Note: Local handlers should be installed here */
-    /* Initialize the ACPI hardware */
-    status = AcpiEnableSubsystem(ACPI_FULL_INITIALIZATION);
-    if (ACPI_FAILURE(status))
-        return status;
-
-    /* Complete the ACPI namespace object initialization */
-    status = AcpiInitializeObjects(ACPI_FULL_INITIALIZATION);
-    if (ACPI_FAILURE(status))
-        return status;
-
-    return AE_OK;
-}
-
 static void madt_parser(ACPI_SUBTABLE_HEADER *entry, void *arg) {
     bus_t *isa_bus =
         add_system_bus(ACPI_MADT_INT_BUS_ISA, madt_int_bus_names[ACPI_MADT_INT_BUS_ISA],
@@ -708,21 +676,55 @@ void acpi_walk_subtables(ACPI_SUBTABLE_HEADER *entry, uint32_t length,
     }
 }
 
-ACPI_STATUS init_acpi(void) {
+ACPI_STATUS init_acpi_tables(void) {
     ACPI_STATUS status;
 
     printk("Initializing ACPI support\n");
 
-    status = InitializeFullAcpi();
-    if (status != AE_OK)
+    /* Initialize the ACPICA subsystem */
+    status = AcpiInitializeSubsystem();
+    if (ACPI_FAILURE(status))
+        return status;
+
+    /* Initialize the ACPICA Table Manager and get all ACPI tables */
+    status = AcpiInitializeTables(NULL, 16, true);
+    if (ACPI_FAILURE(status))
+        return status;
+
+    /* Create the ACPI namespace from ACPI tables */
+    status = AcpiLoadTables();
+    if (ACPI_FAILURE(status))
         return status;
 
     status = init_fadt();
-    if (status != AE_OK)
+    if (ACPI_FAILURE(status))
         return status;
 
     status = init_madt();
     return status;
+}
+
+ACPI_STATUS init_acpi_subsystem(void) {
+    ACPI_STATUS status;
+
+    printk("Initializing ACPI finalize\n");
+
+    /* Note: Local handlers should be installed here */
+    /* Initialize the ACPI hardware */
+    status = AcpiEnableSubsystem(ACPI_FULL_INITIALIZATION);
+    if (ACPI_FAILURE(status))
+        return status;
+
+    /* Complete the ACPI namespace object initialization */
+    status = AcpiInitializeObjects(ACPI_FULL_INITIALIZATION);
+    if (ACPI_FAILURE(status))
+        return status;
+
+    status = AcpiUpdateAllGpes();
+    if (ACPI_FAILURE(status))
+        return status;
+
+    return AE_OK;
 }
 
 void acpi_power_off(void) {
