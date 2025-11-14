@@ -67,6 +67,10 @@ extern void wait_for_all_cpus(void);
 
 /* Static declarations */
 
+static inline cpu_t *get_this_cpu() {
+    return PERCPU_GET(cpu);
+}
+
 static inline bool is_cpu_bsp(cpu_t *cpu) {
     return cpu->flags.bsp;
 }

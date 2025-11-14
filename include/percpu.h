@@ -31,6 +31,7 @@
 #include <list.h>
 #include <page.h>
 
+struct cpu;
 struct percpu {
     list_head_t list;
 
@@ -60,6 +61,7 @@ struct percpu {
     unsigned long usermode_private;
     volatile unsigned long apic_ticks;
     bool apic_timer_enabled;
+    struct cpu *cpu;
 } __aligned(PAGE_SIZE);
 typedef struct percpu percpu_t;
 
