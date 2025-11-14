@@ -49,6 +49,7 @@ static void init_cpu(cpu_t *cpu, unsigned int id, bool is_bsp, bool enabled) {
 
     cpu->percpu = get_percpu_page(id);
     BUG_ON(!cpu->percpu);
+    cpu->percpu->cpu = cpu;
 
     cpu->lock = SPINLOCK_INIT;
     list_init(&cpu->task_queue);

@@ -27,6 +27,9 @@ static void default_handler(void *notused) {
 }
 
 void pb_set_handler(pb_handler_t handler, void *context) {
+    // check that we are on the bsp. Assumes that there is no task migration
+    ASSERT(is_cpu_bsp(get_this_cpu()));
+
     unsigned long flags = interrupts_disable_save();
     pb_handler = handler;
     pb_context = context;
